@@ -87,7 +87,7 @@ namespace KeepYourFocus
             startBTN.TabIndex = 0;
             startBTN.Text = "Start";
             startBTN.UseVisualStyleBackColor = false;
-            startBTN.Click += startButtonClick;
+            startBTN.Click += StartButtonClick;
             // 
             // richTextBoxShowNumbersOfSequences
             // 

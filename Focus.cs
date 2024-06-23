@@ -96,7 +96,7 @@ namespace KeepYourFocus
         }
 
         // Click Event for Start Button at start
-        private void startButtonClick(object sender, EventArgs e)
+        private void StartButtonClick(object sender, EventArgs e)
         {
             if (!startButton)
                 return;
@@ -471,8 +471,8 @@ namespace KeepYourFocus
 
         private async void CheckChangeColors()
         {
-            if (counter_levels == 2 && rnd.Next(100) <= 100 ||
-                counter_levels >= 3 && rnd.Next(100) <= 100 ||
+            if (counter_levels == 2 && rnd.Next(100) <= 55 ||
+                counter_levels >= 3 && rnd.Next(100) <= 85 ||
                 counter_levels >= 6)
             {
 
