@@ -18,24 +18,20 @@ namespace KeepYourFocus
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PlayerField));
-            
             pictureBox1 = new PictureBox();
             pictureBox2 = new PictureBox();
             pictureBox3 = new PictureBox();
             pictureBox4 = new PictureBox();
-            BTN_Start = new Button();
-            
+            startBTN = new Button();
             richTextBoxShowNumbersOfSequences = new ReadOnlyRichTextBox();
             richTextBoxTurn = new ReadOnlyRichTextBox();
             richTextBoxShowRounds = new ReadOnlyRichTextBox();
             richTextBoxShowLevelName = new ReadOnlyRichTextBox();
             richTextBoxShowLevelNumber = new ReadOnlyRichTextBox();
-            
             LabelMessage1 = new Label();
             LabelMessage2 = new Label();
             LabelMessage3 = new Label();
             LabelMessage4 = new Label();
-            
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -78,20 +74,20 @@ namespace KeepYourFocus
             pictureBox4.TabIndex = 6;
             pictureBox4.TabStop = false;
             // 
-            // BTN_Start
+            // startBTN
             // 
-            BTN_Start.BackColor = Color.Lime;
-            BTN_Start.Cursor = Cursors.Hand;
-            BTN_Start.FlatStyle = FlatStyle.Popup;
-            BTN_Start.Font = new Font("Microsoft Sans Serif", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            BTN_Start.Location = new Point(243, 277);
-            BTN_Start.Margin = new Padding(4, 3, 4, 3);
-            BTN_Start.Name = "BTN_Start";
-            BTN_Start.Size = new Size(153, 70);
-            BTN_Start.TabIndex = 0;
-            BTN_Start.Text = "Start";
-            BTN_Start.UseVisualStyleBackColor = false;
-            BTN_Start.Click += startButtonClick;
+            startBTN.BackColor = Color.Lime;
+            startBTN.Cursor = Cursors.Hand;
+            startBTN.FlatStyle = FlatStyle.Popup;
+            startBTN.Font = new Font("Microsoft Sans Serif", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            startBTN.Location = new Point(243, 277);
+            startBTN.Margin = new Padding(4, 3, 4, 3);
+            startBTN.Name = "startBTN";
+            startBTN.Size = new Size(153, 70);
+            startBTN.TabIndex = 0;
+            startBTN.Text = "Start";
+            startBTN.UseVisualStyleBackColor = false;
+            startBTN.Click += startButtonClick;
             // 
             // richTextBoxShowNumbersOfSequences
             // 
@@ -227,7 +223,7 @@ namespace KeepYourFocus
             Controls.Add(LabelMessage3);
             Controls.Add(LabelMessage2);
             Controls.Add(LabelMessage1);
-            Controls.Add(BTN_Start);
+            Controls.Add(startBTN);
             Controls.Add(richTextBoxShowLevelNumber);
             Controls.Add(richTextBoxShowLevelName);
             Controls.Add(richTextBoxShowRounds);
@@ -254,7 +250,7 @@ namespace KeepYourFocus
             PerformLayout();
         }
 
-        private System.Windows.Forms.Button BTN_Start;
+        private System.Windows.Forms.Button startBTN;
 
         private ReadOnlyRichTextBox richTextBoxShowNumbersOfSequences;
         private ReadOnlyRichTextBox richTextBoxTurn;

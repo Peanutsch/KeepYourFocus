@@ -34,13 +34,12 @@ namespace KeepYourFocus
         private readonly SoundPlayer correctSound;
         private readonly SoundPlayer startupSound;
         
-        private Random rnd = new Random();
+        private readonly Random rnd = new Random();
 
         private bool Computer = false;
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
-        private bool changeColors= false;
 
         private int consecutiveCount = 0;
         private int counter_sequences = 1;
@@ -58,7 +57,18 @@ namespace KeepYourFocus
             InitializeComponent();
 
             // Load soundfiles. For now 1 beep sound for all colors
-            string soundPathbeep = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\beep.wav");
+            string soundPathBeepALL = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\beep.wav");
+            /*
+            string soundPathBeepRed = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\redSound.wav");
+            string soundPathBeepBlue = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\blueSound.wav");
+            string soundPathBeepOrange = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\orangeSound.wav");
+            string soundPathBeepGreen = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\greenSound.wav");
+            string soundPathBeepCaribBlue = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\caribBlueSound.wav");
+            string soundPathBeepGrey = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\greySound.wav");
+            string soundPathBeepIndigo = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\indigoSound.wav");
+            string soundPathBeepMaroon = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\maroonSound.wav");
+            */
+
             string soundPathTransition = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\transistion.wav");
             string soundPathButtonClick = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\buttonclick.wav");
             string soundPathWrong = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\wrong.wav");
@@ -66,14 +76,14 @@ namespace KeepYourFocus
             string soundPathStartupSound = Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\startsound.wav");
 
             // Initiaize SoundPlayers
-            redSound = new SoundPlayer(soundPathbeep);      // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\redSound.wav");
-            blueSound = new SoundPlayer(soundPathbeep);     // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\blueSound.wav");
-            orangeSound = new SoundPlayer(soundPathbeep);   // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\orangeSound.wav");
-            greenSound = new SoundPlayer(soundPathbeep);    // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\greenSound.wav");
-            caribBlueSound = new SoundPlayer(soundPathbeep); // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\caribBlueSound.wav");
-            greySound = new SoundPlayer(soundPathbeep); // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\greySound.wav");
-            indigoSound = new SoundPlayer(soundPathbeep); // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\indigoSound.wav");
-            maroonSound = new SoundPlayer(soundPathbeep); // Path.Combine(pathRoot, @"C#\KeepYourFocus\sounds\maroonSound.wav");
+            redSound = new SoundPlayer(soundPathBeepALL);
+            blueSound = new SoundPlayer(soundPathBeepALL);
+            orangeSound = new SoundPlayer(soundPathBeepALL);
+            greenSound = new SoundPlayer(soundPathBeepALL);
+            caribBlueSound = new SoundPlayer(soundPathBeepALL);
+            greySound = new SoundPlayer(soundPathBeepALL);
+            indigoSound = new SoundPlayer(soundPathBeepALL);
+            maroonSound = new SoundPlayer(soundPathBeepALL);
             transitionSound = new SoundPlayer(soundPathTransition);
             buttonClickSound = new SoundPlayer(soundPathButtonClick);
             wrongSound = new SoundPlayer(soundPathWrong);
@@ -82,7 +92,7 @@ namespace KeepYourFocus
 
             // Play startup sound
             startupSound.Play();
-            SetupAtStart();
+            FieldSetupAtStart();
         }
 
         // Click Event for Start Button at start
@@ -105,23 +115,23 @@ namespace KeepYourFocus
             SetStartButtonInvisible();
         }
 
-        private void SetStartButtonGameOver()
+        private void SetGameOverButton()
         {
-            BTN_Start.Visible = true;
-            BTN_Start.Enabled = true;
-            BTN_Start.BackColor = Color.DarkRed;
-            BTN_Start.Cursor = Cursors.Hand;
-            BTN_Start.Text = $"{new string(' ', 1)}Wrong\n Sequence";
-            BTN_Start.FlatStyle = FlatStyle.Popup;
+            startBTN.Visible = true;
+            startBTN.Enabled = true;
+            startBTN.BackColor = Color.DarkRed;
+            startBTN.Cursor = Cursors.Hand;
+            startBTN.Text = $"{new string(' ', 1)}Wrong\n Sequence";
+            startBTN.FlatStyle = FlatStyle.Popup;
         }
 
         private void SetStartButtonInvisible()
         {
-            BTN_Start.Visible = false;
-            BTN_Start.Enabled = false;
+            startBTN.Visible = false;
+            startBTN.Enabled = false;
         }
 
-        private void SetupAtStart()
+        private void FieldSetupAtStart()
         {
             if (pictureBoxDictionary.Count > 0)
             {
@@ -145,7 +155,7 @@ namespace KeepYourFocus
                 pictureBox.Cursor = Cursors.Hand;
                 pictureBox.Tag = color;
 
-                Debug.WriteLine("Remove pervious attached event handler");
+                Debug.WriteLine("Remove previous attached event handler");
                 pictureBox.Click -= PlayersTurn; // Remove any previous attachment
 
                 Debug.WriteLine("Attach event handler");
@@ -221,7 +231,7 @@ namespace KeepYourFocus
         private async void ComputersTurn()
         {
             Computer = true;
-            correctOrder.Add(Randomizer());
+            correctOrder.Add(RandomizerNoMoreColorsTwiceInARow());
             UpdateTurn(); // case Computer's Turn
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
@@ -245,7 +255,7 @@ namespace KeepYourFocus
                 PlaySound(color);
 
                 ApplyHighlight(box);
-                await Task.Delay(100);
+                await Task.Delay(150);
                 RemoveHighlight(box);
                 await Task.Delay(50);
                 Debug.WriteLine($"Color: [{color}]");
@@ -339,15 +349,12 @@ namespace KeepYourFocus
             {
                 case (6) when counter_levels < 6:
                     levelUp = true;
-
                     correctOrder.Clear();
                     playerOrder.Clear();
                     counter_sequences = 1; // Reset sequence to 1
                     counter_levels++;
                     counter_rounds++;
-
                     UpdateTurn();
-
                     levelUp = false;
                     break;
                 default:
@@ -357,7 +364,6 @@ namespace KeepYourFocus
                         counter_sequences++;
                         counter_rounds++;
                         UpdateTurn();
-                        levelUp = false;
                     }
                     else
                     {
@@ -378,13 +384,47 @@ namespace KeepYourFocus
                 // Computers Turn //
                 case true:
                     DisplayLabelMessage(true);
-                    ShuffleAfterDisplaySequence();
+                    ShufflePictureBoxes();
+                    //ShuffleAfterDisplaySequence();
                     break;
 
                 // Players Turn //
                 case false:
                     DisplayLabelMessage(false);
-                    ShuffleAfterPlayersClick();
+                    ShufflePictureBoxes();
+                    //ShuffleAfterPlayersClick();
+                    break;
+            }
+        }
+
+        private async void ShufflePictureBoxes()
+        {
+            switch (Computer)
+            {
+                case (true):
+                    if (counter_levels == 2 && rnd.Next(100) <= 55 ||
+                        counter_levels >= 3 && rnd.Next(100) <= 85 ||
+                        counter_levels >= 6)
+                    {
+                        Debug.WriteLine($"ShufflePictureBoxes Case 1: Shuffle after display sequence");
+
+                        await Task.Delay(250); // Delay 250 ms for space between colorSound and transitionSound
+                        transitionSound.Play();
+                        RandomizePictureBoxes();
+                        RefreshAndRepositionPictureBoxes();
+                        await Task.Delay(1000);
+                    }
+                    break;
+                case (false):
+                    if (counter_levels >= 3 && rnd.Next(100) <= 55 ||
+                        counter_levels >= 4 && rnd.Next(100) <= 85 ||
+                        counter_levels >= 6)
+                    {
+                        Debug.WriteLine($"ShufflePictureBoxes Case 2: Shuffle after player click");
+
+                        RandomizePictureBoxes();
+                        RefreshAndRepositionPictureBoxes();
+                    }
                     break;
             }
         }
@@ -424,9 +464,9 @@ namespace KeepYourFocus
                 listToShuffle[numberOfItems] = temp;
             }
 
-            Dictionary<string, string> shuffledDictOfAllColorSquares = listToShuffle.ToDictionary(kv => kv.Key, kv => kv.Value);
+            Dictionary<string, string> shuffleAllColorSquares = listToShuffle.ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            return shuffledDictOfAllColorSquares;
+            return shuffleAllColorSquares;
         }
 
         private async void CheckChangeColors()
@@ -460,12 +500,7 @@ namespace KeepYourFocus
                         await Task.Delay(250); // Delay 250 ms for space between colorSound and transitionSound
                         transitionSound.Play();
 
-                        RefreshAndRepositionPictureBoxes();
-
-                        correctOrder.Clear();
-                        playerOrder.Clear();
-
-                        changeColors = false;
+                        //RefreshAndRepositionPictureBoxes();
                     }
                     catch (ArgumentException ex)
                     {
@@ -480,7 +515,6 @@ namespace KeepYourFocus
                 {
                     Debug.WriteLine("Not enough colors in shuffledColourSquares to initialize picture boxes.");
                 }
-            //changeColors = false;
             }
         }
 
@@ -500,19 +534,6 @@ namespace KeepYourFocus
             InitializePictureBox(pictureBox4, kvpD.Key, kvpD.Value);
         }
 
-        private async void ShuffleAfterDisplaySequence()
-        {
-            if (counter_levels == 2 && rnd.Next(100) <= 55 ||
-                counter_levels >= 3 && rnd.Next(100) <= 75 ||
-                counter_levels >= 6)
-            {
-                await Task.Delay(250); // Delay 250 ms for space between colorSound and transitionSound
-                transitionSound.Play();
-                RandomizePictureBoxes();
-                RefreshAndRepositionPictureBoxes();
-                await Task.Delay(1000);
-            }
-        }
 
         private async void DisplayLabelMessage(bool isComputerTurn)
         {
@@ -534,7 +555,7 @@ namespace KeepYourFocus
 
                 if (isComputerTurn)
                 {
-                    labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!" };
+                    labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
                 }
                 else
                 {
@@ -542,17 +563,17 @@ namespace KeepYourFocus
                         {
                          "Click Here", "This Is NOT\nThe Correct color!", "The Computer\nIs Lying!",
                          "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Color!",
-                         "This Is\nThe Next\nOne!", "Now This One!", "This One!"
+                         "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
                         };
                 }
 
-                // Randomizer Label
+                // RandomizerNoMoreColorsTwiceInARow() Label
                 int pickLabelIndex = rnd.Next(labels.Count);
                 Label randomizedLabelClickHere = labels[pickLabelIndex];
                 
                 // Debug.WriteLine($"Randomized label: index {pickLabelIndex}");
 
-                // Randomizer labelText
+                // RandomizerNoMoreColorsTwiceInARow() labelText
                 int pickLabelText = rnd.Next(labelText.Count);
                 string randomizedText = labelText[pickLabelText];
                 
@@ -565,19 +586,6 @@ namespace KeepYourFocus
                 randomizedLabelClickHere.Visible = true;
                 await Task.Delay(750);
                 randomizedLabelClickHere.Visible = false;
-            }
-        }
-
-        private void ShuffleAfterPlayersClick()
-        {
-            if (counter_levels >= 3 && rnd.Next(100) <= 55 ||
-                counter_levels >= 4 && rnd.Next(100) <= 75 ||
-                counter_levels >= 6)
-            {
-                Debug.WriteLine($"SetTurnActions Case 2: Shuffle after player click");
-
-                RandomizePictureBoxes();
-                RefreshAndRepositionPictureBoxes();
             }
         }
 
@@ -608,7 +616,7 @@ namespace KeepYourFocus
             }
         }
 
-        private string Randomizer()
+        private string RandomizerNoMoreColorsTwiceInARow()
         {
             string newColor;
 
@@ -794,8 +802,8 @@ namespace KeepYourFocus
 
             UpdateLevelName();
 
-            SetStartButtonGameOver();
-            SetupAtStart();
+            SetGameOverButton();
+            FieldSetupAtStart();
 
             counter_rounds = 1;
             counter_levels = 1;
