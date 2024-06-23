@@ -18,61 +18,65 @@ namespace KeepYourFocus
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PlayerField));
-            pictureBoxRed = new PictureBox();
-            pictureBoxBlue = new PictureBox();
-            pictureBoxOrange = new PictureBox();
-            pictureBoxGreen = new PictureBox();
+            
+            pictureBox1 = new PictureBox();
+            pictureBox2 = new PictureBox();
+            pictureBox3 = new PictureBox();
+            pictureBox4 = new PictureBox();
             BTN_Start = new Button();
+            
             richTextBoxShowNumbersOfSequences = new ReadOnlyRichTextBox();
             richTextBoxTurn = new ReadOnlyRichTextBox();
             richTextBoxShowRounds = new ReadOnlyRichTextBox();
             richTextBoxShowLevelName = new ReadOnlyRichTextBox();
             richTextBoxShowLevelNumber = new ReadOnlyRichTextBox();
-            LabelClickHere1 = new Label();
-            LabelClickHere2 = new Label();
-            LabelClickHere3 = new Label();
-            LabelClickHere4 = new Label();
-            ((System.ComponentModel.ISupportInitialize)pictureBoxRed).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBoxBlue).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBoxOrange).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBoxGreen).BeginInit();
+            
+            LabelMessage1 = new Label();
+            LabelMessage2 = new Label();
+            LabelMessage3 = new Label();
+            LabelMessage4 = new Label();
+            
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
             SuspendLayout();
             // 
-            // pictureBoxRed
+            // pictureBox1
             // 
-            pictureBoxRed.Location = new Point(13, 12);
-            pictureBoxRed.Margin = new Padding(4, 3, 4, 3);
-            pictureBoxRed.Name = "pictureBoxRed";
-            pictureBoxRed.Size = new Size(300, 294);
-            pictureBoxRed.TabIndex = 3;
-            pictureBoxRed.TabStop = false;
+            pictureBox1.Location = new Point(13, 12);
+            pictureBox1.Margin = new Padding(4, 3, 4, 3);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(300, 294);
+            pictureBox1.TabIndex = 3;
+            pictureBox1.TabStop = false;
             // 
-            // pictureBoxBlue
+            // pictureBox2
             // 
-            pictureBoxBlue.Location = new Point(321, 14);
-            pictureBoxBlue.Margin = new Padding(4, 3, 4, 3);
-            pictureBoxBlue.Name = "pictureBoxBlue";
-            pictureBoxBlue.Size = new Size(300, 294);
-            pictureBoxBlue.TabIndex = 4;
-            pictureBoxBlue.TabStop = false;
+            pictureBox2.Location = new Point(321, 14);
+            pictureBox2.Margin = new Padding(4, 3, 4, 3);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(300, 294);
+            pictureBox2.TabIndex = 4;
+            pictureBox2.TabStop = false;
             // 
-            // pictureBoxOrange
+            // pictureBox3
             // 
-            pictureBoxOrange.Location = new Point(14, 316);
-            pictureBoxOrange.Margin = new Padding(4, 3, 4, 3);
-            pictureBoxOrange.Name = "pictureBoxOrange";
-            pictureBoxOrange.Size = new Size(300, 294);
-            pictureBoxOrange.TabIndex = 5;
-            pictureBoxOrange.TabStop = false;
+            pictureBox3.Location = new Point(14, 316);
+            pictureBox3.Margin = new Padding(4, 3, 4, 3);
+            pictureBox3.Name = "pictureBox3";
+            pictureBox3.Size = new Size(300, 294);
+            pictureBox3.TabIndex = 5;
+            pictureBox3.TabStop = false;
             // 
-            // pictureBoxGreen
+            // pictureBox4
             // 
-            pictureBoxGreen.Location = new Point(321, 316);
-            pictureBoxGreen.Margin = new Padding(4, 3, 4, 3);
-            pictureBoxGreen.Name = "pictureBoxGreen";
-            pictureBoxGreen.Size = new Size(300, 294);
-            pictureBoxGreen.TabIndex = 6;
-            pictureBoxGreen.TabStop = false;
+            pictureBox4.Location = new Point(321, 316);
+            pictureBox4.Margin = new Padding(4, 3, 4, 3);
+            pictureBox4.Name = "pictureBox4";
+            pictureBox4.Size = new Size(300, 294);
+            pictureBox4.TabIndex = 6;
+            pictureBox4.TabStop = false;
             // 
             // BTN_Start
             // 
@@ -87,7 +91,7 @@ namespace KeepYourFocus
             BTN_Start.TabIndex = 0;
             BTN_Start.Text = "Start";
             BTN_Start.UseVisualStyleBackColor = false;
-            BTN_Start.Click += BTN_Start_Click;
+            BTN_Start.Click += startButtonClick;
             // 
             // richTextBoxShowNumbersOfSequences
             // 
@@ -159,57 +163,57 @@ namespace KeepYourFocus
             richTextBoxShowLevelNumber.TabIndex = 9;
             richTextBoxShowLevelNumber.Text = "";
             // 
-            // LabelClickHere1
+            // LabelMessage1
             // 
-            LabelClickHere1.AutoSize = true;
-            LabelClickHere1.BackColor = Color.Transparent;
-            LabelClickHere1.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            LabelClickHere1.ForeColor = SystemColors.ButtonHighlight;
-            LabelClickHere1.Location = new Point(102, 140);
-            LabelClickHere1.Name = "LabelClickHere1";
-            LabelClickHere1.Size = new Size(0, 20);
-            LabelClickHere1.TabIndex = 10;
-            LabelClickHere1.TextAlign = ContentAlignment.MiddleCenter;
-            LabelClickHere1.Visible = false;
+            LabelMessage1.AutoSize = true;
+            LabelMessage1.BackColor = Color.Transparent;
+            LabelMessage1.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LabelMessage1.ForeColor = SystemColors.ButtonHighlight;
+            LabelMessage1.Location = new Point(102, 140);
+            LabelMessage1.Name = "LabelMessage1";
+            LabelMessage1.Size = new Size(0, 20);
+            LabelMessage1.TabIndex = 10;
+            LabelMessage1.TextAlign = ContentAlignment.MiddleCenter;
+            LabelMessage1.Visible = false;
             // 
-            // LabelClickHere2
+            // LabelMessage2
             // 
-            LabelClickHere2.AutoSize = true;
-            LabelClickHere2.BackColor = Color.Transparent;
-            LabelClickHere2.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            LabelClickHere2.ForeColor = SystemColors.ButtonHighlight;
-            LabelClickHere2.Location = new Point(439, 140);
-            LabelClickHere2.Name = "LabelClickHere2";
-            LabelClickHere2.Size = new Size(0, 20);
-            LabelClickHere2.TabIndex = 11;
-            LabelClickHere2.TextAlign = ContentAlignment.MiddleCenter;
-            LabelClickHere2.Visible = false;
+            LabelMessage2.AutoSize = true;
+            LabelMessage2.BackColor = Color.Transparent;
+            LabelMessage2.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LabelMessage2.ForeColor = SystemColors.ButtonHighlight;
+            LabelMessage2.Location = new Point(439, 140);
+            LabelMessage2.Name = "LabelMessage2";
+            LabelMessage2.Size = new Size(0, 20);
+            LabelMessage2.TabIndex = 11;
+            LabelMessage2.TextAlign = ContentAlignment.MiddleCenter;
+            LabelMessage2.Visible = false;
             // 
-            // LabelClickHere3
+            // LabelMessage3
             // 
-            LabelClickHere3.AutoSize = true;
-            LabelClickHere3.BackColor = Color.Transparent;
-            LabelClickHere3.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            LabelClickHere3.ForeColor = SystemColors.ButtonHighlight;
-            LabelClickHere3.Location = new Point(102, 461);
-            LabelClickHere3.Name = "LabelClickHere3";
-            LabelClickHere3.Size = new Size(0, 20);
-            LabelClickHere3.TabIndex = 12;
-            LabelClickHere3.TextAlign = ContentAlignment.MiddleCenter;
-            LabelClickHere3.Visible = false;
+            LabelMessage3.AutoSize = true;
+            LabelMessage3.BackColor = Color.Transparent;
+            LabelMessage3.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LabelMessage3.ForeColor = SystemColors.ButtonHighlight;
+            LabelMessage3.Location = new Point(102, 461);
+            LabelMessage3.Name = "LabelMessage3";
+            LabelMessage3.Size = new Size(0, 20);
+            LabelMessage3.TabIndex = 12;
+            LabelMessage3.TextAlign = ContentAlignment.MiddleCenter;
+            LabelMessage3.Visible = false;
             // 
-            // LabelClickHere4
+            // LabelMessage4
             // 
-            LabelClickHere4.AutoSize = true;
-            LabelClickHere4.BackColor = Color.Transparent;
-            LabelClickHere4.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            LabelClickHere4.ForeColor = SystemColors.ButtonHighlight;
-            LabelClickHere4.Location = new Point(439, 461);
-            LabelClickHere4.Name = "LabelClickHere4";
-            LabelClickHere4.Size = new Size(0, 20);
-            LabelClickHere4.TabIndex = 13;
-            LabelClickHere4.TextAlign = ContentAlignment.MiddleCenter;
-            LabelClickHere4.Visible = false;
+            LabelMessage4.AutoSize = true;
+            LabelMessage4.BackColor = Color.Transparent;
+            LabelMessage4.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LabelMessage4.ForeColor = SystemColors.ButtonHighlight;
+            LabelMessage4.Location = new Point(439, 461);
+            LabelMessage4.Name = "LabelMessage4";
+            LabelMessage4.Size = new Size(0, 20);
+            LabelMessage4.TabIndex = 13;
+            LabelMessage4.TextAlign = ContentAlignment.MiddleCenter;
+            LabelMessage4.Visible = false;
             // 
             // PlayerField
             // 
@@ -219,20 +223,20 @@ namespace KeepYourFocus
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Black;
             ClientSize = new Size(631, 668);
-            Controls.Add(LabelClickHere4);
-            Controls.Add(LabelClickHere3);
-            Controls.Add(LabelClickHere2);
-            Controls.Add(LabelClickHere1);
+            Controls.Add(LabelMessage4);
+            Controls.Add(LabelMessage3);
+            Controls.Add(LabelMessage2);
+            Controls.Add(LabelMessage1);
             Controls.Add(BTN_Start);
             Controls.Add(richTextBoxShowLevelNumber);
             Controls.Add(richTextBoxShowLevelName);
             Controls.Add(richTextBoxShowRounds);
             Controls.Add(richTextBoxShowNumbersOfSequences);
             Controls.Add(richTextBoxTurn);
-            Controls.Add(pictureBoxGreen);
-            Controls.Add(pictureBoxOrange);
-            Controls.Add(pictureBoxBlue);
-            Controls.Add(pictureBoxRed);
+            Controls.Add(pictureBox4);
+            Controls.Add(pictureBox3);
+            Controls.Add(pictureBox2);
+            Controls.Add(pictureBox1);
             Font = new Font("Segoe UI Symbol", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -242,10 +246,10 @@ namespace KeepYourFocus
             Name = "PlayerField";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Keep Your Focus";
-            ((System.ComponentModel.ISupportInitialize)pictureBoxRed).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBoxBlue).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBoxOrange).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBoxGreen).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -258,14 +262,14 @@ namespace KeepYourFocus
         private ReadOnlyRichTextBox richTextBoxShowLevelName;
         private ReadOnlyRichTextBox richTextBoxShowLevelNumber;
 
-        private System.Windows.Forms.PictureBox pictureBoxRed;
-        private System.Windows.Forms.PictureBox pictureBoxBlue;
-        private System.Windows.Forms.PictureBox pictureBoxOrange;
-        private System.Windows.Forms.PictureBox pictureBoxGreen;
-        private Label LabelClickHere1;
-        private Label LabelClickHere2;
-        private Label LabelClickHere3;
-        private Label LabelClickHere4;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.PictureBox pictureBox3;
+        private System.Windows.Forms.PictureBox pictureBox4;
+        private Label LabelMessage1;
+        private Label LabelMessage2;
+        private Label LabelMessage3;
+        private Label LabelMessage4;
         //private RichTextBox richTextBoxLevelNumber;
     }
 }
