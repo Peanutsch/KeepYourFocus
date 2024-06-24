@@ -10,8 +10,8 @@
  * level 2 [OkiDoki] and onward: some misleading text in pictureboxes, plus:
  *                               Shuffle Pictureboxes before start sequence with 55% chance; level 3 85% chance; level 6 100% chance
  * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 85% chance; level 7 100% chance
- * Level 4 [HELL NO]: In each sequence, swap one color order with 55% chance; level 5 85% chance; level 8 100% chance
- * level 5 [...]:
+ * Level 4 [No Way!]: In each sequence, swap one color order with 55% chance; level 5 85% chance; level 8 100% chance
+ * level 5 [HELL NO]: There is a chance that 1 or more colors get swapped by other colors in the running order with 55% chance; level 6 85% chance; level 9 100% chance
  * level 6 [...]: 
  * level 7 [...]: 
  * level 8 [...]: 
@@ -130,10 +130,6 @@ namespace KeepYourFocus
                 string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath, 0, index + 1);
                 string pathRoot = rootPath + Path.DirectorySeparatorChar; // result should be something like 'C:\USER\...\KeepYourFocus\'
 
-                Debug.WriteLine($"directoryPath: {directoryPath}");
-                Debug.WriteLine($"directorySplitPath: {string.Join(",", directorySplitPath)}");
-                Debug.WriteLine($"result: {pathRoot}");
-
                 return pathRoot;
             }
             else
@@ -204,10 +200,8 @@ namespace KeepYourFocus
                 pictureBox.Cursor = Cursors.Hand;
                 pictureBox.Tag = color;
 
-                Debug.WriteLine("Remove previous attached event handler");
                 pictureBox.Click -= PlayersTurn; // Remove any previous attachment
 
-                Debug.WriteLine("Attach event handler");
                 pictureBox.Click += PlayersTurn; // Attach event handler
 
                 // Update the dictionary with the new PictureBox
@@ -351,6 +345,7 @@ namespace KeepYourFocus
             UpdateTurn(); // case Computer's Turn
 
             //---> // TEST // <---//
+            Debug.WriteLine("Verify SwapOneColorInOrder()");
             SwapOneColorInOrder();
             //---> // TEST // <---//
 
@@ -463,17 +458,22 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
+        // TESTING WITH 3 SEQUENCES PER LEVEL
         private void SetCounters()
         {
             switch (counter_sequences)
             {
-                case (6) when counter_levels < 6:
+                case (3) when counter_levels < 6:
                     levelUp = true;
                     correctOrder.Clear();
                     playerOrder.Clear();
                     counter_sequences = 1; // Reset sequence to 1
                     counter_levels++;
                     counter_rounds++;
+
+                    Debug.WriteLine("Verify ReplaceAllColorSquares()");
+                    ReplaceAllColorSquares();
+
                     UpdateTurn();
                     levelUp = false;
                     break;
@@ -518,14 +518,14 @@ namespace KeepYourFocus
 
         ////>>>> DIFFICULTIES <<<<////
 
-        private async void ShufflePictureBoxes()
+        private async void ShufflePictureBoxes() // Called in SetTurnActions()
         {
             switch (Computer)
             {
                 case (true):
                     if (counter_levels == 2 && rnd.Next(100) <= 55 ||
                         counter_levels >= 3 && rnd.Next(100) <= 85 ||
-                        counter_levels >= 6)
+                        counter_levels >= 5)
                     {
                         Debug.WriteLine($"ShufflePictureBoxes Case 1: Shuffle after display sequence");
 
@@ -539,7 +539,7 @@ namespace KeepYourFocus
                 case (false):
                     if (counter_levels >= 3 && rnd.Next(100) <= 55 ||
                         counter_levels >= 4 && rnd.Next(100) <= 85 ||
-                        counter_levels >= 7)
+                        counter_levels >= 6)
                     {
                         Debug.WriteLine($"ShufflePictureBoxes Case 2: Shuffle after player click");
 
@@ -550,17 +550,17 @@ namespace KeepYourFocus
             }
         }
 
-        private async void ReplaceColorSquares()
+        private void ReplaceAllColorSquares() // Called in SetCounters()
         {
-            if (counter_levels == 4 && rnd.Next(100) <= 55 ||
-                counter_levels >= 5 && rnd.Next(100) <= 85 ||
-                counter_levels >= 8)
+            if (counter_levels >= 2 && levelUp == true && rnd.Next(100) <= 100 ||
+                counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 85 ||
+                counter_levels >= 7 && levelUp == true)
             {
 
                 Dictionary<string, string> shuffledColourSquares = RandomizerReplaceColorSquares();
 
                 // Ensure that we have enough colors to assign
-                if (shuffledColourSquares.Count >= 4)
+                if (shuffledColourSquares.Count >= 3)
                 {
                     // Retrieve the first 4 key-value pairs from shuffledColourSquares
                     KeyValuePair<string, string> kvp1 = shuffledColourSquares.ElementAt(0);
@@ -578,10 +578,7 @@ namespace KeepYourFocus
                         InitializePictureBox(pictureBox3, kvp3.Key, kvp3.Value);
                         InitializePictureBox(pictureBox4, kvp4.Key, kvp4.Value);
 
-                        await Task.Delay(250); // Delay 250 ms for space between colorSound and transitionSound
-                        transitionSound.Play();
-
-                        //RefreshAndRepositionPictureBoxes();
+                        Debug.WriteLine("Activate ReplaceAllColorSquares()");
                     }
                     catch (ArgumentException ex)
                     {
@@ -599,7 +596,7 @@ namespace KeepYourFocus
             }
         }
 
-        private void SwapOneColorInOrder()
+        private void SwapOneColorInOrder() // Called in ComputersTurn()
         {
             /*
              * Every sequence there is chance that 1 or more colors get swapped by new colors in the running order:
@@ -608,9 +605,9 @@ namespace KeepYourFocus
             
             string newColor = RandomizerComputerSequence();
 
-            if (correctOrder.Count > 1 && counter_levels >= 4 && rnd.Next(100) <= 55 ||
-                correctOrder.Count > 1 && counter_levels >= 5 && rnd.Next(100) <= 85 ||
-                correctOrder.Count > 1 && counter_levels >= 8)
+            if (counter_levels >= 5 && correctOrder.Count > 1 && rnd.Next(100) <= 55 ||
+                counter_levels >= 6 && correctOrder.Count > 1 && rnd.Next(100) <= 85 ||
+                counter_levels >= 8 && correctOrder.Count > 1)
             {
                 // Make copy correctOrder as copyCorrectOrder
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
@@ -807,8 +804,8 @@ namespace KeepYourFocus
                         await Task.Delay(1500);
 
                         richTextBoxTurn.Text = $"\n{new string(' ', 8)}Level  Up";
-                        
-                        ReplaceColorSquares();
+
+                        // ReplaceAllColorSquares();
 
                         await Task.Delay(1000);
                         break;
@@ -878,6 +875,13 @@ namespace KeepYourFocus
                 case (4):
                     richTextBoxShowLevelName.BackColor = Color.RoyalBlue;
                     richTextBoxShowLevelNumber.BackColor = Color.RoyalBlue;
+
+                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"{new string(' ', 4)}No Way!";
+                    break;
+                case (5):
+                    richTextBoxShowLevelName.BackColor = Color.DarkBlue;
+                    richTextBoxShowLevelNumber.BackColor = Color.DarkBlue;
 
                     richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
                     richTextBoxShowLevelName.Text = $"{new string(' ', 1)}HELL NO";
