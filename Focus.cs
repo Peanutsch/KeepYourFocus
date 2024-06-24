@@ -4,18 +4,19 @@
  * Level++; Add 1 challenge; Clear correctOrder and playerOrder and start with new sequence = 1
  * From Level >= 6: no Clear correctOrder; sequences++ untill game over
  * More challenges in progress
- * ===
+ * 
+ * === Levels ===
  * Level 1 [EasyPeasy]: standard
- * level 2 [OkiDoki] and onward: some misleading text in pictureboxes plus:
+ * level 2 [OkiDoki] and onward: some misleading text in pictureboxes, plus:
  *                               Shuffle Pictureboxes before start sequence with 55% chance; level 3 85% chance; level 6 100% chance
  * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 85% chance; level 7 100% chance
- * Level 4 [HELL NO]: Replace Color Squares with 55% chance; level 5 85% chance; level 8 100% chance
+ * Level 4 [HELL NO]: In each sequence, swap one color order with 55% chance; level 5 85% chance; level 8 100% chance
  * level 5 [...]:
  * level 6 [...]: 
  * level 7 [...]: 
  * level 8 [...]: 
  * level 9 [...]: 
- * level 666 [HELLMODE]: In each sequence, swap one color order with 55% chance; level 6 85% chance; level 9 100% chance
+ * level 666 [HELLMODE]: No Clear correctOrder; sequences++ untill game over
  */
 
 using System.Collections.Generic;
@@ -109,7 +110,7 @@ namespace KeepYourFocus
             SetupFieldAtStart();
         }
 
-        // Initialize and return root path including the map \KeepYourFocus\
+        // Initialize and return root path including directory \KeepYourFocus\
         static string SetRootPath()
         {
             string directoryPath = Path.GetDirectoryName(Application.ExecutablePath) ?? "";
@@ -120,14 +121,14 @@ namespace KeepYourFocus
                 return string.Empty; // Return an empty string or handle error as needed
             }
 
-            string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar);
+            string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar); // Split string and devide all maps as items "C:", "dir1", "dir2", etc
             int index = Array.IndexOf(directorySplitPath, "KeepYourFocus");
 
             if (index != -1)
             {
                 // Adjust the range to index + 1 to stop at "KeepYourFocus"
                 string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath, 0, index + 1);
-                string pathRoot = rootPath + Path.DirectorySeparatorChar;
+                string pathRoot = rootPath + Path.DirectorySeparatorChar; // result should be something like 'C:\USER\...\KeepYourFocus\'
 
                 Debug.WriteLine($"directoryPath: {directoryPath}");
                 Debug.WriteLine($"directorySplitPath: {string.Join(",", directorySplitPath)}");
@@ -494,7 +495,7 @@ namespace KeepYourFocus
             }
         }
 
-        // Method to set difficulties. 2 cases: Computers turn and Players turn
+        // Method to verify difficulties. 2 cases: Computers turn and Players turn
         private void SetTurnActions()
         {
             
@@ -629,15 +630,16 @@ namespace KeepYourFocus
             }
         }
 
+
+        // NEW //
         private void SwapOneNewColorSquareInOrder()
         {
             /*
              * Every sequence there is a chance that 1 or more squares get swapped by new squares in the running order:
-             * E.g: sequence of 3 was 'Red, Blue, Orange' and will be changed to sequence of 4 'Red, Indigo, Orange, Blue".
+             * E.g: sequence of 3 was 'Red, Blue, Orange' and will be changed to sequence of 4 'Red, Indigo, Orange, Blue" and replacing the 1 square with Indigo
              */
 
             Dictionary<string, string> getOneNewSquare = RandomizerReplaceColorSquares();
-            string newColor = RandomizerComputerSequence();
 
             // Retrieve the first 4 key-value pairs from shuffledColourSquares
             KeyValuePair<string, string> kvpA = getOneNewSquare.ElementAt(0);
@@ -650,25 +652,28 @@ namespace KeepYourFocus
             InitializePictureBox(pictureBox3, kvpC.Key, kvpC.Value);
             InitializePictureBox(pictureBox4, kvpD.Key, kvpD.Value);
 
+            /*
             if (correctOrder.Count > 1 && counter_levels >= 5 && rnd.Next(100) <= 55 || 
                 correctOrder.Count > 1 && counter_levels >= 6 && rnd.Next(100) <= 85 || 
                 correctOrder.Count > 1 && counter_levels >= 9)
+            */
             {
                 // Make copy correctOrder as copyCorrectOrder
-                List<string> copyCorrectOrder = new List<string>(correctOrder);
+                Dictionary<string, string> copyDictRandomizedSquares = new Dictionary<string, string>(getOneNewSquare);
 
-                int randomIndex = rnd.Next(correctOrder.Count);
-                var selectedColor = correctOrder[randomIndex];
+                List<KeyValuePair<string, string>> listToShuffle = copyDictRandomizedSquares.ToList();
 
-                if (newColor != selectedColor && randomIndex != copyCorrectOrder.Count - 1)
+                int numberOfItems = listToShuffle.Count;
+                while (numberOfItems > 1)
                 {
-                    Debug.WriteLine($"Replacing selectedColor [{selectedColor}] at index [{randomIndex}] with new color [{newColor}]");
-
-                    // Replace color in copyCorrectOrder
-                    copyCorrectOrder[randomIndex] = newColor;
-
-                    correctOrder = copyCorrectOrder;
+                    numberOfItems--;
+                    int randomIndex = rnd.Next(numberOfItems + 1);
+                    KeyValuePair<string, string> temp = listToShuffle[randomIndex];
+                    listToShuffle[randomIndex] = listToShuffle[numberOfItems];
+                    listToShuffle[numberOfItems] = temp;
                 }
+
+                Dictionary<string, string> shuffleAllColorSquares = listToShuffle.ToDictionary(kv => kv.Key, kv => kv.Value);
             }
         }
 
@@ -733,13 +738,13 @@ namespace KeepYourFocus
             }
             else
             {
-                if (highlight) // higlight on
+                if (highlight) // Higlight on
                 {
                     pictureBox.BorderStyle = BorderStyle.None;
                     pictureBox.Padding = new Padding(2);
                     pictureBox.BackColor = Color.White;
                 }
-                else // highlight off
+                else // Highlight off
                 {
                     pictureBox.Padding = new Padding(0);
                     pictureBox.BackColor = Color.Transparent;
