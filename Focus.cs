@@ -362,13 +362,13 @@ namespace KeepYourFocus
             correctOrder.Add(RandomizerComputerSequence());
             UpdateTurn(); // case Computer's Turn
 
-            //---> // TEST // <---//
+            // ---> // TEST // <--- //
             Debug.WriteLine("Verify SwapOneColorInOrder()");
             SwapOneColorInOrder();
 
-            Debug.WriteLine("Verify SwapOneColorSquareInOrder()");
-            SwapOneColorSquareInOrder();
-            //---> // TEST // <---//
+            //Debug.WriteLine("Verify SwapOneColorSquareInOrder()");
+            //SwapOneColorSquareInOrder();
+            // ---> // TEST // <--- //
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
 
@@ -682,14 +682,20 @@ namespace KeepYourFocus
 
                 // Ensure the new square is not already in the dictionary
                 string newKey;
-                do {
+                do 
+                {
                     newKey = shuffledColourSquares.Keys.ElementAt(rnd.Next(shuffledColourSquares.Count));
-                } while (pictureBoxDictionary.ContainsKey(newKey));
+                } while (newKey == keyToRemove && pictureBoxDictionary.ContainsKey(newKey));
+
+                Debug.WriteLine("Active SwapOneColorSquareInOrder()");
+                Debug.WriteLine($"[{keyToRemove}] replaced with [{newKey}]");
 
                 // Get the PictureBox control to update
                 int rndIndexBoxes = rnd.Next(listPictureboxes.Count);
                 string pictureBoxToUpdateName = listPictureboxes[rndIndexBoxes];
-                PictureBox pictureBoxToUpdate = (PictureBox)Controls.Find(pictureBoxToUpdateName, true).FirstOrDefault();
+
+                Control[] foundControls = Controls.Find(pictureBoxToUpdateName, true);
+                PictureBox pictureBoxToUpdate = foundControls.FirstOrDefault() as PictureBox;
 
                 // Check if pictureBoxToUpdate is not null
                 if (pictureBoxToUpdate != null) {
