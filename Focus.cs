@@ -71,24 +71,24 @@ namespace KeepYourFocus
             InitializeComponent();
 
             // Load soundfiles. For now 1 beep sound for all colors
-            string soundPathBeepALL = Path.Combine(SetRootPath(), @"sounds\beep.wav");
+            string soundPathBeepALL = Path.Combine(SetRootPath(), "sounds", "beep.wav");
 
             /* Pre-made soundPath for all colors *\
-            string soundPathBeepRed = Path.Combine(SetRootPath(), @"sounds\redSound.wav");
-            string soundPathBeepBlue = Path.Combine(SetRootPath(), @"sounds\blueSound.wav");
-            string soundPathBeepOrange = Path.Combine(SetRootPath(), @"sounds\orangeSound.wav");
-            string soundPathBeepGreen = Path.Combine(SetRootPath(), @"sounds\greenSound.wav");
-            string soundPathBeepCaribBlue = Path.Combine(SetRootPath(), @"sounds\caribBlueSound.wav");
-            string soundPathBeepGrey = Path.Combine(SetRootPath(), @"\sounds\greySound.wav");
-            string soundPathBeepIndigo = Path.Combine(SetRootPath(), @"sounds\indigoSound.wav");
-            string soundPathBeepMaroon = Path.Combine(SetRootPath(), @\sounds\maroonSound.wav");
+            string soundPathBeepRed = Path.Combine(SetRootPath(), "sounds", "redSound.wav");
+            string soundPathBeepBlue = Path.Combine(SetRootPath(), "sounds", "blueSound.wav");
+            string soundPathBeepOrange = Path.Combine(SetRootPath(), "sounds", "orangeSound.wav");
+            string soundPathBeepGreen = Path.Combine(SetRootPath(), "sounds", "greenSound.wav");
+            string soundPathBeepCaribBlue = Path.Combine(SetRootPath(), "sounds", "caribBlueSound.wav");
+            string soundPathBeepGrey = Path.Combine(SetRootPath(), ""sounds", "greySound.wav");
+            string soundPathBeepIndigo = Path.Combine(SetRootPath(), "sounds, "indigoSound.wav");
+            string soundPathBeepMaroon = Path.Combine(SetRootPath(), "sounds", "maroonSound.wav");
             */
 
-            string soundPathTransition = Path.Combine(SetRootPath(), @"sounds\transistion.wav");
-            string soundPathButtonClick = Path.Combine(SetRootPath(), @"sounds\buttonclick.wav");
-            string soundPathWrong = Path.Combine(SetRootPath(), @"sounds\wrong.wav");
-            string soundPathCorrect = Path.Combine(SetRootPath(), @"sounds\correct.wav");
-            string soundPathStartupSound = Path.Combine(SetRootPath(), @"sounds\startupSound.wav");
+            string soundPathTransition = Path.Combine(SetRootPath(), "sounds", "transistion.wav");
+            string soundPathButtonClick = Path.Combine(SetRootPath(), "sounds", "buttonclick.wav");
+            string soundPathWrong = Path.Combine(SetRootPath(), "sounds", "wrong.wav");
+            string soundPathCorrect = Path.Combine(SetRootPath(), "sounds", "correct.wav");
+            string soundPathStartupSound = Path.Combine(SetRootPath(), "sounds", "startupSound.wav");
 
             // Initiaize SoundPlayers
             redSound = new SoundPlayer(soundPathBeepALL);
@@ -105,39 +105,44 @@ namespace KeepYourFocus
             correctSound = new SoundPlayer(soundPathCorrect);
             startupSound = new SoundPlayer(soundPathStartupSound);
 
+
+            Debug.WriteLine($"soundPathTrans: {soundPathTransition}");
             // Play startup sound
             startupSound.Play();
             SetupFieldAtStart();
         }
 
         // Initialize and return root path including directory \KeepYourFocus\
-        static string SetRootPath()
-        {
-            string directoryPath = Path.GetDirectoryName(Application.ExecutablePath) ?? "";
+        static string SetRootPath() 
+       {
+            // string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
+            string directoryPath = Environment.CurrentDirectory; // kan ook
 
-            if (string.IsNullOrEmpty(directoryPath))
+            if (string.IsNullOrEmpty(directoryPath)) 
             {
                 Debug.WriteLine("Error: Application executable path is not valid.");
-                return string.Empty; // Return an empty string or handle error as needed
+                return string.Empty; // Return an empty string
             }
 
-            string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar); // Split string and devide all maps as items "C:", "dir1", "dir2", etc
+            string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar);
             int index = Array.IndexOf(directorySplitPath, "KeepYourFocus");
 
             if (index != -1)
             {
-                // Adjust the range to index + 1 to stop at "KeepYourFocus"
-                string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath, 0, index + 1);
-                string pathRoot = rootPath + Path.DirectorySeparatorChar; // result should be something like 'C:\USER\...\KeepYourFocus\'
+                string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath.Take(index + 1));
 
-                return pathRoot;
+                if (!rootPath.EndsWith(Path.DirectorySeparatorChar.ToString())) {
+                    rootPath += Path.DirectorySeparatorChar;
+                }
+
+                Debug.WriteLine($"pathRoot: {rootPath}");
+                return rootPath;
             }
-            else
+            else 
             {
                 Debug.WriteLine("Error: 'KeepYourFocus' directory not found in the path.");
-                return string.Empty; // Return an empty string or handle error as needed
+                return string.Empty; // Return an empty string
             }
-            
         }
 
         // Click Event for Start Button at start
@@ -184,10 +189,10 @@ namespace KeepYourFocus
                 return;
             }
 
-            InitializePictureBox(pictureBox1, "Red", Path.Combine(SetRootPath(), @"png\red_square512.png"));
-            InitializePictureBox(pictureBox2, "Blue", Path.Combine(SetRootPath(), @"png\blue_square512.png"));
-            InitializePictureBox(pictureBox3, "Orange", Path.Combine(SetRootPath(), @"png\orange_square512.png"));
-            InitializePictureBox(pictureBox4, "Green", Path.Combine(SetRootPath(), @"png\green_square512.png"));
+            InitializePictureBox(pictureBox1, "Red", Path.Combine(SetRootPath(), "png", "red_square512.png"));
+            InitializePictureBox(pictureBox2, "Blue", Path.Combine(SetRootPath(), "png", "blue_square512.png"));
+            InitializePictureBox(pictureBox3, "Orange", Path.Combine(SetRootPath(), "png", "orange_square512.png"));
+            InitializePictureBox(pictureBox4, "Green", Path.Combine(SetRootPath(), "png", "green_square512.png"));
         }
 
         private void InitializePictureBox(PictureBox pictureBox, string color, string imagePath)
@@ -199,6 +204,10 @@ namespace KeepYourFocus
                 pictureBox.BackColor = Color.Transparent;
                 pictureBox.Cursor = Cursors.Hand;
                 pictureBox.Tag = color;
+
+                // Additional properties
+                pictureBox.Name = color;
+                pictureBox.BackColor = Color.FromName(color);
 
                 pictureBox.Click -= PlayersTurn; // Remove any previous attachment
 
@@ -238,24 +247,33 @@ namespace KeepYourFocus
         private string RandomizerComputerSequence()
         {
             string newColor;
+            bool isValid;
 
-            // Not more then 2x same color in a row
-            if (consecutiveCount <= 2)
-            {
-                do
-                {
-                    newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
+            do {
+                newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
+
+                if (consecutiveCount < 2) {
+                    // If the last color is not the same as the new color, it's valid
+                    isValid = newColor != previousColors[1];
                 }
-                while (previousColors.Contains(newColor));
+                else {
+                    // If the last two colors are the same, ensure the new color is different
+                    isValid = newColor != previousColors[0] || newColor != previousColors[1];
+                }
 
-                previousColors[0] = previousColors[1];
-                previousColors[1] = newColor;
+            } while (!isValid);
+
+            // Shift the colors in the previousColors array
+            previousColors[0] = previousColors[1];
+            previousColors[1] = newColor;
+
+            // Update the consecutive count
+            if (previousColors[0] == newColor) 
+            {
                 consecutiveCount++;
             }
-            else
+            else 
             {
-                previousColors = new string[2];
-                newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
                 consecutiveCount = 1;
             }
 
@@ -264,14 +282,14 @@ namespace KeepYourFocus
 
         private Dictionary<string, string> RandomizerReplaceColorSquares()
         {
-            string redSquare = Path.Combine(SetRootPath(), @"png\red_square512.png");
-            string blueSquare = Path.Combine(SetRootPath(), @"png\blue_square512.png");
-            string orangeSquare = Path.Combine(SetRootPath(), @"png\orange_square512.png");
-            string greenSquare = Path.Combine(SetRootPath(), @"png\green_square512.png");
-            string caribBlueSquare = Path.Combine(SetRootPath(), @"png\caribBlue_square512.png");
-            string greySquare = Path.Combine(SetRootPath(), @"png\grey_square512.png");
-            string indigoSquare = Path.Combine(SetRootPath(), @"png\indigo_square512.png");
-            string maroonSquare = Path.Combine(SetRootPath(), @"png\maroon_square512.png");
+            string redSquare = Path.Combine(SetRootPath(), "png", "red_square512.png");
+            string blueSquare = Path.Combine(SetRootPath(), "png", "blue_square512.png");
+            string orangeSquare = Path.Combine(SetRootPath(), "png", "orange_square512.png");
+            string greenSquare = Path.Combine(SetRootPath(), "png", "green_square512.png");
+            string caribBlueSquare = Path.Combine(SetRootPath(), "png", "caribBlue_square512.png");
+            string greySquare = Path.Combine(SetRootPath(), "png", "grey_square512.png");
+            string indigoSquare = Path.Combine(SetRootPath(), "png", "indigo_square512.png");
+            string maroonSquare = Path.Combine(SetRootPath(), "png", "maroon_square512.png");
 
             Dictionary<string, string> dictOfAllColorSquares = new Dictionary<string, string>()
             {
@@ -347,6 +365,9 @@ namespace KeepYourFocus
             //---> // TEST // <---//
             Debug.WriteLine("Verify SwapOneColorInOrder()");
             SwapOneColorInOrder();
+
+            Debug.WriteLine("Verify SwapOneColorSquareInOrder()");
+            SwapOneColorSquareInOrder();
             //---> // TEST // <---//
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
@@ -605,9 +626,9 @@ namespace KeepYourFocus
             
             string newColor = RandomizerComputerSequence();
 
-            if (counter_levels >= 5 && correctOrder.Count > 1 && rnd.Next(100) <= 55 ||
-                counter_levels >= 6 && correctOrder.Count > 1 && rnd.Next(100) <= 85 ||
-                counter_levels >= 8 && correctOrder.Count > 1)
+            if (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55 ||
+                counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85 ||
+                counter_levels >= 8 && correctOrder.Count > 2)
             {
                 // Make copy correctOrder as copyCorrectOrder
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
@@ -627,50 +648,57 @@ namespace KeepYourFocus
             }
         }
 
-
         // NEW //
-        private void SwapOneNewColorSquareInOrder()
-        {
+        private void SwapOneColorSquareInOrder() // Called in ComputersTurn
+            {
             /*
              * Every sequence there is a chance that 1 or more squares get swapped by new squares in the running order:
              * E.g: sequence of 3 was 'Red, Blue, Orange' and will be changed to sequence of 4 'Red, Indigo, Orange, Blue" and replacing the 1 square with Indigo
              */
 
-            Dictionary<string, string> getOneNewSquare = RandomizerReplaceColorSquares();
-
-            // Retrieve the first 4 key-value pairs from shuffledColourSquares
-            KeyValuePair<string, string> kvpA = getOneNewSquare.ElementAt(0);
-            KeyValuePair<string, string> kvpB = getOneNewSquare.ElementAt(1);
-            KeyValuePair<string, string> kvpC = getOneNewSquare.ElementAt(2);
-            KeyValuePair<string, string> kvpD = getOneNewSquare.ElementAt(3);
-
-            InitializePictureBox(pictureBox1, kvpA.Key, kvpA.Value);
-            InitializePictureBox(pictureBox2, kvpB.Key, kvpB.Value);
-            InitializePictureBox(pictureBox3, kvpC.Key, kvpC.Value);
-            InitializePictureBox(pictureBox4, kvpD.Key, kvpD.Value);
-
-            /*
-            if (correctOrder.Count > 1 && counter_levels >= 5 && rnd.Next(100) <= 55 || 
-                correctOrder.Count > 1 && counter_levels >= 6 && rnd.Next(100) <= 85 || 
-                correctOrder.Count > 1 && counter_levels >= 9)
-            */
+            if (counter_levels >= 1 && correctOrder.Count > 1 && rnd.Next(100) <= 100 ||
+                counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85 ||
+                counter_levels >= 9 && correctOrder.Count > 2) 
             {
-                // Make copy correctOrder as copyCorrectOrder
-                Dictionary<string, string> copyDictRandomizedSquares = new Dictionary<string, string>(getOneNewSquare);
+                Dictionary<string, string> shuffledColourSquares = RandomizerReplaceColorSquares();
+                List<string> listKeys = shuffledColourSquares.Keys.ToList();
+                List<string> listPictureboxes = new List<string> { "pictureBox1", "pictureBox2", "pictureBox3", "pictureBox4" };
 
-                List<KeyValuePair<string, string>> listToShuffle = copyDictRandomizedSquares.ToList();
+                // Retrieve the first 4 key-value pairs from shuffledColourSquares
+                KeyValuePair<string, string> kvpA = shuffledColourSquares.ElementAt(0);
+                KeyValuePair<string, string> kvpB = shuffledColourSquares.ElementAt(1);
+                KeyValuePair<string, string> kvpC = shuffledColourSquares.ElementAt(2);
+                KeyValuePair<string, string> kvpD = shuffledColourSquares.ElementAt(3);
 
-                int numberOfItems = listToShuffle.Count;
-                while (numberOfItems > 1)
-                {
-                    numberOfItems--;
-                    int randomIndex = rnd.Next(numberOfItems + 1);
-                    KeyValuePair<string, string> temp = listToShuffle[randomIndex];
-                    listToShuffle[randomIndex] = listToShuffle[numberOfItems];
-                    listToShuffle[numberOfItems] = temp;
+                InitializePictureBox(pictureBox1, kvpA.Key, kvpA.Value);
+                InitializePictureBox(pictureBox2, kvpB.Key, kvpB.Value);
+                InitializePictureBox(pictureBox3, kvpC.Key, kvpC.Value);
+                InitializePictureBox(pictureBox4, kvpD.Key, kvpD.Value);
+
+                // Remove a random square from the pictureBoxDictionary
+                int rndIndexKeys = rnd.Next(listKeys.Count);
+                string keyToRemove = listKeys[rndIndexKeys];
+                pictureBoxDictionary.Remove(keyToRemove);
+
+                // Ensure the new square is not already in the dictionary
+                string newKey;
+                do {
+                    newKey = shuffledColourSquares.Keys.ElementAt(rnd.Next(shuffledColourSquares.Count));
+                } while (pictureBoxDictionary.ContainsKey(newKey));
+
+                // Get the PictureBox control to update
+                int rndIndexBoxes = rnd.Next(listPictureboxes.Count);
+                string pictureBoxToUpdateName = listPictureboxes[rndIndexBoxes];
+                PictureBox pictureBoxToUpdate = (PictureBox)Controls.Find(pictureBoxToUpdateName, true).FirstOrDefault();
+
+                // Check if pictureBoxToUpdate is not null
+                if (pictureBoxToUpdate != null) {
+                    // Initialize the PictureBox with the new key and value
+                    InitializePictureBox(pictureBoxToUpdate, newKey, shuffledColourSquares[newKey]);
                 }
-
-                Dictionary<string, string> shuffleAllColorSquares = listToShuffle.ToDictionary(kv => kv.Key, kv => kv.Value);
+                else {
+                    Debug.WriteLine($"PictureBox '{pictureBoxToUpdateName}' not found or is null.");
+                }
             }
         }
 
@@ -884,7 +912,7 @@ namespace KeepYourFocus
                     richTextBoxShowLevelNumber.BackColor = Color.DarkBlue;
 
                     richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 1)}HELL NO";
+                    richTextBoxShowLevelName.Text = $"{new string(' ', 2)}HELL NO";
                     break;
                 case (999):
                     richTextBoxShowLevelNumber.BackColor = Color.Red;
