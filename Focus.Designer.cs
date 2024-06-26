@@ -15,7 +15,8 @@ namespace KeepYourFocus
             base.Dispose(disposing);
         }
 
-        private void InitializeComponent() {
+        private void InitializeComponent() 
+        {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PlayerField));
             this.pictureBox1 = new PictureBox();
             this.pictureBox2 = new PictureBox();

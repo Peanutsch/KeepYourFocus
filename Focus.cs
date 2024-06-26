@@ -47,7 +47,7 @@ namespace KeepYourFocus
         private readonly SoundPlayer wrongSound;
         private readonly SoundPlayer correctSound;
         private readonly SoundPlayer startupSound;
-        
+
         private readonly Random rnd = new Random();
 
         private bool Computer = false;
@@ -113,12 +113,12 @@ namespace KeepYourFocus
         }
 
         // Initialize and return root path including directory \KeepYourFocus\
-        static string SetRootPath() 
-       {
+        static string SetRootPath()
+        {
             // string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
             string directoryPath = Environment.CurrentDirectory; // kan ook
 
-            if (string.IsNullOrEmpty(directoryPath)) 
+            if (string.IsNullOrEmpty(directoryPath))
             {
                 Debug.WriteLine("Error: Application executable path is not valid.");
                 return string.Empty; // Return an empty string
@@ -131,14 +131,13 @@ namespace KeepYourFocus
             {
                 string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath.Take(index + 1));
 
-                if (!rootPath.EndsWith(Path.DirectorySeparatorChar.ToString())) {
+                if (!rootPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                {
                     rootPath += Path.DirectorySeparatorChar;
                 }
-
-                Debug.WriteLine($"pathRoot: {rootPath}");
                 return rootPath;
             }
-            else 
+            else
             {
                 Debug.WriteLine("Error: 'KeepYourFocus' directory not found in the path.");
                 return string.Empty; // Return an empty string
@@ -195,6 +194,33 @@ namespace KeepYourFocus
             InitializePictureBox(pictureBox4, "Green", Path.Combine(SetRootPath(), "png", "green_square512.png"));
         }
 
+        static Dictionary<string, string> DictionaryOfAllSquares()
+        // Returns a dictionary of all possible squares
+        {
+            string redSquare = Path.Combine(SetRootPath(), "png", "red_square512.png");
+            string blueSquare = Path.Combine(SetRootPath(), "png", "blue_square512.png");
+            string orangeSquare = Path.Combine(SetRootPath(), "png", "orange_square512.png");
+            string greenSquare = Path.Combine(SetRootPath(), "png", "green_square512.png");
+            string caribBlueSquare = Path.Combine(SetRootPath(), "png", "caribBlue_square512.png");
+            string greySquare = Path.Combine(SetRootPath(), "png", "grey_square512.png");
+            string indigoSquare = Path.Combine(SetRootPath(), "png", "indigo_square512.png");
+            string maroonSquare = Path.Combine(SetRootPath(), "png", "maroon_square512.png");
+
+            Dictionary<string, string> dictOfAllSquares = new Dictionary<string, string>()
+                                                                {
+                                                                    {"Red", redSquare},
+                                                                    {"Blue", blueSquare},
+                                                                    {"Orange", orangeSquare},
+                                                                    {"Green", greenSquare},
+                                                                    {"CaribBlue", caribBlueSquare},
+                                                                    {"Grey", greySquare},
+                                                                    {"Indigo", indigoSquare},
+                                                                    {"Maroon", maroonSquare }
+                                                                };
+
+            return dictOfAllSquares;
+        }
+
         private void InitializePictureBox(PictureBox pictureBox, string color, string imagePath)
         {
             try
@@ -206,6 +232,8 @@ namespace KeepYourFocus
                 pictureBox.Tag = color;
 
                 // Additional properties
+                pictureBox.ImageLocation = imagePath;
+                //pictureBox.Name = colorName;
                 pictureBox.Name = color;
                 pictureBox.BackColor = Color.FromName(color);
 
@@ -244,7 +272,7 @@ namespace KeepYourFocus
             }
         }
 
-        private string RandomizerComputerSequence()
+        private string RandomizerColors()
         {
             string newColor;
             bool isValid;
@@ -268,11 +296,11 @@ namespace KeepYourFocus
             previousColors[1] = newColor;
 
             // Update the consecutive count
-            if (previousColors[0] == newColor) 
+            if (previousColors[0] == newColor)
             {
                 consecutiveCount++;
             }
-            else 
+            else
             {
                 consecutiveCount = 1;
             }
@@ -282,40 +310,21 @@ namespace KeepYourFocus
 
         private Dictionary<string, string> RandomizerReplaceColorSquares()
         {
-            string redSquare = Path.Combine(SetRootPath(), "png", "red_square512.png");
-            string blueSquare = Path.Combine(SetRootPath(), "png", "blue_square512.png");
-            string orangeSquare = Path.Combine(SetRootPath(), "png", "orange_square512.png");
-            string greenSquare = Path.Combine(SetRootPath(), "png", "green_square512.png");
-            string caribBlueSquare = Path.Combine(SetRootPath(), "png", "caribBlue_square512.png");
-            string greySquare = Path.Combine(SetRootPath(), "png", "grey_square512.png");
-            string indigoSquare = Path.Combine(SetRootPath(), "png", "indigo_square512.png");
-            string maroonSquare = Path.Combine(SetRootPath(), "png", "maroon_square512.png");
+            Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
 
-            Dictionary<string, string> dictOfAllColorSquares = new Dictionary<string, string>()
-            {
-                {"Red", redSquare},
-                {"Blue", blueSquare},
-                {"Orange", orangeSquare},
-                {"Green", greenSquare},
-                {"CaribBlue", caribBlueSquare},
-                {"Grey", greySquare},
-                {"Indigo", indigoSquare},
-                {"Maroon", maroonSquare }
-            };
+            List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
 
-            List<KeyValuePair<string, string>> listToShuffle = dictOfAllColorSquares.ToList();
-
-            int numberOfItems = listToShuffle.Count;
+            int numberOfItems = listOfAllSquares.Count;
             while (numberOfItems > 1)
             {
                 numberOfItems--;
                 int randomIndex = rnd.Next(numberOfItems + 1);
-                KeyValuePair<string, string> temp = listToShuffle[randomIndex];
-                listToShuffle[randomIndex] = listToShuffle[numberOfItems];
-                listToShuffle[numberOfItems] = temp;
+                KeyValuePair<string, string> temp = listOfAllSquares[randomIndex];
+                listOfAllSquares[randomIndex] = listOfAllSquares[numberOfItems];
+                listOfAllSquares[numberOfItems] = temp;
             }
 
-            Dictionary<string, string> shuffleAllColorSquares = listToShuffle.ToDictionary(kv => kv.Key, kv => kv.Value);
+            Dictionary<string, string> shuffleAllColorSquares = listOfAllSquares.ToDictionary(kv => kv.Key, kv => kv.Value);
 
             return shuffleAllColorSquares;
         }
@@ -359,15 +368,15 @@ namespace KeepYourFocus
         private async void ComputersTurn()
         {
             Computer = true;
-            correctOrder.Add(RandomizerComputerSequence());
+            correctOrder.Add(RandomizerColors());
             UpdateTurn(); // case Computer's Turn
 
             // ---> // TEST // <--- //
-            Debug.WriteLine("Verify SwapOneColorInOrder()");
-            SwapOneColorInOrder();
+            // Debug.WriteLine("Verify SwapOneColorInOrder()");
+            // SwapOneColorInOrder();
 
-            //Debug.WriteLine("Verify SwapOneColorSquareInOrder()");
-            //SwapOneColorSquareInOrder();
+            // Debug.WriteLine("Verify ReplaceColorOnBoardandInOrder() in ComputersTurn()");
+            // ReplaceColorOnBoardandInOrder();
             // ---> // TEST // <--- //
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
@@ -380,13 +389,23 @@ namespace KeepYourFocus
             Debug.WriteLine("\nSequence: ");
             Computer = true;
 
-            foreach (var color in correctOrder)
+            // Create a copy of correctOrder to iterate over
+            List<string> sequenceToDisplay = new List<string>(correctOrder);
+
+            foreach (var color in sequenceToDisplay)
             {
+                // Check if the color exists in pictureBoxDictionary
+                if (!pictureBoxDictionary.ContainsKey(color))
+                {
+                    Debug.WriteLine($"Color [{color}] not found in pictureBoxDictionary.");
+                    continue;
+                }
+
                 var box = pictureBoxDictionary[color];
                 if (box == null)
                     continue;
 
-                await Task.Delay(500); // Delay 500 ms before start highlights and beepSound
+                await Task.Delay(500); // Delay 500 ms before starting highlights and sound
 
                 PlaySound(color);
 
@@ -396,14 +415,16 @@ namespace KeepYourFocus
                 await Task.Delay(50);
                 Debug.WriteLine($"Color: [{color}]");
             }
+
             // Check difficulty
             SetTurnActions();
 
             await Task.Delay(1000); // Delay 1000 ms before calling PlayersTurn()
 
             Computer = false;
-            UpdateTurn(); // case Player's Turn
+            UpdateTurn(); // Proceed to player's turn
         }
+
 
         private async void PlayersTurn(object? sender, EventArgs e)
         {
@@ -454,7 +475,7 @@ namespace KeepYourFocus
 
         private async void VerifyAndManageCountersAndLevels()
         {
-             if (playerOrder.Count < correctOrder.Count)
+            if (playerOrder.Count < correctOrder.Count)
                 return;
 
             // Block player's clicks
@@ -463,7 +484,7 @@ namespace KeepYourFocus
             nextRound = true;
 
             // Delay 250 ms between beepSound and correctSound
-            await Task.Delay(250); 
+            await Task.Delay(250);
             correctSound.Play();
 
             SetCounters();
@@ -519,7 +540,7 @@ namespace KeepYourFocus
         // Method to verify difficulties. 2 cases: Computers turn and Players turn
         private void SetTurnActions()
         {
-            
+
             switch (Computer)
             {
                 // Computers Turn //
@@ -617,96 +638,56 @@ namespace KeepYourFocus
             }
         }
 
-        private void SwapOneColorInOrder() // Called in ComputersTurn()
+        private void ReplaceColorOnBoardandInOrder()
         {
-            /*
-             * Every sequence there is chance that 1 or more colors get swapped by new colors in the running order:
-             * E.g: sequence of 3 was 'Red, Blue, Orange' and will be changed to sequence of 4 'Red, Orange, Orange, Blue".
-             */
-            
-            string newColor = RandomizerComputerSequence();
+            Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
+            List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
+            List<string> copyCorrectOrder = new List<string>(correctOrder); // Create a copy of correctOrder
 
-            if (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55 ||
-                counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85 ||
-                counter_levels >= 8 && correctOrder.Count > 2)
+            if (correctOrder.Count > 1)
             {
-                // Make copy correctOrder as copyCorrectOrder
-                List<string> copyCorrectOrder = new List<string>(correctOrder);
+                int rndIndexColor = rnd.Next(copyCorrectOrder.Count);
+                string deleteColor = copyCorrectOrder[rndIndexColor];
+                copyCorrectOrder.RemoveAt(rndIndexColor);
 
-                int randomIndex = rnd.Next(correctOrder.Count);
-                var selectedColor = correctOrder[randomIndex];
+                // Get the PictureBox associated with the deleteColor
+                PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
 
-                if (newColor != selectedColor && randomIndex != copyCorrectOrder.Count -1)
+                // Remove the old color square from the board
+                pictureBoxDictionary.Remove(deleteColor);
+
+                // Randomize new color that's not in the remaining colors on the board
+                int rndIndexNewColor;
+                string pickNewColor;
+                do
                 {
-                    Debug.WriteLine($"Replacing selectedColor [{selectedColor}] at index [{randomIndex}] with new color [{newColor}]");
+                    rndIndexNewColor = rnd.Next(listOfAllSquares.Count);
+                    pickNewColor = listOfAllSquares[rndIndexNewColor].Key;
+                } while (pictureBoxDictionary.ContainsKey(pickNewColor));
 
-                    // Replace color in copyCorrectOrder
-                    copyCorrectOrder[randomIndex] = newColor;
+                Debug.WriteLine($"Replaced color [{deleteColor}] with [{pickNewColor}]");
 
-                    correctOrder = copyCorrectOrder;
+                // Initialize the PictureBox with the new color
+                InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
+
+                // Add the new color to the pictureBoxDictionary
+                pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
+
+                // Update correctOrder with the new order
+                correctOrder = copyCorrectOrder;
+                correctOrder.Add(pickNewColor); // Add the new color to the correct order
+
+                /*
+                // Print results to verify
+                foreach (var item in pictureBoxDictionary)
+                {
+                    Debug.WriteLine($"{item.Key}: {item.Value}");
                 }
+                */
             }
         }
 
-        // NEW //
-        private void SwapOneColorSquareInOrder() // Called in ComputersTurn
-            {
-            /*
-             * Every sequence there is a chance that 1 or more squares get swapped by new squares in the running order:
-             * E.g: sequence of 3 was 'Red, Blue, Orange' and will be changed to sequence of 4 'Red, Indigo, Orange, Blue" and replacing the 1 square with Indigo
-             */
 
-            if (counter_levels >= 1 && correctOrder.Count > 1 && rnd.Next(100) <= 100 ||
-                counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85 ||
-                counter_levels >= 9 && correctOrder.Count > 2) 
-            {
-                Dictionary<string, string> shuffledColourSquares = RandomizerReplaceColorSquares();
-                List<string> listKeys = shuffledColourSquares.Keys.ToList();
-                List<string> listPictureboxes = new List<string> { "pictureBox1", "pictureBox2", "pictureBox3", "pictureBox4" };
-
-                // Retrieve the first 4 key-value pairs from shuffledColourSquares
-                KeyValuePair<string, string> kvpA = shuffledColourSquares.ElementAt(0);
-                KeyValuePair<string, string> kvpB = shuffledColourSquares.ElementAt(1);
-                KeyValuePair<string, string> kvpC = shuffledColourSquares.ElementAt(2);
-                KeyValuePair<string, string> kvpD = shuffledColourSquares.ElementAt(3);
-
-                InitializePictureBox(pictureBox1, kvpA.Key, kvpA.Value);
-                InitializePictureBox(pictureBox2, kvpB.Key, kvpB.Value);
-                InitializePictureBox(pictureBox3, kvpC.Key, kvpC.Value);
-                InitializePictureBox(pictureBox4, kvpD.Key, kvpD.Value);
-
-                // Remove a random square from the pictureBoxDictionary
-                int rndIndexKeys = rnd.Next(listKeys.Count);
-                string keyToRemove = listKeys[rndIndexKeys];
-                pictureBoxDictionary.Remove(keyToRemove);
-
-                // Ensure the new square is not already in the dictionary
-                string newKey;
-                do 
-                {
-                    newKey = shuffledColourSquares.Keys.ElementAt(rnd.Next(shuffledColourSquares.Count));
-                } while (newKey == keyToRemove && pictureBoxDictionary.ContainsKey(newKey));
-
-                Debug.WriteLine("Active SwapOneColorSquareInOrder()");
-                Debug.WriteLine($"[{keyToRemove}] replaced with [{newKey}]");
-
-                // Get the PictureBox control to update
-                int rndIndexBoxes = rnd.Next(listPictureboxes.Count);
-                string pictureBoxToUpdateName = listPictureboxes[rndIndexBoxes];
-
-                Control[] foundControls = Controls.Find(pictureBoxToUpdateName, true);
-                PictureBox pictureBoxToUpdate = foundControls.FirstOrDefault() as PictureBox;
-
-                // Check if pictureBoxToUpdate is not null
-                if (pictureBoxToUpdate != null) {
-                    // Initialize the PictureBox with the new key and value
-                    InitializePictureBox(pictureBoxToUpdate, newKey, shuffledColourSquares[newKey]);
-                }
-                else {
-                    Debug.WriteLine($"PictureBox '{pictureBoxToUpdateName}' not found or is null.");
-                }
-            }
-        }
 
         private async void DisplayLabelMessage(bool isComputerTurn)
         {
@@ -862,6 +843,12 @@ namespace KeepYourFocus
                     richTextBoxTurn.BackColor = Color.Salmon;
                     richTextBoxTurn.Text = $"{new string(' ', 4)}Computer's Turn";
                     richTextBoxTurn.Text = $"{new string(' ', 9)}Running\n{new string(' ', 14)}::\n{new string(' ', 8)}Sequence";
+
+                    // ---> // TEST // <--- //
+                    Debug.WriteLine("Verify ReplaceColorOnBoardandInOrder() in UpdateTurn()");
+                    ReplaceColorOnBoardandInOrder();
+                    // ---> // TEST // <--- //
+
                     break;
                 // Player's turn
                 case (false, false, _):
