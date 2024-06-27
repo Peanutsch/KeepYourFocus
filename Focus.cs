@@ -248,6 +248,7 @@ namespace KeepYourFocus
             {
                 Debug.WriteLine($"Error initializing PictureBox for color {color}: {ex.Message}");
             }
+
         }
 
         private void RandomizerShufflePictureBoxes()
@@ -371,10 +372,6 @@ namespace KeepYourFocus
             correctOrder.Add(RandomizerColors());
             UpdateTurn(); // case Computer's Turn
 
-            // ---> // TEST // <--- //
-            // Debug.WriteLine("Verify SwapOneColorInOrder()");
-            // SwapOneColorInOrder();
-
             // Debug.WriteLine("Verify ReplaceColorOnBoardandInOrder() in ComputersTurn()");
             // ReplaceColorOnBoardandInOrder();
             // ---> // TEST // <--- //
@@ -386,18 +383,22 @@ namespace KeepYourFocus
 
         private async void DisplaySequence()
         {
-            Debug.WriteLine("\nSequence: ");
+            Debug.WriteLine("\nDisplaySequence() active");
+
             Computer = true;
+
+            ReplaceColorOnBoardandInOrder();
 
             // Create a copy of correctOrder to iterate over
             List<string> sequenceToDisplay = new List<string>(correctOrder);
 
-            foreach (var color in sequenceToDisplay)
+            foreach (string color in sequenceToDisplay)
             {
                 // Check if the color exists in pictureBoxDictionary
                 if (!pictureBoxDictionary.ContainsKey(color))
                 {
                     Debug.WriteLine($"Color [{color}] not found in pictureBoxDictionary.");
+                    Debug.WriteLine($"Recall ReplaceColorOnBoardandInOrder()");
                     continue;
                 }
 
@@ -500,12 +501,14 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        // TESTING WITH 3 SEQUENCES PER LEVEL
+        // TESTING WITH 4 SEQUENCES PER LEVEL
         private void SetCounters()
         {
+            Debug.WriteLine("\nSetCounters() active");
+
             switch (counter_sequences)
             {
-                case (3) when counter_levels < 6:
+                case (4) when counter_levels < 6:
                     levelUp = true;
                     correctOrder.Clear();
                     playerOrder.Clear();
@@ -514,7 +517,7 @@ namespace KeepYourFocus
                     counter_rounds++;
 
                     Debug.WriteLine("Verify ReplaceAllColorSquares()");
-                    ReplaceAllColorSquares();
+                    // ReplaceAllColorSquares();
 
                     UpdateTurn();
                     levelUp = false;
@@ -560,6 +563,7 @@ namespace KeepYourFocus
 
         ////>>>> DIFFICULTIES <<<<////
 
+        // Method to shuffle Picturboxes after DisplaySequence() or after each player click
         private async void ShufflePictureBoxes() // Called in SetTurnActions()
         {
             switch (Computer)
@@ -591,6 +595,7 @@ namespace KeepYourFocus
                     break;
             }
         }
+
 
         private void ReplaceAllColorSquares() // Called in SetCounters()
         {
@@ -638,14 +643,17 @@ namespace KeepYourFocus
             }
         }
 
-        private void ReplaceColorOnBoardandInOrder()
+        private void ReplaceColorOnBoardandInOrder() // Called in DisplaySequence()
         {
             Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
-            List<string> copyCorrectOrder = new List<string>(correctOrder); // Create a copy of correctOrder
 
             if (correctOrder.Count > 1)
             {
+                // Create a copy of correctOrder to modify
+                List<string> copyCorrectOrder = new List<string>(correctOrder);
+
+                // Randomize color to delete from copyCorrectOrder
                 int rndIndexColor = rnd.Next(copyCorrectOrder.Count);
                 string deleteColor = copyCorrectOrder[rndIndexColor];
                 copyCorrectOrder.RemoveAt(rndIndexColor);
@@ -663,9 +671,10 @@ namespace KeepYourFocus
                 {
                     rndIndexNewColor = rnd.Next(listOfAllSquares.Count);
                     pickNewColor = listOfAllSquares[rndIndexNewColor].Key;
-                } while (pictureBoxDictionary.ContainsKey(pickNewColor));
+                    // } while (pictureBoxDictionary.ContainsKey(pickNewColor));
+                } while (correctOrder.Contains(pickNewColor) && pictureBoxDictionary.ContainsKey(pickNewColor));
 
-                Debug.WriteLine($"Replaced color [{deleteColor}] with [{pickNewColor}]");
+                Debug.WriteLine($"Replaced color {deleteColor} with {pickNewColor}");
 
                 // Initialize the PictureBox with the new color
                 InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
@@ -673,20 +682,19 @@ namespace KeepYourFocus
                 // Add the new color to the pictureBoxDictionary
                 pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
 
+                // Insert the new color at the same position where the old color was removed
+                copyCorrectOrder.Insert(rndIndexColor, pickNewColor);
+
                 // Update correctOrder with the new order
                 correctOrder = copyCorrectOrder;
-                correctOrder.Add(pickNewColor); // Add the new color to the correct order
 
-                /*
                 // Print results to verify
                 foreach (var item in pictureBoxDictionary)
                 {
                     Debug.WriteLine($"{item.Key}: {item.Value}");
                 }
-                */
             }
         }
-
 
 
         private async void DisplayLabelMessage(bool isComputerTurn)
@@ -843,12 +851,6 @@ namespace KeepYourFocus
                     richTextBoxTurn.BackColor = Color.Salmon;
                     richTextBoxTurn.Text = $"{new string(' ', 4)}Computer's Turn";
                     richTextBoxTurn.Text = $"{new string(' ', 9)}Running\n{new string(' ', 14)}::\n{new string(' ', 8)}Sequence";
-
-                    // ---> // TEST // <--- //
-                    Debug.WriteLine("Verify ReplaceColorOnBoardandInOrder() in UpdateTurn()");
-                    ReplaceColorOnBoardandInOrder();
-                    // ---> // TEST // <--- //
-
                     break;
                 // Player's turn
                 case (false, false, _):
