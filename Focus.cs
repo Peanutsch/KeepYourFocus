@@ -394,8 +394,13 @@ namespace KeepYourFocus
 
             Computer = true;
 
+
             List<string> sequenceToDisplay;
             Dictionary<string, PictureBox> dictionaryToUse;
+
+            Debug.WriteLine("Verify ReplaceColorOnBoardandInOrder() in DisplaySequence");
+            ReplaceColorOnBoardandInOrder();
+
 
             if (!replaceColorOnBoardandInOrder)
             {
@@ -751,11 +756,13 @@ namespace KeepYourFocus
         */
 
         private (Dictionary<string, PictureBox>, List<string>) ReplaceColorOnBoardandInOrder()
+
         {
             Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
 
-            if (correctOrder.Count > 1)
+            if (counter_levels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100 ||
+                counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85)
             {
                 // Create a copy of correctOrder to modify
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
@@ -763,7 +770,7 @@ namespace KeepYourFocus
                 // Randomize color to delete from copyCorrectOrder
                 int rndIndexColor = rnd.Next(copyCorrectOrder.Count);
                 string deleteColor = copyCorrectOrder[rndIndexColor];
-                copyCorrectOrder.RemoveAt(rndIndexColor);
+                //copyCorrectOrder.RemoveAt(rndIndexColor);
 
                 // Get the PictureBox associated with the deleteColor
                 PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
@@ -788,7 +795,8 @@ namespace KeepYourFocus
                 pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
 
                 // Insert the new color at the same position where the old color was removed
-                copyCorrectOrder.Insert(rndIndexColor, pickNewColor);
+                // copyCorrectOrder.Insert(rndIndexColor, pickNewColor);
+                copyCorrectOrder[rndIndexColor] = pickNewColor;
 
                 // Update correctOrder with the new order
                 correctOrder = copyCorrectOrder;
