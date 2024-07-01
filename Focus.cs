@@ -54,6 +54,7 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
+        private bool replaceColorOnBoardandInOrder = false;
 
         private int consecutiveCount = 0;
         private int counter_sequences = 1;
@@ -194,8 +195,8 @@ namespace KeepYourFocus
             InitializePictureBox(pictureBox4, "Green", Path.Combine(SetRootPath(), "png", "green_square512.png"));
         }
 
-        static Dictionary<string, string> DictionaryOfAllSquares()
         // Returns a dictionary of all possible squares
+        static Dictionary<string, string> DictionaryOfAllSquares()
         {
             string redSquare = Path.Combine(SetRootPath(), "png", "red_square512.png");
             string blueSquare = Path.Combine(SetRootPath(), "png", "blue_square512.png");
@@ -238,7 +239,6 @@ namespace KeepYourFocus
                 pictureBox.BackColor = Color.FromName(color);
 
                 pictureBox.Click -= PlayersTurn; // Remove any previous attachment
-
                 pictureBox.Click += PlayersTurn; // Attach event handler
 
                 // Update the dictionary with the new PictureBox
@@ -273,6 +273,7 @@ namespace KeepYourFocus
             }
         }
 
+        // Randomize colors for computer sequence. There should be not more then 2x same color in a row
         private string RandomizerColors()
         {
             string newColor;
@@ -281,7 +282,8 @@ namespace KeepYourFocus
             do {
                 newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
 
-                if (consecutiveCount < 2) {
+                if (consecutiveCount < 2) 
+                {
                     // If the last color is not the same as the new color, it's valid
                     isValid = newColor != previousColors[1];
                 }
@@ -309,7 +311,9 @@ namespace KeepYourFocus
             return newColor;
         }
 
-        private Dictionary<string, string> RandomizerReplaceColorSquares()
+        
+        // Shuffles dictionary of all colors
+        private Dictionary<string, string> ShuffleDictOfAllColorSquares()
         {
             Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
 
@@ -325,9 +329,9 @@ namespace KeepYourFocus
                 listOfAllSquares[numberOfItems] = temp;
             }
 
-            Dictionary<string, string> shuffleAllColorSquares = listOfAllSquares.ToDictionary(kv => kv.Key, kv => kv.Value);
+            Dictionary<string, string> shuffledDictOfAllColorSquares = listOfAllSquares.ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            return shuffleAllColorSquares;
+            return shuffledDictOfAllColorSquares;
         }
 
         // Define fixed positions for PictureBoxes
@@ -373,8 +377,8 @@ namespace KeepYourFocus
             UpdateTurn(); // case Computer's Turn
 
             //---> // TEST // <---//
-            Debug.WriteLine("Verify SwapOneColorInOrder()");
-            SwapOneColorInOrder();
+            Debug.WriteLine("Verify ReplaceOneColorInOrder()");
+            ReplaceOneColorInOrder();
             //---> // TEST // <---//
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
@@ -384,29 +388,43 @@ namespace KeepYourFocus
 
         private async void DisplaySequence()
         {
+            var (updatedPictureBoxDictionary, updatedCorrectOrder) = ReplaceColorOnBoardandInOrder();
+
             Debug.WriteLine("\nDisplaySequence() active");
 
             Computer = true;
 
-            //Debug.WriteLine("Verify ReplaceColorOnBoardandInOrder() in DisplaySequence");
-            //ReplaceColorOnBoardandInOrder();
+            List<string> sequenceToDisplay;
+            Dictionary<string, PictureBox> dictionaryToUse;
 
-            // Create a copy of correctOrder to iterate over
-            // List<string> sequenceToDisplay = new List<string>(correctOrder);
-
-            foreach (string color in correctOrder)
+            if (!replaceColorOnBoardandInOrder)
             {
-                // Check if the color exists in pictureBoxDictionary
-                if (!pictureBoxDictionary.ContainsKey(color))
-                {
-                    continue;
+                sequenceToDisplay = correctOrder;
+                dictionaryToUse = pictureBoxDictionary;
+            }
+            else
+            {
+                sequenceToDisplay = updatedCorrectOrder;
+                dictionaryToUse = updatedPictureBoxDictionary;
+                replaceColorOnBoardandInOrder = false;
 
-                    // Debug.WriteLine($"Color [{color}] not found in pictureBoxDictionary.");
-                    // Debug.WriteLine($"Recall ReplaceColorOnBoardandInOrder()");
-                    // ReplaceColorOnBoardandInOrder();
+                // Refresh and reposition picture boxes after updating the dictionary
+                // RefreshAndRepositionPictureBoxes();
+            }
+
+            Debug.WriteLine("sequenceToDisplay = " + string.Join(", ", sequenceToDisplay));
+            Debug.WriteLine("dictionaryToUse = " + string.Join(", ", dictionaryToUse.Keys));
+
+            foreach (string color in sequenceToDisplay)
+            {
+                // Check if the color exists in the dictionary
+                if (!dictionaryToUse.ContainsKey(color))
+                {
+                    Debug.WriteLine($"Color [{color}] not found in pictureBoxDictionary.");
+                    continue;
                 }
 
-                var box = pictureBoxDictionary[color];
+                var box = dictionaryToUse[color];
                 if (box == null)
                     continue;
 
@@ -429,7 +447,6 @@ namespace KeepYourFocus
             Computer = false;
             UpdateTurn(); // Proceed to player's turn
         }
-
 
         private async void PlayersTurn(object? sender, EventArgs e)
         {
@@ -608,7 +625,7 @@ namespace KeepYourFocus
                 counter_levels >= 7 && levelUp == true)
             {
 
-                Dictionary<string, string> shuffledColourSquares = RandomizerReplaceColorSquares();
+                Dictionary<string, string> shuffledColourSquares = ShuffleDictOfAllColorSquares();
 
                 // Ensure that we have enough colors to assign
                 if (shuffledColourSquares.Count >= 3)
@@ -647,7 +664,7 @@ namespace KeepYourFocus
             }
         }
 
-        private void SwapOneColorInOrder() // Called in ComputersTurn()
+        private void ReplaceOneColorInOrder() // Called in ComputersTurn()
         {
             /*
              * Every sequence there is chance that 1 or more colors get swapped by new colors in the running order:
@@ -678,7 +695,62 @@ namespace KeepYourFocus
             }
         }
 
-            private void ReplaceColorOnBoardandInOrder() // Called in DisplaySequence()
+        /*
+                private void ReplaceColorOnBoardandInOrder() // Called in DisplaySequence()
+                {
+                    Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
+                    List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
+
+                    if (correctOrder.Count > 1)
+                    {
+                        // Create a copy of correctOrder to modify
+                        List<string> copyCorrectOrder = new List<string>(correctOrder);
+
+                        // Randomize color to delete from copyCorrectOrder
+                        int rndIndexColor = rnd.Next(copyCorrectOrder.Count);
+                        string deleteColor = copyCorrectOrder[rndIndexColor];
+                        copyCorrectOrder.RemoveAt(rndIndexColor);
+
+                        // Get the PictureBox associated with the deleteColor
+                        PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
+
+                        // Remove the old color square from the board
+                        pictureBoxDictionary.Remove(deleteColor);
+
+                        // Randomize new color that's not in the remaining colors on the board
+                        int rndIndexNewColor;
+                        string pickNewColor;
+                        do
+                        {
+                            rndIndexNewColor = rnd.Next(listOfAllSquares.Count);
+                            pickNewColor = listOfAllSquares[rndIndexNewColor].Key;
+                            // } while (pictureBoxDictionary.ContainsKey(pickNewColor));
+                        } while (correctOrder.Contains(pickNewColor) && pictureBoxDictionary.ContainsKey(pickNewColor));
+
+                        Debug.WriteLine($"Replaced [{deleteColor}] with [{pickNewColor}]");
+
+                        // Initialize the PictureBox with the new color
+                        InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
+
+                        // Add the new color to the pictureBoxDictionary
+                        pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
+
+                        // Insert the new color at the same position where the old color was removed
+                        copyCorrectOrder.Insert(rndIndexColor, pickNewColor);
+
+                        // Update correctOrder with the new order
+                        correctOrder = copyCorrectOrder;
+
+                        // Print results to verify
+                        foreach (var item in pictureBoxDictionary)
+                        {
+                            Debug.WriteLine($"{item.Key}: {item.Value}");
+                        }
+                    }
+                }
+        */
+
+        private (Dictionary<string, PictureBox>, List<string>) ReplaceColorOnBoardandInOrder()
         {
             Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
@@ -700,16 +772,14 @@ namespace KeepYourFocus
                 pictureBoxDictionary.Remove(deleteColor);
 
                 // Randomize new color that's not in the remaining colors on the board
-                int rndIndexNewColor;
                 string pickNewColor;
                 do
                 {
-                    rndIndexNewColor = rnd.Next(listOfAllSquares.Count);
-                    pickNewColor = listOfAllSquares[rndIndexNewColor].Key;
-                    // } while (pictureBoxDictionary.ContainsKey(pickNewColor));
+                    pickNewColor = listOfAllSquares[rnd.Next(listOfAllSquares.Count)].Key;
+                    // } while (copyCorrectOrder.Contains(pickNewColor) || pictureBoxDictionary.ContainsKey(pickNewColor));
                 } while (correctOrder.Contains(pickNewColor) && pictureBoxDictionary.ContainsKey(pickNewColor));
 
-                Debug.WriteLine($"Replaced color [{deleteColor}] with [{pickNewColor}]");
+                Debug.WriteLine($"Replaced [{deleteColor}] with [{pickNewColor}]");
 
                 // Initialize the PictureBox with the new color
                 InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
@@ -722,16 +792,11 @@ namespace KeepYourFocus
 
                 // Update correctOrder with the new order
                 correctOrder = copyCorrectOrder;
-
-                /*
-                // Print results to verify
-                foreach (var item in pictureBoxDictionary)
-                {
-                    Debug.WriteLine($"{item.Key}: {item.Value}");
-                }
-                */
             }
+
+            return (pictureBoxDictionary, correctOrder);
         }
+
 
 
         private async void DisplayLabelMessage(bool isComputerTurn)
