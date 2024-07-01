@@ -727,6 +727,7 @@ namespace KeepYourFocus
                     pickNewColor = listOfAllSquares[rnd.Next(listOfAllSquares.Count)].Key;
                 } while (correctOrder.Contains(pickNewColor) && pictureBoxDictionary.ContainsKey(pickNewColor));
 
+                Debug.WriteLine("\nReplaceColorOnBoardandInOrder():");
                 Debug.WriteLine($"Replaced [{deleteColor}] with [{pickNewColor}]");
 
                 // Initialize the PictureBox with the new color
@@ -741,6 +742,9 @@ namespace KeepYourFocus
 
                 // Update correctOrder with the new order
                 correctOrder = copyCorrectOrder;
+
+                Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
+                Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
             }
             return (pictureBoxDictionary, correctOrder);
         }
