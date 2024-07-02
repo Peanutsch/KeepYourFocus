@@ -8,11 +8,11 @@
  * === Levels ===
  * Level 1 [EasyPeasy]: standard
  * level 2 [OkiDoki] and onward: some misleading text in pictureboxes, plus:
- *                               Shuffle Pictureboxes before start sequence with 55% chance; level 3 85% chance; level 6 100% chance
- * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 85% chance; level 7 100% chance
- * Level 4 [No Way!]: In each sequence, swap one color order with 55% chance; level 5 85% chance; level 8 100% chance
- * level 5 [HELL NO]: There is a chance that 1 or more colors get swapped by other colors in the running order with 55% chance; level 6 85% chance; level 9 100% chance
- * level 6 [...]: 
+ *                               Shuffle Pictureboxes before start player's turn with 55% chance; level 3 85% chance; >= level 6 100% chance
+ * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 85% chance; >= level 7 100% chance
+ * Level 4 [No Way!]: When level up, replace all color squares on board with 55%; level 5 85%; >= level 8 100%
+ * level 5 [HELL NO]: In each sequence, replace one color in running order with 55% chance; >= level 6 85% chance
+ * level 6 [NONONONO]: Replace 1 color with other color on board and in running order in the running order with 55% chance; >= level 7 85% chance
  * level 7 [...]: 
  * level 8 [...]: 
  * level 9 [...]: 
@@ -283,7 +283,7 @@ namespace KeepYourFocus
                 else
                 {
                     // If the last two colors are the same, ensure the new color is different
-                    isValid = newColor != previousColors[0] || newColor != previousColors[1];
+                    isValid = newColor != previousColors[0] && newColor != previousColors[1];
                 }
 
             } while (!isValid);
@@ -401,6 +401,8 @@ namespace KeepYourFocus
             Debug.WriteLine("useOrder = " + string.Join(", ", useOrder));
             Debug.WriteLine("usePictureBoxDictionary = " + string.Join(", ", usePictureBoxDictionary.Keys));
 
+            await Task.Delay(1000);
+
             foreach (var color in useOrder)
             {
                 var box = usePictureBoxDictionary[color];
@@ -507,7 +509,7 @@ namespace KeepYourFocus
         {
             switch (counter_sequences)
             {
-                case (6) when counter_levels < 6:
+                case (6) when counter_levels < 7:
                     levelUp = true;
                     correctOrder.Clear();
                     playerOrder.Clear();
@@ -515,14 +517,13 @@ namespace KeepYourFocus
                     counter_levels++;
                     counter_rounds++;
 
-                    Debug.WriteLine("Verify ReplaceAllColorSquares()");
                     ReplaceAllColorSquares();
 
                     UpdateTurn();
                     levelUp = false;
                     break;
                 default:
-                    if (counter_levels >= 6)
+                    if (counter_levels >= 7)
                     {
                         levelUp = true;
                         counter_sequences++;
@@ -595,9 +596,9 @@ namespace KeepYourFocus
 
         private void ReplaceAllColorSquares() // Called in SetCounters()
         {
-            if (counter_levels >= 2 && levelUp == true && rnd.Next(100) <= 55 ||
+            if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
                 counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 85 ||
-                counter_levels >= 7 && levelUp == true)
+                counter_levels >= 8 && levelUp == true)
             {
 
                 Dictionary<string, string> shuffledColourSquares = ShuffleDictOfAllColorSquares();
@@ -638,18 +639,18 @@ namespace KeepYourFocus
                 }
             }
         }
-
+        
+        // Method to replace 1 color in running sequence and/or on board
         private (Dictionary<string, PictureBox>, List<string>) ReplaceColorOnBoardAndInOrder() // Called in DisplaySequence()
         {
             string newColor = RandomizerColors();
             Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
 
-            bool shouldReplaceInOrder = (counter_levels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100) ||
-                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                        (counter_levels >= 8 && correctOrder.Count > 2);
+            bool shouldReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85); 
 
-            bool shouldReplaceOnBoard = (counter_levels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100) ||
+            bool shouldReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                         (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
 
             if (shouldReplaceInOrder || shouldReplaceOnBoard)
@@ -660,21 +661,24 @@ namespace KeepYourFocus
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
 
                 // Randomize color to delete from copyCorrectOrder
-                int randomIndex = rnd.Next(correctOrder.Count);
-                string deleteColor = correctOrder[randomIndex];
+                int randomIndex = rnd.Next(copyCorrectOrder.Count);
+                string deleteColor = copyCorrectOrder[randomIndex];
+
+                Debug.WriteLine($"deleteColor: [{deleteColor}]");
 
                 if (shouldReplaceInOrder && newColor != deleteColor && randomIndex != copyCorrectOrder.Count - 1)
                 {
                     Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replacing deleteColor [{deleteColor}] at index [{randomIndex}] with new color [{newColor}]");
+                    Debug.WriteLine($"Replacing in order [{deleteColor}] at index [{randomIndex}] with new color [{newColor}]\n");
+                    
                     copyCorrectOrder[randomIndex] = newColor;
+
+                    // Update correctOrder with the new copyCorrectOrder
                     correctOrder = copyCorrectOrder;
                 }
-                else if (shouldReplaceOnBoard)
+                if (shouldReplaceOnBoard)
                 {
                     replaceColor = true;
-
-                    //string deleteColor = copyCorrectOrder[randomIndex];//
 
                     // Get the PictureBox associated with the deleteColor
                     PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
@@ -687,11 +691,11 @@ namespace KeepYourFocus
                     do
                     {
                         pickNewColor = listOfAllSquares[rnd.Next(listOfAllSquares.Count)].Key;
-                    //} while (correctOrder.Contains(pickNewColor) && pictureBoxDictionary.ContainsKey(pickNewColor));
-                    } while (pictureBoxDictionary.ContainsKey(pickNewColor));
+                        Debug.WriteLine($"pickNewColor: [{pickNewColor}]");
+                    } while (copyCorrectOrder.Contains(pickNewColor) || pictureBoxDictionary.ContainsKey(pickNewColor));
 
-                    Debug.WriteLine("\nReplace on Board and Order:");
-                    Debug.WriteLine($"Replaced [{deleteColor}] at index [{randomIndex}] with [{pickNewColor}]");
+                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
+                    Debug.WriteLine($"Replaced on board and in order [{deleteColor}] with [{pickNewColor}]");
 
                     // Initialize the PictureBox with the new color
                     InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
@@ -699,7 +703,7 @@ namespace KeepYourFocus
                     // Add the new color to the pictureBoxDictionary
                     pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
 
-                    // Iter through order and replace deleteColor with pickNewcolor at the same index
+                    // Iter through copyCorrectOrder and replace deleteColor with pickNewcolor at the same index
                     for (int indexItem = 0; indexItem < copyCorrectOrder.Count; indexItem++)
                     {
                         if (copyCorrectOrder[indexItem] == deleteColor)
@@ -708,13 +712,13 @@ namespace KeepYourFocus
                         }
                     }
 
-                    // Update correctOrder with the new order
+                    // Update correctOrder with the new copyCorrectOrder
                     correctOrder = copyCorrectOrder;
+
                 }
                 Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
                 Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
             }
-
             return (pictureBoxDictionary, correctOrder);
         }
 
@@ -727,10 +731,10 @@ namespace KeepYourFocus
              * Player's turn: various messages based on different levels and conditions
              */
 
-            int chance = counter_levels >= 6 ? 75 : 45;
+            int chance = counter_levels >= 6 ? 55 : 45;
             bool showMessage = isComputerTurn
-                ? counter_levels >= 1 && rnd.Next(100) <= chance && correctOrder.Count != correctOrder.Count - 1
-                : counter_levels >= 1 && rnd.Next(100) <= 65 && playerOrder.Count != correctOrder.Count;
+                ? counter_levels >= 2 && rnd.Next(100) <= chance && correctOrder.Count != correctOrder.Count - 1
+                : counter_levels >= 2 && rnd.Next(100) <= 65 && playerOrder.Count != correctOrder.Count;
 
             if (showMessage)
             {
@@ -925,11 +929,18 @@ namespace KeepYourFocus
                     richTextBoxShowLevelName.Text = $"{new string(' ', 4)}No Way!";
                     break;
                 case (5):
-                    richTextBoxShowLevelName.BackColor = Color.DarkBlue;
-                    richTextBoxShowLevelNumber.BackColor = Color.DarkBlue;
+                    richTextBoxShowLevelName.BackColor = Color.DarkKhaki;
+                    richTextBoxShowLevelNumber.BackColor = Color.DarkKhaki;
 
                     richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
                     richTextBoxShowLevelName.Text = $"{new string(' ', 1)}HELL NO";
+                    break;
+                case (6):
+                    richTextBoxShowLevelName.BackColor = Color.DarkOrange;
+                    richTextBoxShowLevelNumber.BackColor = Color.DarkOrange;
+
+                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"{new string(' ', 0)}NONONONO";
                     break;
                 case (999):
                     richTextBoxShowLevelNumber.BackColor = Color.Red;
