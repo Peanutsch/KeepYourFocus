@@ -105,6 +105,8 @@ namespace KeepYourFocus
             correctSound = new SoundPlayer(soundPathCorrect);
             startupSound = new SoundPlayer(soundPathStartupSound);
 
+            ////>>>> Start Program <<<<////
+
             // Play startup sound
             startupSound.Play();
 
@@ -326,49 +328,6 @@ namespace KeepYourFocus
             return newColor;
         }
 
-
-        /*
-        // Randomize colors for computer sequence. There should be not more then 2x same color in a row
-        private string RandomizerColor()
-        {
-            string newColor;
-            bool isValid;
-
-            do
-            {
-                newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
-
-                if (consecutiveCount < 2)
-                {
-                    // If the last color is not the same as the new color, it's valid
-                    isValid = newColor != previousColors[1];
-                }
-                else
-                {
-                    // If the last two colors are the same, ensure the new color is different
-                    isValid = newColor != previousColors[0] && newColor != previousColors[1];
-                }
-
-            } while (!isValid);
-
-            // Shift the colors in the previousColors array
-            previousColors[0] = previousColors[1];
-            previousColors[1] = newColor;
-
-            // Update the consecutive count
-            if (previousColors[0] == newColor)
-            {
-                consecutiveCount++;
-            }
-            else
-            {
-                consecutiveCount = 1;
-            }
-
-            return newColor;
-        }
-        */
-
         // Shuffles dictionary of all colors
         private Dictionary<string, string> ShuffleDictOfAllSquares()
         {
@@ -423,15 +382,11 @@ namespace KeepYourFocus
             }
         }
 
-
         private async void ComputersTurn()
         {
             Computer = true;
             correctOrder.Add(RandomizerColor());
             UpdateTurn(); // case Computer's Turn
-
-            // Debug.WriteLine("Verify ReplaceOneColorInOrder()");
-            // ReplaceOneColorInOrder();
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
 
@@ -486,7 +441,6 @@ namespace KeepYourFocus
 
             UpdateTurn(); // case Player's Turn
         }
-
 
         private async void PlayersTurn(object? sender, EventArgs e)
         {
@@ -699,7 +653,7 @@ namespace KeepYourFocus
         }
 
         // Method to replace 1 color in running sequence and/or on board
-        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceColorOnBoardAndInSequence()
+        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceColorOnBoardAndInSequence() // Called in DisplaySequence()
         {
             string newColor = RandomizerColor();
             Dictionary<string, string> dictOfAllSquares = DictOfAllSquares();
@@ -785,7 +739,7 @@ namespace KeepYourFocus
         {
             /*
              * Show labels with text in either Computer's or Player's turn
-             * Computer's turn: "Click Here", "Start Here!", "Start With this One!" (45% or 75% chance depending on level)
+             * Computer's turn: "Click Here", "Start Here!", "Start With this One!", etc (45%, 55% or 65% chance depending on level)
              * Player's turn: various messages based on different levels and conditions
              */
 
