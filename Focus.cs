@@ -54,7 +54,6 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
-        private bool replaceColorOnBoardandInOrder = false;
 
         private int consecutiveCount = 0;
         private int counter_sequences = 1;
@@ -72,24 +71,24 @@ namespace KeepYourFocus
             InitializeComponent();
 
             // Load soundfiles. For now 1 beep sound for all colors
-            string soundPathBeepALL = Path.Combine(SetRootPath(), "sounds", "beep.wav");
+            string soundPathBeepALL = Path.Combine(SetRootPath(), @"sounds\beep.wav");
 
             /* Pre-made soundPath for all colors *\
-            string soundPathBeepRed = Path.Combine(SetRootPath(), "sounds", "redSound.wav");
-            string soundPathBeepBlue = Path.Combine(SetRootPath(), "sounds", "blueSound.wav");
-            string soundPathBeepOrange = Path.Combine(SetRootPath(), "sounds", "orangeSound.wav");
-            string soundPathBeepGreen = Path.Combine(SetRootPath(), "sounds", "greenSound.wav");
-            string soundPathBeepCaribBlue = Path.Combine(SetRootPath(), "sounds", "caribBlueSound.wav");
-            string soundPathBeepGrey = Path.Combine(SetRootPath(), ""sounds", "greySound.wav");
-            string soundPathBeepIndigo = Path.Combine(SetRootPath(), "sounds, "indigoSound.wav");
-            string soundPathBeepMaroon = Path.Combine(SetRootPath(), "sounds", "maroonSound.wav");
+            string soundPathBeepRed = Path.Combine(SetRootPath(), @"sounds\redSound.wav");
+            string soundPathBeepBlue = Path.Combine(SetRootPath(), @"sounds\blueSound.wav");
+            string soundPathBeepOrange = Path.Combine(SetRootPath(), @"sounds\orangeSound.wav");
+            string soundPathBeepGreen = Path.Combine(SetRootPath(), @"sounds\greenSound.wav");
+            string soundPathBeepCaribBlue = Path.Combine(SetRootPath(), @"sounds\caribBlueSound.wav");
+            string soundPathBeepGrey = Path.Combine(SetRootPath(), @"\sounds\greySound.wav");
+            string soundPathBeepIndigo = Path.Combine(SetRootPath(), @"sounds\indigoSound.wav");
+            string soundPathBeepMaroon = Path.Combine(SetRootPath(), @\sounds\maroonSound.wav");
             */
 
-            string soundPathTransition = Path.Combine(SetRootPath(), "sounds", "transistion.wav");
-            string soundPathButtonClick = Path.Combine(SetRootPath(), "sounds", "buttonclick.wav");
-            string soundPathWrong = Path.Combine(SetRootPath(), "sounds", "wrong.wav");
-            string soundPathCorrect = Path.Combine(SetRootPath(), "sounds", "correct.wav");
-            string soundPathStartupSound = Path.Combine(SetRootPath(), "sounds", "startupSound.wav");
+            string soundPathTransition = Path.Combine(SetRootPath(), @"sounds\transistion.wav");
+            string soundPathButtonClick = Path.Combine(SetRootPath(), @"sounds\buttonclick.wav");
+            string soundPathWrong = Path.Combine(SetRootPath(), @"sounds\wrong.wav");
+            string soundPathCorrect = Path.Combine(SetRootPath(), @"sounds\correct.wav");
+            string soundPathStartupSound = Path.Combine(SetRootPath(), @"sounds\startupSound.wav");
 
             // Initiaize SoundPlayers
             redSound = new SoundPlayer(soundPathBeepALL);
@@ -106,8 +105,6 @@ namespace KeepYourFocus
             correctSound = new SoundPlayer(soundPathCorrect);
             startupSound = new SoundPlayer(soundPathStartupSound);
 
-
-            Debug.WriteLine($"soundPathTrans: {soundPathTransition}");
             // Play startup sound
             startupSound.Play();
             SetupFieldAtStart();
@@ -189,10 +186,10 @@ namespace KeepYourFocus
                 return;
             }
 
-            InitializePictureBox(pictureBox1, "Red", Path.Combine(SetRootPath(), "png", "red_square512.png"));
-            InitializePictureBox(pictureBox2, "Blue", Path.Combine(SetRootPath(), "png", "blue_square512.png"));
-            InitializePictureBox(pictureBox3, "Orange", Path.Combine(SetRootPath(), "png", "orange_square512.png"));
-            InitializePictureBox(pictureBox4, "Green", Path.Combine(SetRootPath(), "png", "green_square512.png"));
+            InitializePictureBox(pictureBox1, "Red", Path.Combine(SetRootPath(), @"png\red_square512.png"));
+            InitializePictureBox(pictureBox2, "Blue", Path.Combine(SetRootPath(), @"png\blue_square512.png"));
+            InitializePictureBox(pictureBox3, "Orange", Path.Combine(SetRootPath(), @"png\orange_square512.png"));
+            InitializePictureBox(pictureBox4, "Green", Path.Combine(SetRootPath(), @"png\green_square512.png"));
         }
 
         // Returns a dictionary of all possible squares
@@ -232,13 +229,8 @@ namespace KeepYourFocus
                 pictureBox.Cursor = Cursors.Hand;
                 pictureBox.Tag = color;
 
-                // Additional properties
-                pictureBox.ImageLocation = imagePath;
-                //pictureBox.Name = colorName;
-                pictureBox.Name = color;
-                pictureBox.BackColor = Color.FromName(color);
-
                 pictureBox.Click -= PlayersTurn; // Remove any previous attachment
+
                 pictureBox.Click += PlayersTurn; // Attach event handler
 
                 // Update the dictionary with the new PictureBox
@@ -248,7 +240,6 @@ namespace KeepYourFocus
             {
                 Debug.WriteLine($"Error initializing PictureBox for color {color}: {ex.Message}");
             }
-
         }
 
         private void RandomizerShufflePictureBoxes()
@@ -279,15 +270,17 @@ namespace KeepYourFocus
             string newColor;
             bool isValid;
 
-            do {
+            do
+            {
                 newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
 
-                if (consecutiveCount < 2) 
+                if (consecutiveCount < 2)
                 {
                     // If the last color is not the same as the new color, it's valid
                     isValid = newColor != previousColors[1];
                 }
-                else {
+                else
+                {
                     // If the last two colors are the same, ensure the new color is different
                     isValid = newColor != previousColors[0] || newColor != previousColors[1];
                 }
@@ -311,7 +304,6 @@ namespace KeepYourFocus
             return newColor;
         }
 
-        
         // Shuffles dictionary of all colors
         private Dictionary<string, string> ShuffleDictOfAllColorSquares()
         {
@@ -355,20 +347,17 @@ namespace KeepYourFocus
 
         private void RefreshAndRepositionPictureBoxes()
         {
-            var fixedPositions = new List<Point>
-                {
-                 new Point(14, 14), new Point(321, 14),
-                 new Point(14, 316), new Point(321, 316)
-                };
-
+            // Get the shuffled PictureBoxes
             var shuffledPictureBoxes = pictureBoxDictionary.Values.OrderBy(x => rnd.Next()).ToList();
 
-            for (int i = 0; i < fixedPositions.Count; i++)
+            // Iterate through the shuffled PictureBoxes and assign fixed positions
+            for (int i = 0; i < shuffledPictureBoxes.Count; i++)
             {
-                shuffledPictureBoxes[i].Location = fixedPositions[i];
+                shuffledPictureBoxes[i].Location = GetFixedPosition(i);
                 shuffledPictureBoxes[i].Visible = true;
             }
         }
+
 
         private async void ComputersTurn()
         {
@@ -376,10 +365,8 @@ namespace KeepYourFocus
             correctOrder.Add(RandomizerColors());
             UpdateTurn(); // case Computer's Turn
 
-            //---> // TEST // <---//
-            //Debug.WriteLine("Verify ReplaceOneColorInOrder()");
+            Debug.WriteLine("Verify ReplaceOneColorInOrder()");
             ReplaceOneColorInOrder();
-            //---> // TEST // <---//
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
 
@@ -388,49 +375,16 @@ namespace KeepYourFocus
 
         private async void DisplaySequence()
         {
-            var (updatedPictureBoxDictionary, updatedCorrectOrder) = ReplaceColorOnBoardandInOrder();
-
-            Debug.WriteLine("\nDisplaySequence() active");
-
+            Debug.WriteLine("\nSequence: ");
             Computer = true;
 
-
-            List<string> sequenceToDisplay;
-            Dictionary<string, PictureBox> dictionaryToUse;
-
-            Debug.WriteLine("Verify ReplaceColorOnBoardandInOrder() in DisplaySequence");
-            ReplaceColorOnBoardandInOrder();
-
-
-            if (!replaceColorOnBoardandInOrder)
+            foreach (var color in correctOrder)
             {
-                sequenceToDisplay = correctOrder;
-                dictionaryToUse = pictureBoxDictionary;
-            }
-            else
-            {
-                sequenceToDisplay = updatedCorrectOrder;
-                dictionaryToUse = updatedPictureBoxDictionary;
-                replaceColorOnBoardandInOrder = false;
-            }
-
-            Debug.WriteLine("sequenceToDisplay = " + string.Join(", ", sequenceToDisplay));
-            Debug.WriteLine("dictionaryToUse = " + string.Join(", ", dictionaryToUse.Keys));
-
-            foreach (string color in sequenceToDisplay)
-            {
-                // Check if the color exists in the dictionary
-                if (!dictionaryToUse.ContainsKey(color))
-                {
-                    Debug.WriteLine($"Color [{color}] not found in pictureBoxDictionary.");
-                    continue;
-                }
-
-                var box = dictionaryToUse[color];
+                var box = pictureBoxDictionary[color];
                 if (box == null)
                     continue;
 
-                await Task.Delay(500); // Delay 500 ms before starting highlights and sound
+                await Task.Delay(500); // Delay 500 ms before start highlights and beepSound
 
                 PlaySound(color);
 
@@ -440,14 +394,13 @@ namespace KeepYourFocus
                 await Task.Delay(50);
                 Debug.WriteLine($"Color: [{color}]");
             }
-
             // Check difficulty
             SetTurnActions();
 
             await Task.Delay(1000); // Delay 1000 ms before calling PlayersTurn()
 
             Computer = false;
-            UpdateTurn(); // Proceed to player's turn
+            UpdateTurn(); // case Player's Turn
         }
 
         private async void PlayersTurn(object? sender, EventArgs e)
@@ -527,8 +480,6 @@ namespace KeepYourFocus
         // TESTING WITH 4 SEQUENCES PER LEVEL
         private void SetCounters()
         {
-            Debug.WriteLine("\nSetCounters() active");
-
             switch (counter_sequences)
             {
                 case (4) when counter_levels < 6:
@@ -586,7 +537,6 @@ namespace KeepYourFocus
 
         ////>>>> DIFFICULTIES <<<<////
 
-        // Method to shuffle Picturboxes after DisplaySequence() or after each player click
         private async void ShufflePictureBoxes() // Called in SetTurnActions()
         {
             switch (Computer)
@@ -619,10 +569,9 @@ namespace KeepYourFocus
             }
         }
 
-
         private void ReplaceAllColorSquares() // Called in SetCounters()
         {
-            if (counter_levels >= 2 && levelUp == true && rnd.Next(100) <= 100 ||
+            if (counter_levels >= 2 && levelUp == true && rnd.Next(100) <= 55 ||
                 counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 85 ||
                 counter_levels >= 7 && levelUp == true)
             {
@@ -675,9 +624,9 @@ namespace KeepYourFocus
 
             string newColor = RandomizerColors();
 
-            if (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55 ||
-                counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85 ||
-                counter_levels >= 8 && correctOrder.Count > 2)
+            if (counter_levels >= 1 && correctOrder.Count > 1 && rnd.Next(100) <= 100 ||
+                counter_levels >= 6 && correctOrder.Count > 1 && rnd.Next(100) <= 85 ||
+                counter_levels >= 8 && correctOrder.Count > 1)
             {
                 // Make copy correctOrder as copyCorrectOrder
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
@@ -697,6 +646,8 @@ namespace KeepYourFocus
             }
         }
 
+
+        // NEW //
         private (Dictionary<string, PictureBox>, List<string>) ReplaceColorOnBoardandInOrder()
 
         {
@@ -748,8 +699,6 @@ namespace KeepYourFocus
             }
             return (pictureBoxDictionary, correctOrder);
         }
-
-
 
         private async void DisplayLabelMessage(bool isComputerTurn)
         {
@@ -867,7 +816,7 @@ namespace KeepYourFocus
         // Update richtextbox Turn
         private async void UpdateTurn()
         {
-             switch (Computer, startButton, nextRound)
+            switch (Computer, startButton, nextRound)
             {
                 // Next Round or Level Up
                 case (_, _, true):
@@ -882,7 +831,7 @@ namespace KeepYourFocus
 
                         richTextBoxTurn.Text = $"\n{new string(' ', 8)}Level  Up";
 
-                        // ReplaceAllColorSquares(); moved to SetCounters()
+                        // ReplaceAllColorSquares();
 
                         await Task.Delay(1000);
                         break;
@@ -961,7 +910,7 @@ namespace KeepYourFocus
                     richTextBoxShowLevelNumber.BackColor = Color.DarkBlue;
 
                     richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 2)}HELL NO";
+                    richTextBoxShowLevelName.Text = $"{new string(' ', 1)}HELL NO";
                     break;
                 case (999):
                     richTextBoxShowLevelNumber.BackColor = Color.Red;
