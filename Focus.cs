@@ -54,6 +54,7 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
+        private bool replaceColor = false;
 
         private int consecutiveCount = 0;
         private int counter_sequences = 1;
@@ -365,8 +366,8 @@ namespace KeepYourFocus
             correctOrder.Add(RandomizerColors());
             UpdateTurn(); // case Computer's Turn
 
-            Debug.WriteLine("Verify ReplaceOneColorInOrder()");
-            ReplaceOneColorInOrder();
+            // Debug.WriteLine("Verify ReplaceOneColorInOrder()");
+            // ReplaceOneColorInOrder();
 
             await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
 
@@ -375,12 +376,34 @@ namespace KeepYourFocus
 
         private async void DisplaySequence()
         {
-            Debug.WriteLine("\nSequence: ");
+            Dictionary<string, PictureBox> updatedPictureBoxDictionary;
+            Dictionary<string, PictureBox> usePictureBoxDictionary;
+            List<string> updatedCorrectOrder;
+            List<string> useOrder;
+
+            (updatedPictureBoxDictionary, updatedCorrectOrder) = ReplaceColorOnBoardAndInOrder();
+
+            if (replaceColor)
+            {
+                usePictureBoxDictionary = updatedPictureBoxDictionary;
+                useOrder = updatedCorrectOrder;
+            }
+            else
+            {
+                usePictureBoxDictionary = pictureBoxDictionary;
+                useOrder = correctOrder;
+            }
+
+
             Computer = true;
 
-            foreach (var color in correctOrder)
+            Debug.WriteLine($"\nDisplay Sequence: {counter_sequences}");
+            Debug.WriteLine("useOrder = " + string.Join(", ", useOrder));
+            Debug.WriteLine("usePictureBoxDictionary = " + string.Join(", ", usePictureBoxDictionary.Keys));
+
+            foreach (var color in useOrder)
             {
-                var box = pictureBoxDictionary[color];
+                var box = usePictureBoxDictionary[color];
                 if (box == null)
                     continue;
 
@@ -392,7 +415,7 @@ namespace KeepYourFocus
                 await Task.Delay(150);
                 SetHighlight(box, false);
                 await Task.Delay(50);
-                Debug.WriteLine($"Color: [{color}]");
+                // Debug.WriteLine($"Color: [{color}]");
             }
             // Check difficulty
             SetTurnActions();
@@ -400,6 +423,8 @@ namespace KeepYourFocus
             await Task.Delay(1000); // Delay 1000 ms before calling PlayersTurn()
 
             Computer = false;
+            replaceColor = false;
+
             UpdateTurn(); // case Player's Turn
         }
 
@@ -477,12 +502,12 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        // TESTING WITH 4 SEQUENCES PER LEVEL
+        // TESTING WITH 6 SEQUENCES PER LEVEL
         private void SetCounters()
         {
             switch (counter_sequences)
             {
-                case (4) when counter_levels < 6:
+                case (6) when counter_levels < 6:
                     levelUp = true;
                     correctOrder.Clear();
                     playerOrder.Clear();
@@ -530,7 +555,6 @@ namespace KeepYourFocus
                     DisplayLabelMessage(false);
                     ShufflePictureBoxes();
                     break;
-
             }
         }
 
@@ -615,90 +639,85 @@ namespace KeepYourFocus
             }
         }
 
-        private void ReplaceOneColorInOrder() // Called in ComputersTurn()
+        private (Dictionary<string, PictureBox>, List<string>) ReplaceColorOnBoardAndInOrder() // Called in DisplaySequence()
         {
-            /*
-             * Every sequence there is chance that 1 or more colors get swapped by new colors in the running order:
-             * E.g: sequence of 3 was 'Red, Blue, Orange' and will be changed to sequence of 4 'Red, Orange, Orange, Blue".
-             */
-
             string newColor = RandomizerColors();
-
-            if (counter_levels >= 1 && correctOrder.Count > 1 && rnd.Next(100) <= 100 ||
-                counter_levels >= 6 && correctOrder.Count > 1 && rnd.Next(100) <= 85 ||
-                counter_levels >= 8 && correctOrder.Count > 1)
-            {
-                // Make copy correctOrder as copyCorrectOrder
-                List<string> copyCorrectOrder = new List<string>(correctOrder);
-
-                int randomIndex = rnd.Next(correctOrder.Count);
-                var selectedColor = correctOrder[randomIndex];
-
-                if (newColor != selectedColor && randomIndex != copyCorrectOrder.Count - 1)
-                {
-                    Debug.WriteLine($"Replacing selectedColor [{selectedColor}] at index [{randomIndex}] with new color [{newColor}]");
-
-                    // Replace color in copyCorrectOrder
-                    copyCorrectOrder[randomIndex] = newColor;
-
-                    correctOrder = copyCorrectOrder;
-                }
-            }
-        }
-
-
-        // NEW //
-        private (Dictionary<string, PictureBox>, List<string>) ReplaceColorOnBoardandInOrder()
-
-        {
             Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
 
-            if (counter_levels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100 ||
-                counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85)
+            bool shouldReplaceInOrder = (counter_levels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100) ||
+                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
+                                        (counter_levels >= 8 && correctOrder.Count > 2);
+
+            bool shouldReplaceOnBoard = (counter_levels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100) ||
+                                        (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
+
+            if (shouldReplaceInOrder || shouldReplaceOnBoard)
             {
-                // Create a copy of correctOrder to modify
+                replaceColor = true;
+
+                // Make copy of correctOrder as copyCorrectOrder
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
 
                 // Randomize color to delete from copyCorrectOrder
-                int rndIndexColor = rnd.Next(copyCorrectOrder.Count);
-                string deleteColor = copyCorrectOrder[rndIndexColor];
-                //copyCorrectOrder.RemoveAt(rndIndexColor);
+                int randomIndex = rnd.Next(correctOrder.Count);
+                string deleteColor = correctOrder[randomIndex];
 
-                // Get the PictureBox associated with the deleteColor
-                PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
-
-                // Remove the old color square from the board
-                pictureBoxDictionary.Remove(deleteColor);
-
-                // Randomize new color that's not in the remaining colors on the board
-                string pickNewColor;
-                do
+                if (shouldReplaceInOrder && newColor != deleteColor && randomIndex != copyCorrectOrder.Count - 1)
                 {
-                    pickNewColor = listOfAllSquares[rnd.Next(listOfAllSquares.Count)].Key;
-                } while (correctOrder.Contains(pickNewColor) && pictureBoxDictionary.ContainsKey(pickNewColor));
+                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
+                    Debug.WriteLine($"Replacing deleteColor [{deleteColor}] at index [{randomIndex}] with new color [{newColor}]");
+                    copyCorrectOrder[randomIndex] = newColor;
+                    correctOrder = copyCorrectOrder;
+                }
+                else if (shouldReplaceOnBoard)
+                {
+                    replaceColor = true;
 
-                Debug.WriteLine("\nReplaceColorOnBoardandInOrder():");
-                Debug.WriteLine($"Replaced [{deleteColor}] with [{pickNewColor}]");
+                    //string deleteColor = copyCorrectOrder[randomIndex];//
 
-                // Initialize the PictureBox with the new color
-                InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
+                    // Get the PictureBox associated with the deleteColor
+                    PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
 
-                // Add the new color to the pictureBoxDictionary
-                pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
+                    // Remove the old color square from the board
+                    pictureBoxDictionary.Remove(deleteColor);
 
-                // Insert the new color at the same position where the old color was removed
-                // copyCorrectOrder.Insert(rndIndexColor, pickNewColor);
-                copyCorrectOrder[rndIndexColor] = pickNewColor;
+                    // Randomize new color that's not in the remaining colors on the board
+                    string pickNewColor;
+                    do
+                    {
+                        pickNewColor = listOfAllSquares[rnd.Next(listOfAllSquares.Count)].Key;
+                    //} while (correctOrder.Contains(pickNewColor) && pictureBoxDictionary.ContainsKey(pickNewColor));
+                    } while (pictureBoxDictionary.ContainsKey(pickNewColor));
 
-                // Update correctOrder with the new order
-                correctOrder = copyCorrectOrder;
+                    Debug.WriteLine("\nReplace on Board and Order:");
+                    Debug.WriteLine($"Replaced [{deleteColor}] at index [{randomIndex}] with [{pickNewColor}]");
 
-                Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
-                Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
+                    // Initialize the PictureBox with the new color
+                    InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
+
+                    // Add the new color to the pictureBoxDictionary
+                    pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
+
+                    // Iter through order and replace deleteColor with pickNewcolor at the same index
+                    for (int indexItem = 0; indexItem < copyCorrectOrder.Count; indexItem++)
+                    {
+                        if (copyCorrectOrder[indexItem] == deleteColor)
+                        {
+                            copyCorrectOrder[indexItem] = pickNewColor;
+                        }
+                    }
+
+                    // Update correctOrder with the new order
+                    correctOrder = copyCorrectOrder;
+                }
+                Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
+                Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
             }
+
             return (pictureBoxDictionary, correctOrder);
         }
+
 
         private async void DisplayLabelMessage(bool isComputerTurn)
         {
