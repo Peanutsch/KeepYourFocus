@@ -46,6 +46,7 @@ namespace KeepYourFocus
             pictureBox1.Size = new Size(300, 294);
             pictureBox1.TabIndex = 3;
             pictureBox1.TabStop = false;
+            pictureBox1.Cursor = Cursors.Arrow;
             // 
             // pictureBox2
             // 
@@ -55,6 +56,7 @@ namespace KeepYourFocus
             pictureBox2.Size = new Size(300, 294);
             pictureBox2.TabIndex = 4;
             pictureBox2.TabStop = false;
+            pictureBox2.Cursor = Cursors.Arrow;
             // 
             // pictureBox3
             // 
@@ -64,6 +66,7 @@ namespace KeepYourFocus
             pictureBox3.Size = new Size(300, 294);
             pictureBox3.TabIndex = 5;
             pictureBox3.TabStop = false;
+            pictureBox3.Cursor = Cursors.Arrow;
             // 
             // pictureBox4
             // 
@@ -73,6 +76,7 @@ namespace KeepYourFocus
             pictureBox4.Size = new Size(300, 294);
             pictureBox4.TabIndex = 6;
             pictureBox4.TabStop = false;
+            pictureBox4.Cursor = Cursors.Arrow;
             // 
             // startBTN
             // 

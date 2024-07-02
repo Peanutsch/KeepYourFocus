@@ -8,11 +8,11 @@
  * === Levels ===
  * Level 1 [EasyPeasy]: standard
  * level 2 [OkiDoki] and onward: some misleading text in pictureboxes, plus:
- *                               Shuffle Pictureboxes before start player's turn with 55% chance; level 3 85% chance; >= level 6 100% chance
- * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 85% chance; >= level 7 100% chance
- * Level 4 [No Way!]: When level up, replace all color squares on board with 55%; level 5 85%; >= level 8 100%
- * level 5 [HELL NO]: In each sequence, replace one color in running order with 55% chance; >= level 6 85% chance
- * level 6 [NONONONO]: Replace 1 color with other color on board and in running order in the running order with 55% chance; >= level 7 85% chance
+ *                               Shuffle Pictureboxes before start player's turn with 55% chance; level 3 85% chance; >= level 5 95% chance
+ * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 85% chance; >= level 6 95% chance
+ * Level 4 [No Way!]: When level up, replace all color squares on board with 55%; level 5 85%; >= level 7 95%
+ * level 5 [HELL NO]: In each sequence, replace one color in running order with 55% chance; level 6 85% chance; level 8 95%
+ * level 6 [NONONONO]: Replace 1 color with other color on board and in running order in the running order with 55% chance; level 7 85% chance; >= level 9 95%
  * level 7 [...]: 
  * level 8 [...]: 
  * level 9 [...]: 
@@ -108,6 +108,7 @@ namespace KeepYourFocus
 
             // Play startup sound
             startupSound.Play();
+
             SetupFieldAtStart();
         }
 
@@ -146,8 +147,7 @@ namespace KeepYourFocus
         // Click Event for Start Button at start
         private void StartButtonClick(object sender, EventArgs e)
         {
-            if (!startButton)
-                return;
+            if (!startButton) return;
 
             buttonClickSound.Play();
 
@@ -569,7 +569,7 @@ namespace KeepYourFocus
                 case (true):
                     if (counter_levels == 2 && rnd.Next(100) <= 55 ||
                         counter_levels >= 3 && rnd.Next(100) <= 85 ||
-                        counter_levels >= 5)
+                        counter_levels >= 5 && rnd.Next(100) <= 95)
                     {
                         Debug.WriteLine($"ShufflePictureBoxes Case 1: Shuffle after display sequence");
 
@@ -583,7 +583,7 @@ namespace KeepYourFocus
                 case (false):
                     if (counter_levels >= 3 && rnd.Next(100) <= 55 ||
                         counter_levels >= 4 && rnd.Next(100) <= 85 ||
-                        counter_levels >= 6)
+                        counter_levels >= 6 && rnd.Next(100) <= 95)
                     {
                         Debug.WriteLine($"ShufflePictureBoxes Case 2: Shuffle after player click");
 
@@ -598,7 +598,7 @@ namespace KeepYourFocus
         {
             if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
                 counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 85 ||
-                counter_levels >= 8 && levelUp == true)
+                counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 95)
             {
 
                 Dictionary<string, string> shuffledColourSquares = ShuffleDictOfAllColorSquares();
@@ -648,10 +648,12 @@ namespace KeepYourFocus
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
 
             bool shouldReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85); 
+                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
+                                        (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 95); 
 
             bool shouldReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                        (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
+                                        (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
+                                        (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 95);
 
             if (shouldReplaceInOrder || shouldReplaceOnBoard)
             {
