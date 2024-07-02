@@ -54,7 +54,6 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
-        private bool replaceColor = false;
 
         private int consecutiveCount = 0;
         private int counter_sequences = 1;
@@ -65,7 +64,7 @@ namespace KeepYourFocus
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
 
-        private string[] previousColors = new string[2];
+        private List<string> previousColors = new List<string> ();
 
         public PlayerField()
         {
@@ -163,7 +162,7 @@ namespace KeepYourFocus
             SetStartButtonInvisible();
         }
 
-        private void SetGameOverButton()
+        private async void SetGameOverButton()
         {
             startBTN.Visible = true;
             startBTN.Enabled = true;
@@ -171,6 +170,9 @@ namespace KeepYourFocus
             startBTN.Cursor = Cursors.Hand;
             startBTN.Text = $"{new string(' ', 1)}Wrong\n Sequence";
             startBTN.FlatStyle = FlatStyle.Popup;
+
+            await Task.Delay(500);
+            ReplaceAllColorSquares();
         }
 
         private void SetStartButtonInvisible()
@@ -194,7 +196,7 @@ namespace KeepYourFocus
         }
 
         // Returns a dictionary of all possible squares
-        static Dictionary<string, string> DictionaryOfAllSquares()
+        static Dictionary<string, string> DictOfAllSquares()
         {
             string redSquare = Path.Combine(SetRootPath(), "png", "red_square512.png");
             string blueSquare = Path.Combine(SetRootPath(), "png", "blue_square512.png");
@@ -260,13 +262,74 @@ namespace KeepYourFocus
             foreach (string key in keys)
             {
                 PictureBox pictureBox = pictureBoxDictionary[key];
-                pictureBox.Location = GetFixedPosition(index);
+                pictureBox.Location = SetFixedPositionPictureBoxes(index);
                 index++;
             }
         }
 
+        private string RandomizerColor()
+        {
+            string newColor;
+            bool isValid;
+
+            do
+            {
+                newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
+
+                Debug.WriteLine($"\nGenerated newColor: {newColor}");
+
+                if (consecutiveCount < 2)
+                {
+                    // If the last color is not the same as the new color, it's valid
+                    isValid = previousColors.Count < 1 || newColor != previousColors[^1];
+                }
+                else
+                {
+                    // If the last two colors are the same, ensure the new color is different
+                    isValid = newColor != previousColors[^1] || newColor != previousColors[^2];
+                }
+
+                Debug.WriteLine($"Is newColor valid? {isValid}");
+
+                // Exit the loop if isValid is true
+                if (isValid)
+                {
+                    //Debug.WriteLine("---BREAK---");
+                    break;
+                }
+
+            } while (true);
+
+            // Add the new color to the list
+            previousColors.Add(newColor);
+
+            // Keep only the last two colors in the list
+            if (previousColors.Count > 2)
+            {
+                previousColors.RemoveAt(0);
+            }
+
+            // Update the consecutive count
+            if (previousColors.Count > 1 && previousColors[0] == previousColors[1])
+            {
+                consecutiveCount++;
+                Debug.WriteLine($"consecutiveCount: {consecutiveCount}");
+            }
+            else
+            {
+                consecutiveCount = 1;
+            }
+
+            Debug.WriteLine($"\nUpdated previousColors: " + string.Join(", ", previousColors));
+            Debug.WriteLine($"Updated consecutiveCount: {consecutiveCount}");
+
+            return newColor;
+        }
+
+
+        /*
         // Randomize colors for computer sequence. There should be not more then 2x same color in a row
-        private string RandomizerColors()
+        private string RandomizerColor()
         {
             string newColor;
             bool isValid;
@@ -304,11 +367,12 @@ namespace KeepYourFocus
 
             return newColor;
         }
+        */
 
         // Shuffles dictionary of all colors
-        private Dictionary<string, string> ShuffleDictOfAllColorSquares()
+        private Dictionary<string, string> ShuffleDictOfAllSquares()
         {
-            Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
+            Dictionary<string, string> dictOfAllSquares = DictOfAllSquares();
 
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
 
@@ -328,7 +392,7 @@ namespace KeepYourFocus
         }
 
         // Define fixed positions for PictureBoxes
-        private static Point GetFixedPosition(int index)
+        private static Point SetFixedPositionPictureBoxes(int index)
         {
             // Define fixed positions based on the index
             switch (index)
@@ -354,7 +418,7 @@ namespace KeepYourFocus
             // Iterate through the shuffled PictureBoxes and assign fixed positions
             for (int i = 0; i < shuffledPictureBoxes.Count; i++)
             {
-                shuffledPictureBoxes[i].Location = GetFixedPosition(i);
+                shuffledPictureBoxes[i].Location = SetFixedPositionPictureBoxes(i);
                 shuffledPictureBoxes[i].Visible = true;
             }
         }
@@ -363,7 +427,7 @@ namespace KeepYourFocus
         private async void ComputersTurn()
         {
             Computer = true;
-            correctOrder.Add(RandomizerColors());
+            correctOrder.Add(RandomizerColor());
             UpdateTurn(); // case Computer's Turn
 
             // Debug.WriteLine("Verify ReplaceOneColorInOrder()");
@@ -377,35 +441,29 @@ namespace KeepYourFocus
         private async void DisplaySequence()
         {
             Dictionary<string, PictureBox> updatedPictureBoxDictionary;
-            Dictionary<string, PictureBox> usePictureBoxDictionary;
             List<string> updatedCorrectOrder;
-            List<string> useOrder;
+            bool replacementOccurred;
 
-            (updatedPictureBoxDictionary, updatedCorrectOrder) = ReplaceColorOnBoardAndInOrder();
+            (updatedPictureBoxDictionary, updatedCorrectOrder, replacementOccurred) = ReplaceColorOnBoardAndInSequence();
 
-            if (replaceColor)
+            if (replacementOccurred)
             {
-                usePictureBoxDictionary = updatedPictureBoxDictionary;
-                useOrder = updatedCorrectOrder;
+                // Use updated dictionaries and orders
+                pictureBoxDictionary = updatedPictureBoxDictionary;
+                correctOrder = updatedCorrectOrder;
             }
-            else
-            {
-                usePictureBoxDictionary = pictureBoxDictionary;
-                useOrder = correctOrder;
-            }
-
 
             Computer = true;
 
             Debug.WriteLine($"\nDisplay Sequence: {counter_sequences}");
-            Debug.WriteLine("useOrder = " + string.Join(", ", useOrder));
-            Debug.WriteLine("usePictureBoxDictionary = " + string.Join(", ", usePictureBoxDictionary.Keys));
+            Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
+            Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
 
             await Task.Delay(1000);
 
-            foreach (var color in useOrder)
+            foreach (var color in correctOrder)
             {
-                var box = usePictureBoxDictionary[color];
+                var box = pictureBoxDictionary[color];
                 if (box == null)
                     continue;
 
@@ -425,10 +483,10 @@ namespace KeepYourFocus
             await Task.Delay(1000); // Delay 1000 ms before calling PlayersTurn()
 
             Computer = false;
-            replaceColor = false;
 
             UpdateTurn(); // case Player's Turn
         }
+
 
         private async void PlayersTurn(object? sender, EventArgs e)
         {
@@ -571,7 +629,7 @@ namespace KeepYourFocus
                         counter_levels >= 3 && rnd.Next(100) <= 85 ||
                         counter_levels >= 5 && rnd.Next(100) <= 95)
                     {
-                        Debug.WriteLine($"ShufflePictureBoxes Case 1: Shuffle after display sequence");
+                        Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle before player's turn");
 
                         await Task.Delay(250); // Delay 250 ms for space between colorSound and transitionSound
                         transitionSound.Play();
@@ -585,7 +643,7 @@ namespace KeepYourFocus
                         counter_levels >= 4 && rnd.Next(100) <= 85 ||
                         counter_levels >= 6 && rnd.Next(100) <= 95)
                     {
-                        Debug.WriteLine($"ShufflePictureBoxes Case 2: Shuffle after player click");
+                        Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
 
                         RandomizerShufflePictureBoxes();
                         RefreshAndRepositionPictureBoxes();
@@ -601,7 +659,7 @@ namespace KeepYourFocus
                 counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 95)
             {
 
-                Dictionary<string, string> shuffledColourSquares = ShuffleDictOfAllColorSquares();
+                Dictionary<string, string> shuffledColourSquares = ShuffleDictOfAllSquares();
 
                 // Ensure that we have enough colors to assign
                 if (shuffledColourSquares.Count >= 3)
@@ -639,26 +697,26 @@ namespace KeepYourFocus
                 }
             }
         }
-        
+
         // Method to replace 1 color in running sequence and/or on board
-        private (Dictionary<string, PictureBox>, List<string>) ReplaceColorOnBoardAndInOrder() // Called in DisplaySequence()
+        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceColorOnBoardAndInSequence()
         {
-            string newColor = RandomizerColors();
-            Dictionary<string, string> dictOfAllSquares = DictionaryOfAllSquares();
+            string newColor = RandomizerColor();
+            Dictionary<string, string> dictOfAllSquares = DictOfAllSquares();
             List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
 
-            bool shouldReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+            bool checkReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                         (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                        (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 95); 
+                                        (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 95);
 
-            bool shouldReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+            bool checkReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                         (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
                                         (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 95);
 
-            if (shouldReplaceInOrder || shouldReplaceOnBoard)
-            {
-                replaceColor = true;
+            bool replacementOccurred = false; // Flag to indicate if any replacement happened
 
+            if (checkReplaceInOrder || checkReplaceOnBoard)
+            {
                 // Make copy of correctOrder as copyCorrectOrder
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
 
@@ -668,20 +726,19 @@ namespace KeepYourFocus
 
                 Debug.WriteLine($"deleteColor: [{deleteColor}]");
 
-                if (shouldReplaceInOrder && newColor != deleteColor && randomIndex != copyCorrectOrder.Count - 1)
+                if (checkReplaceInOrder && newColor != deleteColor && randomIndex != copyCorrectOrder.Count - 1)
                 {
                     Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
                     Debug.WriteLine($"Replacing in order [{deleteColor}] at index [{randomIndex}] with new color [{newColor}]\n");
-                    
+
                     copyCorrectOrder[randomIndex] = newColor;
 
                     // Update correctOrder with the new copyCorrectOrder
                     correctOrder = copyCorrectOrder;
+                    replacementOccurred = true;
                 }
-                if (shouldReplaceOnBoard)
+                if (checkReplaceOnBoard)
                 {
-                    replaceColor = true;
-
                     // Get the PictureBox associated with the deleteColor
                     PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
 
@@ -716,19 +773,18 @@ namespace KeepYourFocus
 
                     // Update correctOrder with the new copyCorrectOrder
                     correctOrder = copyCorrectOrder;
-
+                    replacementOccurred = true;
                 }
                 Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
                 Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
             }
-            return (pictureBoxDictionary, correctOrder);
+            return (pictureBoxDictionary, correctOrder, replacementOccurred);
         }
-
 
         private async void DisplayLabelMessage(bool isComputerTurn)
         {
             /*
-             * Show label with text in either Computer's or Player's turn
+             * Show labels with text in either Computer's or Player's turn
              * Computer's turn: "Click Here", "Start Here!", "Start With this One!" (45% or 75% chance depending on level)
              * Player's turn: various messages based on different levels and conditions
              */
@@ -747,7 +803,7 @@ namespace KeepYourFocus
                 {
                     labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
                 }
-                else
+                else // is Player's turn
                 {
                     labelText = new List<string>
                         {
@@ -789,7 +845,7 @@ namespace KeepYourFocus
                 if (highlight) // Higlight on
                 {
                     pictureBox.BorderStyle = BorderStyle.None;
-                    pictureBox.Padding = new Padding(2);
+                    pictureBox.Padding = new Padding(5);
                     pictureBox.BackColor = Color.White;
                 }
                 else // Highlight off
