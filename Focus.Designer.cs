@@ -32,6 +32,8 @@ namespace KeepYourFocus
             LabelMessage2 = new Label();
             LabelMessage3 = new Label();
             LabelMessage4 = new Label();
+            txtInput = new TextBox();
+            textBoxMessage = new TextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -46,7 +48,6 @@ namespace KeepYourFocus
             pictureBox1.Size = new Size(300, 294);
             pictureBox1.TabIndex = 3;
             pictureBox1.TabStop = false;
-            pictureBox1.Cursor = Cursors.Arrow;
             // 
             // pictureBox2
             // 
@@ -56,7 +57,6 @@ namespace KeepYourFocus
             pictureBox2.Size = new Size(300, 294);
             pictureBox2.TabIndex = 4;
             pictureBox2.TabStop = false;
-            pictureBox2.Cursor = Cursors.Arrow;
             // 
             // pictureBox3
             // 
@@ -66,7 +66,6 @@ namespace KeepYourFocus
             pictureBox3.Size = new Size(300, 294);
             pictureBox3.TabIndex = 5;
             pictureBox3.TabStop = false;
-            pictureBox3.Cursor = Cursors.Arrow;
             // 
             // pictureBox4
             // 
@@ -76,7 +75,6 @@ namespace KeepYourFocus
             pictureBox4.Size = new Size(300, 294);
             pictureBox4.TabIndex = 6;
             pictureBox4.TabStop = false;
-            pictureBox4.Cursor = Cursors.Arrow;
             // 
             // startBTN
             // 
@@ -215,6 +213,30 @@ namespace KeepYourFocus
             LabelMessage4.TextAlign = ContentAlignment.MiddleCenter;
             LabelMessage4.Visible = false;
             // 
+            // txtInput
+            // 
+            txtInput.BorderStyle = BorderStyle.FixedSingle;
+            txtInput.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            txtInput.Location = new Point(242, 344);
+            txtInput.Name = "txtInput";
+            txtInput.Size = new Size(155, 26);
+            txtInput.TabIndex = 14;
+            txtInput.TextAlign = HorizontalAlignment.Center;
+            txtInput.Visible = false;
+            txtInput.TextChanged += PlayerInfo;
+            // 
+            // textBoxMessage
+            // 
+            textBoxMessage.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            textBoxMessage.Location = new Point(217, 231);
+            textBoxMessage.Multiline = true;
+            textBoxMessage.Name = "textBoxMessage";
+            textBoxMessage.Size = new Size(202, 107);
+            textBoxMessage.TabIndex = 15;
+            textBoxMessage.Text = "================\r\nCongratulations!\r\nYou're in the top 10!\r\nPlease enter your name\r\n================\r\n";
+            textBoxMessage.TextAlign = HorizontalAlignment.Center;
+            textBoxMessage.Visible = false;
+            // 
             // PlayerField
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -223,6 +245,8 @@ namespace KeepYourFocus
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Black;
             ClientSize = new Size(631, 668);
+            Controls.Add(txtInput);
+            Controls.Add(textBoxMessage);
             Controls.Add(LabelMessage4);
             Controls.Add(LabelMessage3);
             Controls.Add(LabelMessage2);
@@ -271,6 +295,8 @@ namespace KeepYourFocus
         private Label LabelMessage2;
         private Label LabelMessage3;
         private Label LabelMessage4;
+        private TextBox txtInput;
+        private TextBox textBoxMessage;
         //private RichTextBox richTextBoxLevelNumber;
     }
 }

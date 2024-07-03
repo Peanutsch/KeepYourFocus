@@ -33,6 +33,11 @@ namespace KeepYourFocus
 {
     public partial class PlayerField : Form
     {
+        private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
+        private List<string> correctOrder = new List<string>();
+        private List<string> playerOrder = new List<string>();
+        private List<string> previousColors = new List<string>();
+
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
         private readonly SoundPlayer orangeSound;
@@ -54,17 +59,12 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
+        private bool gameOver = false;
 
         private int consecutiveCount = 0;
         private int counter_sequences = 1;
         private int counter_levels = 1;
         private int counter_rounds = 1;
-
-        private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
-        private List<string> correctOrder = new List<string>();
-        private List<string> playerOrder = new List<string>();
-
-        private List<string> previousColors = new List<string> ();
 
         public PlayerField()
         {
@@ -971,10 +971,85 @@ namespace KeepYourFocus
             }
         }
 
+
+        private void PlayerInfo(object sender, EventArgs e)
+        {
+            //ShowInputDialogBox(ref input, "What is at the end of the rainbow?", "Riddle", 300, 200);
+            //Using InputDialog from Microsoft.VisualBasic assembly;
+
+
+            if (gameOver)
+            {
+                // Ensure controls are visible and interactable
+                textBoxMessage.Visible = true;
+                txtInput.Visible = true;
+
+                // Handle Enter key press event for txtInput
+                txtInput.KeyPress += TxtInput_KeyPress;
+
+                // Wait for player input and interaction
+                void TxtInput_KeyPress(object sender, KeyPressEventArgs e)
+                {
+                    if (e.KeyChar == (char)Keys.Enter)
+                    {
+                        e.Handled = true; // Prevent beep sound on Enter press
+
+                        // Unsubscribe from the event to avoid multiple event triggers
+                        txtInput.KeyPress -= TxtInput_KeyPress;
+
+                        // Get player name input
+                        string playerName = txtInput.Text.Trim().ToUpper(); // Trim to remove leading/trailing spaces
+
+                        // Get other game data
+                        int levelReached = counter_levels;
+                        string levelName = richTextBoxShowLevelName.Text;
+                        int playerScore = counter_rounds;
+
+                        // Display player information
+                        MessageBox.Show($"Player: {playerName}\nLevel: {levelReached} {levelName}\nScore: {playerScore}");
+
+                        // Save game score
+                        SaveGamerScore(playerName, levelReached, levelName, playerScore);
+
+                        // Hide controls after processing
+                        textBoxMessage.Visible = false;
+                        txtInput.Visible = false;
+                        gameOver = false; // Update game state
+                    }
+                }
+            }
+        }
+
+        private void SaveGamerScore(string playerName, int levelReached, string levelName, int playerScore)
+        {
+            string filePath = Path.Combine(SetRootPath(), @"Highscore.txt");
+
+            try
+            {
+                using (StreamWriter saveScore = new StreamWriter(filePath, true))
+                {
+                    string scoreEntry = $"{playerName,-20} {levelReached,-10} {levelName,-20} {playerScore}";
+                    saveScore.WriteLine(scoreEntry);
+                }
+
+                MessageBox.Show("Game data saved successfully.", "Save Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while saving game data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+
         private void GameOver()
         {
+            gameOver = true;
             Computer = false;
             startButton = true;
+
+            PlayerInfo(this, EventArgs.Empty);
+
             correctOrder.Clear();
             playerOrder.Clear();
 
