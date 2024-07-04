@@ -26,13 +26,17 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Globalization;
 using System.IO;
+using System.Linq.Expressions;
 using System.Media;
+using System.Security.Cryptography.Xml;
 using System.Windows.Forms;
 
 namespace KeepYourFocus
 {
     public partial class PlayerField : Form
     {
+        private Dictionary<int, (int, string)> highScores = new Dictionary<int, (int, string)>();
+
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
@@ -55,7 +59,7 @@ namespace KeepYourFocus
 
         private readonly Random rnd = new Random();
 
-        private bool Computer = false;
+        private bool computer = false;
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
@@ -153,14 +157,14 @@ namespace KeepYourFocus
             buttonClickSound.Play();
 
             startButton = false;
-            Computer = true;
+            computer = true;
             counter_sequences = 1;
 
             UpdateSequence();
             UpdateRound();
             UpdateLevelName();
 
-            ComputersTurn();
+            computersTurn();
             SetStartButtonInvisible();
         }
 
@@ -382,13 +386,13 @@ namespace KeepYourFocus
             }
         }
 
-        private async void ComputersTurn()
+        private async void computersTurn()
         {
-            Computer = true;
+            computer = true;
             correctOrder.Add(RandomizerColor());
-            UpdateTurn(); // case Computer's Turn
+            UpdateTurn(); // case computer's Turn
 
-            await Task.Delay(1000); // Delay 1000 ms before display Computer's Sequence
+            await Task.Delay(1000); // Delay 1000 ms before display computer's Sequence
 
             DisplaySequence();
         }
@@ -408,7 +412,7 @@ namespace KeepYourFocus
                 correctOrder = updatedCorrectOrder;
             }
 
-            Computer = true;
+            computer = true;
 
             Debug.WriteLine($"\nDisplay Sequence: {counter_sequences}");
             Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
@@ -437,15 +441,15 @@ namespace KeepYourFocus
 
             await Task.Delay(1000); // Delay 1000 ms before calling PlayersTurn()
 
-            Computer = false;
+            computer = false;
 
             UpdateTurn(); // case Player's Turn
         }
 
         private async void PlayersTurn(object? sender, EventArgs e)
         {
-            // Block Player's clicks in Computer's turn AND before StartButton is clicked
-            if (startButton || Computer)
+            // Block Player's clicks in computer's turn AND before StartButton is clicked
+            if (startButton || computer)
                 return;
 
             if (sender is PictureBox clickedBox)
@@ -495,7 +499,7 @@ namespace KeepYourFocus
                 return;
 
             // Block player's clicks
-            Computer = true;
+            computer = true;
 
             nextRound = true;
 
@@ -513,7 +517,7 @@ namespace KeepYourFocus
 
             playerOrder.Clear();
             nextRound = false;
-            ComputersTurn();
+            computersTurn();
         }
 
         // TESTING WITH 6 SEQUENCES PER LEVEL
@@ -552,13 +556,13 @@ namespace KeepYourFocus
             }
         }
 
-        // Method to verify difficulties. 2 cases: Computers turn and Players turn
+        // Method to verify difficulties. 2 cases: computers turn and Players turn
         private void SetTurnActions()
         {
 
-            switch (Computer)
+            switch (computer)
             {
-                // Computers Turn //
+                // computers Turn //
                 case true:
                     DisplayLabelMessage(true);
                     ShufflePictureBoxes();
@@ -576,7 +580,7 @@ namespace KeepYourFocus
 
         private async void ShufflePictureBoxes() // Called in SetTurnActions()
         {
-            switch (Computer)
+            switch (computer)
             {
                 case (true):
                     if (counter_levels == 2 && rnd.Next(100) <= 55 ||
@@ -735,16 +739,16 @@ namespace KeepYourFocus
             return (pictureBoxDictionary, correctOrder, replacementOccurred);
         }
 
-        private async void DisplayLabelMessage(bool isComputerTurn)
+        private async void DisplayLabelMessage(bool iscomputerTurn)
         {
             /*
-             * Show labels with text in either Computer's or Player's turn
-             * Computer's turn: "Click Here", "Start Here!", "Start With this One!", etc (45%, 55% or 65% chance depending on level)
+             * Show labels with text in either computer's or Player's turn
+             * computer's turn: "Click Here", "Start Here!", "Start With this One!", etc (45%, 55% or 65% chance depending on level)
              * Player's turn: various messages based on different levels and conditions
              */
 
             int chance = counter_levels >= 6 ? 55 : 45;
-            bool showMessage = isComputerTurn
+            bool showMessage = iscomputerTurn
                 ? counter_levels >= 2 && rnd.Next(100) <= chance && correctOrder.Count != correctOrder.Count - 1
                 : counter_levels >= 2 && rnd.Next(100) <= 65 && playerOrder.Count != correctOrder.Count;
 
@@ -753,7 +757,7 @@ namespace KeepYourFocus
                 List<Label> labels = new List<Label> { LabelMessage1, LabelMessage2, LabelMessage3, LabelMessage4 };
                 List<string> labelText;
 
-                if (isComputerTurn)
+                if (iscomputerTurn)
                 {
                     labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
                 }
@@ -761,7 +765,7 @@ namespace KeepYourFocus
                 {
                     labelText = new List<string>
                         {
-                         "Click Here", "This Is NOT\nThe Correct color!", "The Computer\nIs Lying!",
+                         "Click Here", "This Is NOT\nThe Correct color!", "The computer\nIs Lying!",
                          "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Color!",
                          "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
                         };
@@ -851,7 +855,7 @@ namespace KeepYourFocus
         // Update richtextbox Turn
         private async void UpdateTurn()
         {
-            switch (Computer, startButton, nextRound)
+            switch (computer, startButton, nextRound)
             {
                 // Next Round or Level Up
                 case (_, _, true):
@@ -884,10 +888,10 @@ namespace KeepYourFocus
                         await Task.Delay(1000);
                         break;
                     }
-                // Computer's turn
+                // computer's turn
                 case (true, false, _):
                     richTextBoxTurn.BackColor = Color.Salmon;
-                    richTextBoxTurn.Text = $"{new string(' ', 4)}Computer's Turn";
+                    richTextBoxTurn.Text = $"{new string(' ', 4)}computer's Turn";
                     richTextBoxTurn.Text = $"{new string(' ', 9)}Running\n{new string(' ', 14)}::\n{new string(' ', 8)}Sequence";
                     break;
                 // Player's turn
@@ -974,65 +978,27 @@ namespace KeepYourFocus
 
         private void PlayerInfo(object sender, EventArgs e)
         {
-            //ShowInputDialogBox(ref input, "What is at the end of the rainbow?", "Riddle", 300, 200);
-            //Using InputDialog from Microsoft.VisualBasic assembly;
-
-
-            if (gameOver)
-            {
-                // Ensure controls are visible and interactable
-                textBoxMessage.Visible = true;
-                txtInput.Visible = true;
-
-                // Handle Enter key press event for txtInput
-                txtInput.KeyPress += TxtInput_KeyPress;
-
-                // Wait for player input and interaction
-                void TxtInput_KeyPress(object sender, KeyPressEventArgs e)
-                {
-                    if (e.KeyChar == (char)Keys.Enter)
-                    {
-                        e.Handled = true; // Prevent beep sound on Enter press
-
-                        // Unsubscribe from the event to avoid multiple event triggers
-                        txtInput.KeyPress -= TxtInput_KeyPress;
-
-                        // Get player name input
-                        string playerName = txtInput.Text.Trim().ToUpper(); // Trim to remove leading/trailing spaces
-
-                        // Get other game data
-                        int levelReached = counter_levels;
-                        string levelName = richTextBoxShowLevelName.Text;
-                        int playerScore = counter_rounds;
-
-                        // Display player information
-                        MessageBox.Show($"Player: {playerName}\nLevel: {levelReached} {levelName}\nScore: {playerScore}");
-
-                        // Save game score
-                        SaveGamerScore(playerName, levelReached, levelName, playerScore);
-
-                        // Hide controls after processing
-                        textBoxMessage.Visible = false;
-                        txtInput.Visible = false;
-                        gameOver = false; // Update game state
-                    }
-                }
-            }
+            // 
         }
 
-        private void SaveGamerScore(string playerName, int levelReached, string levelName, int playerScore)
+        private void SaveGamerScore(int playerScore, int levelReached, string levelName)
         {
-            string filePath = Path.Combine(SetRootPath(), @"Highscore.txt");
+            string file = Path.Combine(SetRootPath(), "Highscore.txt");
 
             try
             {
-                using (StreamWriter saveScore = new StreamWriter(filePath, true))
+                // Read the existing content of the file
+                string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty;
+
+                // Write the new score followed by the existing content
+                using (StreamWriter saveScore = new StreamWriter(file, false))
                 {
-                    string scoreEntry = $"{playerName,-20} {levelReached,-10} {levelName,-20} {playerScore}";
-                    saveScore.WriteLine(scoreEntry);
+                    saveScore.WriteLine($"{playerScore},{levelReached},{levelName}");
+                    saveScore.Write(existingContent);
                 }
 
                 MessageBox.Show("Game data saved successfully.", "Save Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                GetScoresFromFile();
             }
             catch (Exception ex)
             {
@@ -1040,15 +1006,89 @@ namespace KeepYourFocus
             }
         }
 
+        // Method retuns dictionary with highest score
+        private Dictionary<int, (int, string)> GetScoresFromFile()
+        {
+            string file = Path.Combine(SetRootPath(), "Highscore.txt");
+            Dictionary<int, (int, string)> dictScores = new Dictionary<int, (int, string)>();
 
+            try
+            {
+                using (StreamReader getHighscore = new StreamReader(file))
+                {
+                    string line;
+                    while ((line = getHighscore.ReadLine()) != null)
+                    {
+                        Debug.WriteLine(line);  // Output each line to debug
+
+                        // Split the line into parts if needed
+                        string[] parts = line.Split(',');
+                        if (parts.Length >= 3)
+                        {
+                            int playerScore = int.Parse(parts[0]);
+                            int levelReached = int.Parse(parts[1]);
+                            string levelName = parts[2].Trim();
+
+                            dictScores[playerScore] = (levelReached, levelName);
+
+
+                            // Process the parsed values as needed
+                            Debug.WriteLine($"Player Score: {playerScore}, Level Reached: {levelReached}, Level Name: {levelName}");
+                        }
+                    }
+                }
+                MessageBox.Show("Scores read successfully.", "Read Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while reading scores: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            return dictScores;
+        }
+
+        private Dictionary<int, (int, string)> GetTopTen()
+        {
+            Dictionary<int, (int, string)> topTenScores = new Dictionary<int, (int, string)>();
+
+            try
+            {
+                // Get scores from file
+                Dictionary<int, (int, string)> orderDictScores = GetScoresFromFile();
+
+                // Order by playerScore (Key) and take the top ten scores
+                topTenScores = orderDictScores.OrderByDescending(x => x.Key)
+                                              .Take(10)
+                                              .ToDictionary(x => x.Key, x => x.Value);
+
+                // Ensure there are exactly 10 entries in topTenScores
+                do
+                {
+                    int placeholderScore = topTenScores.Count + 1; // Example placeholder score
+                    topTenScores.Add(placeholderScore, (0, "")); // Placeholder values (0, "None")
+                } while (topTenScores.Count < 10);
+
+                // Example output to Debug (you can adjust how you use topTenScores)
+                foreach (var score in topTenScores)
+                {
+                    Debug.WriteLine($"Player Score: {score.Key}, Level Reached: {score.Value.Item1}, Level Name: {score.Value.Item2}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"An error occurred while getting top ten scores: {e.Message}");
+                // Optionally handle or log the exception
+            }
+
+            return topTenScores;
+        }
 
         private void GameOver()
         {
             gameOver = true;
-            Computer = false;
+            computer = false;
             startButton = true;
 
-            PlayerInfo(this, EventArgs.Empty);
+            SaveGamerScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
 
             correctOrder.Clear();
             playerOrder.Clear();
