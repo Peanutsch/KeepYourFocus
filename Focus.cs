@@ -2,17 +2,17 @@
  * Simon Says-like game with some level based challenges
  * Each level has 6 sequences. After 6 succesful sequences:
  * Level++; Add 1 challenge; Clear correctOrder and playerOrder and start with new sequence = 1
- * From Level >= 6: no Clear correctOrder; sequences++ untill game over
+ * From Level >= 7: no Clear correctOrder; sequences++ untill game over
  * More challenges in progress
  * 
  * === Levels ===
  * Level 1 [EasyPeasy]: standard
  * level 2 [OkiDoki] and onward: some misleading text in pictureboxes, plus:
- *                               Shuffle Pictureboxes before start player's turn with 55% chance; level 3 85% chance; >= level 5 95% chance
- * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 85% chance; >= level 6 95% chance
- * Level 4 [No Way!]: When level up, replace all color squares on board with 55%; level 5 85%; >= level 7 95%
- * level 5 [HELL NO]: In each sequence, replace one color in running order with 55% chance; level 6 85% chance; level 8 95%
- * level 6 [NONONONO]: Replace 1 color with other color on board and in running order in the running order with 55% chance; level 7 85% chance; >= level 9 95%
+ *                               Shuffle Pictureboxes before start player's turn with 55% chance; level 3 75% chance; >= level 5 85% chance
+ * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 75% chance; >= level 6 85% chance
+ * Level 4 [No Way!]: When level up, replace all tile squares on board with 55%; level 5 75%; >= level 7 85%
+ * level 5 [HELL NO]: In each sequence, replace one tile in running order with 55% chance; level 6 75% chance; level 8 85%
+ * level 6 [NONONONO]: Replace 1 tile with other tile on board and in running order in the running order with 55% chance; level 7 75% chance; >= level 9 85%
  * level 7 [...]: 
  * level 8 [...]: 
  * level 9 [...]: 
@@ -20,6 +20,7 @@
  */
 
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
@@ -28,6 +29,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq.Expressions;
 using System.Media;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.Xml;
 using System.Windows.Forms;
 
@@ -35,12 +37,10 @@ namespace KeepYourFocus
 {
     public partial class PlayerField : Form
     {
-        private Dictionary<int, (int, string)> highScores = new Dictionary<int, (int, string)>();
-
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
-        private List<string> previousColors = new List<string>();
+        private List<string> previousTiles = new List<string>();
 
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
@@ -50,6 +50,8 @@ namespace KeepYourFocus
         private readonly SoundPlayer greySound;
         private readonly SoundPlayer indigoSound;
         private readonly SoundPlayer maroonSound;
+        private readonly SoundPlayer oliveSound;
+        private readonly SoundPlayer pinkSound;
 
         private readonly SoundPlayer transitionSound;
         private readonly SoundPlayer buttonClickSound;
@@ -63,9 +65,7 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
-        private bool gameOver = false;
 
-        private int consecutiveCount = 0;
         private int counter_sequences = 1;
         private int counter_levels = 1;
         private int counter_rounds = 1;
@@ -75,24 +75,26 @@ namespace KeepYourFocus
             InitializeComponent();
 
             // Load soundfiles. For now 1 beep sound for all colors
-            string soundPathBeepALL = Path.Combine(SetRootPath(), @"sounds\beep.wav");
+            string soundPathBeepALL = Path.Combine(RootPath(), @"sounds\beep.wav");
 
             /* Pre-made soundPath for all colors *\
-            string soundPathBeepRed = Path.Combine(SetRootPath(), @"sounds\redSound.wav");
-            string soundPathBeepBlue = Path.Combine(SetRootPath(), @"sounds\blueSound.wav");
-            string soundPathBeepOrange = Path.Combine(SetRootPath(), @"sounds\orangeSound.wav");
-            string soundPathBeepGreen = Path.Combine(SetRootPath(), @"sounds\greenSound.wav");
-            string soundPathBeepCaribBlue = Path.Combine(SetRootPath(), @"sounds\caribBlueSound.wav");
-            string soundPathBeepGrey = Path.Combine(SetRootPath(), @"\sounds\greySound.wav");
-            string soundPathBeepIndigo = Path.Combine(SetRootPath(), @"sounds\indigoSound.wav");
-            string soundPathBeepMaroon = Path.Combine(SetRootPath(), @\sounds\maroonSound.wav");
+            string soundPathBeepRed = Path.Combine(RootPath(), @"sounds\redSound.wav");
+            string soundPathBeepBlue = Path.Combine(RootPath(), @"sounds\blueSound.wav");
+            string soundPathBeepOrange = Path.Combine(RootPath(), @"sounds\orangeSound.wav");
+            string soundPathBeepGreen = Path.Combine(RootPath(), @"sounds\greenSound.wav");
+            string soundPathBeepCaribBlue = Path.Combine(RootPath(), @"sounds\caribBlueSound.wav");
+            string soundPathBeepGrey = Path.Combine(RootPath(), @"\sounds\greySound.wav");
+            string soundPathBeepIndigo = Path.Combine(RootPath(), @"sounds\indigoSound.wav");
+            string soundPathBeepMaroon = Path.Combine(RootPath(), @\sounds\maroonSound.wav");
+            string soundPathBeepOlive = Path.Combine(RootPath(), @\sounds\oliveSound.wav");
+            string soundPathBeepPink = Path.Combine(RootPath(), @\sounds\pinkSound.wav");
             */
 
-            string soundPathTransition = Path.Combine(SetRootPath(), @"sounds\transistion.wav");
-            string soundPathButtonClick = Path.Combine(SetRootPath(), @"sounds\buttonclick.wav");
-            string soundPathWrong = Path.Combine(SetRootPath(), @"sounds\wrong.wav");
-            string soundPathCorrect = Path.Combine(SetRootPath(), @"sounds\correct.wav");
-            string soundPathStartupSound = Path.Combine(SetRootPath(), @"sounds\startupSound.wav");
+            string soundPathTransition = Path.Combine(RootPath(), @"sounds\transistion.wav");
+            string soundPathButtonClick = Path.Combine(RootPath(), @"sounds\buttonclick.wav");
+            string soundPathWrong = Path.Combine(RootPath(), @"sounds\wrong.wav");
+            string soundPathCorrect = Path.Combine(RootPath(), @"sounds\correct.wav");
+            string soundPathStartupSound = Path.Combine(RootPath(), @"sounds\startupSound.wav");
 
             // Initiaize SoundPlayers
             redSound = new SoundPlayer(soundPathBeepALL);
@@ -103,6 +105,9 @@ namespace KeepYourFocus
             greySound = new SoundPlayer(soundPathBeepALL);
             indigoSound = new SoundPlayer(soundPathBeepALL);
             maroonSound = new SoundPlayer(soundPathBeepALL);
+            oliveSound = new SoundPlayer(soundPathBeepALL);
+            pinkSound = new SoundPlayer(soundPathBeepALL);
+
             transitionSound = new SoundPlayer(soundPathTransition);
             buttonClickSound = new SoundPlayer(soundPathButtonClick);
             wrongSound = new SoundPlayer(soundPathWrong);
@@ -114,14 +119,17 @@ namespace KeepYourFocus
             // Play startup sound
             startupSound.Play();
 
-            SetupFieldAtStart();
+            // Display highscore at start
+            TextBoxTopFive();
+
+            // Use initial dictionary for start setup
+            InitialDictionaryOfTilesAtStart();
         }
 
         // Initialize and return root path including directory \KeepYourFocus\
-        static string SetRootPath()
+        static string RootPath()
         {
-            // string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
-            string directoryPath = Environment.CurrentDirectory; // kan ook
+            string directoryPath = Environment.CurrentDirectory;
 
             if (string.IsNullOrEmpty(directoryPath))
             {
@@ -158,36 +166,48 @@ namespace KeepYourFocus
 
             startButton = false;
             computer = true;
+
+            // Set visibility text- and pictureboxes
+            textBoxTopFive.Visible = false;
+            textBoxMessage.Visible = false;
+            // Enable all pictureboxes
+            pictureBox1.Enabled = true;
+            pictureBox2.Enabled = true;
+            pictureBox3.Enabled = true;
+            pictureBox4.Enabled = true;
+            // Set startBTN invisible
+            startBTN.Visible = false;
+            startBTN.Enabled = false;
+
             counter_sequences = 1;
 
             UpdateSequence();
             UpdateRound();
             UpdateLevelName();
-
-            computersTurn();
-            SetStartButtonInvisible();
+            ComputersTurn();
         }
 
-        private async void SetGameOverButton()
+        // Initialize Game Over Button
+        private async void GameOverButton()
         {
             startBTN.Visible = true;
             startBTN.Enabled = true;
             startBTN.BackColor = Color.DarkRed;
             startBTN.Cursor = Cursors.Hand;
-            startBTN.Text = $"{new string(' ', 1)}Wrong\n Sequence";
+            // startBTN.Text = $"{new string(' ', 1)}Wrong\n Sequence";
+            startBTN.Text = $"{new string(' ', 1)}GAME\nOVER";
             startBTN.FlatStyle = FlatStyle.Popup;
 
             await Task.Delay(500);
-            ReplaceAllColorSquares();
+
+            textBoxTopFive.Visible = false;
+            textBoxMessage.Visible = false;
+
+            ReplaceAllTiles();
         }
 
-        private void SetStartButtonInvisible()
-        {
-            startBTN.Visible = false;
-            startBTN.Enabled = false;
-        }
-
-        private void SetupFieldAtStart()
+        // Startup tiles dictionary 
+        private void InitialDictionaryOfTilesAtStart()
         {
             if (pictureBoxDictionary.Count > 0)
             {
@@ -195,40 +215,43 @@ namespace KeepYourFocus
                 return;
             }
 
-            InitializePictureBox(pictureBox1, "Red", Path.Combine(SetRootPath(), @"png\red_square512.png"));
-            InitializePictureBox(pictureBox2, "Blue", Path.Combine(SetRootPath(), @"png\blue_square512.png"));
-            InitializePictureBox(pictureBox3, "Orange", Path.Combine(SetRootPath(), @"png\orange_square512.png"));
-            InitializePictureBox(pictureBox4, "Green", Path.Combine(SetRootPath(), @"png\green_square512.png"));
+            InitializePictureBox(pictureBox1, "Red", Path.Combine(RootPath(), @"png\red_tile512.png"));
+            InitializePictureBox(pictureBox2, "Blue", Path.Combine(RootPath(), @"png\blue_tile512.png"));
+            InitializePictureBox(pictureBox3, "Orange", Path.Combine(RootPath(), @"png\orange_tile512.png"));
+            InitializePictureBox(pictureBox4, "Green", Path.Combine(RootPath(), @"png\green_tile512.png"));
         }
 
-        // Returns a dictionary of all possible squares
-        static Dictionary<string, string> DictOfAllSquares()
+        // Returns a dictionary of all possible tiles
+        static Dictionary<string, string> DictOfAllTiles()
         {
-            string redSquare = Path.Combine(SetRootPath(), "png", "red_square512.png");
-            string blueSquare = Path.Combine(SetRootPath(), "png", "blue_square512.png");
-            string orangeSquare = Path.Combine(SetRootPath(), "png", "orange_square512.png");
-            string greenSquare = Path.Combine(SetRootPath(), "png", "green_square512.png");
-            string caribBlueSquare = Path.Combine(SetRootPath(), "png", "caribBlue_square512.png");
-            string greySquare = Path.Combine(SetRootPath(), "png", "grey_square512.png");
-            string indigoSquare = Path.Combine(SetRootPath(), "png", "indigo_square512.png");
-            string maroonSquare = Path.Combine(SetRootPath(), "png", "maroon_square512.png");
+            string redTile = Path.Combine(RootPath(), "png", "red_tile512.png");
+            string blueTile = Path.Combine(RootPath(), "png", "blue_tile512.png");
+            string orangeTile = Path.Combine(RootPath(), "png", "orange_tile512.png");
+            string greenTile = Path.Combine(RootPath(), "png", "green_tile512.png");
+            string caribBlueTile = Path.Combine(RootPath(), "png", "caribBlue_tile512.png");
+            string greyTile = Path.Combine(RootPath(), "png", "grey_tile512.png");
+            string indigoTile = Path.Combine(RootPath(), "png", "indigo_tile512.png");
+            string maroonTile = Path.Combine(RootPath(), "png", "maroon_tile512.png");
+            string oliveTile = Path.Combine(RootPath(), "png", "olive_tile512.png");
+            string pinkTile = Path.Combine(RootPath(), "png", "pink_tile512.png");
 
-            Dictionary<string, string> dictOfAllSquares = new Dictionary<string, string>()
+            Dictionary<string, string> dictOfAllTiles = new Dictionary<string, string>()
                                                                 {
-                                                                    {"Red", redSquare},
-                                                                    {"Blue", blueSquare},
-                                                                    {"Orange", orangeSquare},
-                                                                    {"Green", greenSquare},
-                                                                    {"CaribBlue", caribBlueSquare},
-                                                                    {"Grey", greySquare},
-                                                                    {"Indigo", indigoSquare},
-                                                                    {"Maroon", maroonSquare }
+                                                                    {"Red", redTile},
+                                                                    {"Blue", blueTile},
+                                                                    {"Orange", orangeTile},
+                                                                    {"Green", greenTile},
+                                                                    {"CaribBlue", caribBlueTile},
+                                                                    {"Grey", greyTile},
+                                                                    {"Indigo", indigoTile},
+                                                                    {"Maroon", maroonTile },
+                                                                    {"Olive", oliveTile},
+                                                                    {"Pink", pinkTile}
                                                                 };
-
-            return dictOfAllSquares;
+            return dictOfAllTiles;
         }
 
-        private void InitializePictureBox(PictureBox pictureBox, string color, string imagePath)
+        private void InitializePictureBox(PictureBox pictureBox, string tile, string imagePath)
         {
             try
             {
@@ -236,18 +259,18 @@ namespace KeepYourFocus
                 pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                 pictureBox.BackColor = Color.Transparent;
                 pictureBox.Cursor = Cursors.Hand;
-                pictureBox.Tag = color;
+                pictureBox.Tag = tile;
 
                 pictureBox.Click -= PlayersTurn; // Remove any previous attachment
 
                 pictureBox.Click += PlayersTurn; // Attach event handler
 
                 // Update the dictionary with the new PictureBox
-                pictureBoxDictionary[color] = pictureBox;
+                pictureBoxDictionary[tile] = pictureBox;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error initializing PictureBox for color {color}: {ex.Message}");
+                Debug.WriteLine($"Error initializing PictureBox for tile {tile}: {ex.Message}");
             }
         }
 
@@ -273,85 +296,76 @@ namespace KeepYourFocus
             }
         }
 
-        private string RandomizerColor()
+        // Randomize tiles. No more then 2 of the same tiles in a row
+        private string RandomizerTiles()
         {
-            string newColor;
+            // Verify if the dictionary is not empty
+            if (pictureBoxDictionary.Count == 0)
+            {
+                Debug.WriteLine("PictureBoxDictionary is empty. Verify filepaths of tiles in InitialDictionaryOfTilesAtStart()");
+                throw new InvalidOperationException("PictureBoxDictionary is empty. Verify filepaths of tiles");
+            }
+
+            string newTile;
             bool isValid;
 
             do
             {
-                newColor = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
+                // Select a new tile
+                newTile = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
+                Debug.WriteLine($"\nGenerated newTile: {newTile}");
 
-                Debug.WriteLine($"\nGenerated newColor: {newColor}");
-
-                if (consecutiveCount < 2)
+                // Validate the new tile
+                if (previousTiles.Count < 2)
                 {
-                    // If the last color is not the same as the new color, it's valid
-                    isValid = previousColors.Count < 1 || newColor != previousColors[^1];
+                    // If the list has fewer than 2 items, any new tile is valid as long as it differs from the last one
+                    isValid = previousTiles.Count < 1 || newTile != previousTiles[^1];
                 }
                 else
                 {
-                    // If the last two colors are the same, ensure the new color is different
-                    isValid = newColor != previousColors[^1] || newColor != previousColors[^2];
+                    // If the list has 2 or more items, ensure the new tile is different from the last two
+                    isValid = newTile != previousTiles[^1] || newTile != previousTiles[^2];
                 }
 
-                Debug.WriteLine($"Is newColor valid? {isValid}");
+                Debug.WriteLine($"Is newTile valid? {isValid}");
 
-                // Exit the loop if isValid is true
-                if (isValid)
-                {
-                    //Debug.WriteLine("---BREAK---");
-                    break;
-                }
+            } while (!isValid);
 
-            } while (true);
+            // Add the new tile to the list
+            previousTiles.Add(newTile);
 
-            // Add the new color to the list
-            previousColors.Add(newColor);
-
-            // Keep only the last two colors in the list
-            if (previousColors.Count > 2)
+            // Keep only the last three tiles in the list
+            if (previousTiles.Count > 3)
             {
-                previousColors.RemoveAt(0);
+                Debug.WriteLine($"Removed: {previousTiles[0]}");
+                previousTiles.RemoveAt(0);
             }
 
-            // Update the consecutive count
-            if (previousColors.Count > 1 && previousColors[0] == previousColors[1])
-            {
-                consecutiveCount++;
-                Debug.WriteLine($"consecutiveCount: {consecutiveCount}");
-            }
-            else
-            {
-                consecutiveCount = 1;
-            }
+            Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
 
-            Debug.WriteLine($"\nUpdated previousColors: " + string.Join(", ", previousColors));
-            Debug.WriteLine($"Updated consecutiveCount: {consecutiveCount}");
-
-            return newColor;
+            return newTile;
         }
 
-        // Shuffles dictionary of all colors
-        private Dictionary<string, string> ShuffleDictOfAllSquares()
+        // Shuffles dictionary of all tiles
+        private Dictionary<string, string> ShuffleDictOfAllTiles()
         {
-            Dictionary<string, string> dictOfAllSquares = DictOfAllSquares();
+            Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
 
-            List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
+            List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
-            int numberOfItems = listOfAllSquares.Count;
+            int numberOfItems = listOfAllTiles.Count;
             while (numberOfItems > 1)
             {
                 numberOfItems--;
                 int randomIndex = rnd.Next(numberOfItems + 1);
-                KeyValuePair<string, string> temp = listOfAllSquares[randomIndex];
-                listOfAllSquares[randomIndex] = listOfAllSquares[numberOfItems];
-                listOfAllSquares[numberOfItems] = temp;
+                KeyValuePair<string, string> temp = listOfAllTiles[randomIndex];
+                listOfAllTiles[randomIndex] = listOfAllTiles[numberOfItems];
+                listOfAllTiles[numberOfItems] = temp;
             }
 
-            Dictionary<string, string> shuffledDictOfAllColorSquares = listOfAllSquares.ToDictionary(kv => kv.Key, kv => kv.Value);
+            Dictionary<string, string> shuffledDictOfAllTiles = listOfAllTiles.ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            return shuffledDictOfAllColorSquares;
+            return shuffledDictOfAllTiles;
         }
 
         // Define fixed positions for PictureBoxes
@@ -361,11 +375,11 @@ namespace KeepYourFocus
             switch (index)
             {
                 case 0:
-                    return new Point(14, 14);
+                    return new Point(13, 12);
                 case 1:
-                    return new Point(321, 14);
+                    return new Point(321, 12);
                 case 2:
-                    return new Point(14, 316);
+                    return new Point(13, 316);
                 case 3:
                     return new Point(321, 316);
                 default:
@@ -386,14 +400,11 @@ namespace KeepYourFocus
             }
         }
 
-        private async void computersTurn()
+        private void ComputersTurn()
         {
             computer = true;
-            correctOrder.Add(RandomizerColor());
+            correctOrder.Add(RandomizerTiles());
             UpdateTurn(); // case computer's Turn
-
-            await Task.Delay(1000); // Delay 1000 ms before display computer's Sequence
-
             DisplaySequence();
         }
 
@@ -403,7 +414,8 @@ namespace KeepYourFocus
             List<string> updatedCorrectOrder;
             bool replacementOccurred;
 
-            (updatedPictureBoxDictionary, updatedCorrectOrder, replacementOccurred) = ReplaceColorOnBoardAndInSequence();
+            // Verify if squares are replaced
+            (updatedPictureBoxDictionary, updatedCorrectOrder, replacementOccurred) = ReplaceTileOnBoardAndInSequence();
 
             if (replacementOccurred)
             {
@@ -418,28 +430,27 @@ namespace KeepYourFocus
             Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
             Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
 
-            await Task.Delay(1000);
+            await Task.Delay(500);
 
-            foreach (var color in correctOrder)
+            foreach (var tile in correctOrder)
             {
-                var box = pictureBoxDictionary[color];
+                var box = pictureBoxDictionary[tile];
                 if (box == null)
                     continue;
 
                 await Task.Delay(500); // Delay 500 ms before start highlights and beepSound
 
-                PlaySound(color);
+                PlaySound(tile);
 
                 SetHighlight(box, true);
                 await Task.Delay(150);
                 SetHighlight(box, false);
                 await Task.Delay(50);
-                // Debug.WriteLine($"Color: [{color}]");
             }
-            // Check difficulty
+            // Verify difficulty
             SetTurnActions();
 
-            await Task.Delay(1000); // Delay 1000 ms before calling PlayersTurn()
+            await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
 
             computer = false;
 
@@ -449,30 +460,30 @@ namespace KeepYourFocus
         private async void PlayersTurn(object? sender, EventArgs e)
         {
             // Block Player's clicks in computer's turn AND before StartButton is clicked
-            if (startButton || computer)
-                return;
+            if (startButton || computer) return;
 
             if (sender is PictureBox clickedBox)
             {
-                string color = clickedBox.Tag?.ToString() ?? "";
+                string tile = clickedBox.Tag?.ToString() ?? "";
 
-                PlaySound(color);
+                PlaySound(tile);
                 SetHighlight(clickedBox, true);
 
-                playerOrder.Add(color);
+                playerOrder.Add(tile);
 
-                // Check difficulty
+                // Verify difficulty
                 SetTurnActions();
 
-                // Verify each player's click with correctOrder
-                for (int i = 0; i < playerOrder.Count; i++)
+                // Verify each input with correctOrder
+                for (int input = 0; input < playerOrder.Count; input++)
                 {
-                    if (playerOrder[i] != correctOrder[i])
+                    if (playerOrder[input] != correctOrder[input])
                     {
                         await Task.Delay(100);
                         SetHighlight(clickedBox, false);
                         await Task.Delay(250); // Delay to provide feedback before game over
                         GameOver();
+                        TextBoxTopFive();
                         return;
                     }
                 }
@@ -513,11 +524,11 @@ namespace KeepYourFocus
             UpdateLevelName();
             UpdateTurn();
 
-            await Task.Delay(3000);
+            await Task.Delay(2750);
 
             playerOrder.Clear();
             nextRound = false;
-            computersTurn();
+            ComputersTurn();
         }
 
         // TESTING WITH 6 SEQUENCES PER LEVEL
@@ -533,7 +544,7 @@ namespace KeepYourFocus
                     counter_levels++;
                     counter_rounds++;
 
-                    ReplaceAllColorSquares();
+                    ReplaceAllTiles();
 
                     UpdateTurn();
                     levelUp = false;
@@ -562,7 +573,7 @@ namespace KeepYourFocus
 
             switch (computer)
             {
-                // computers Turn //
+                // Computers Turn //
                 case true:
                     DisplayLabelMessage(true);
                     ShufflePictureBoxes();
@@ -578,14 +589,16 @@ namespace KeepYourFocus
 
         ////>>>> DIFFICULTIES <<<<////
 
+
+        // Shuffle currect tile setup before player's turn and/or after player's click
         private async void ShufflePictureBoxes() // Called in SetTurnActions()
         {
             switch (computer)
             {
                 case (true):
                     if (counter_levels == 2 && rnd.Next(100) <= 55 ||
-                        counter_levels >= 3 && rnd.Next(100) <= 85 ||
-                        counter_levels >= 5 && rnd.Next(100) <= 95)
+                        counter_levels >= 3 && rnd.Next(100) <= 75 ||
+                        counter_levels >= 5 && rnd.Next(100) <= 85)
                     {
                         Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle before player's turn");
 
@@ -598,8 +611,8 @@ namespace KeepYourFocus
                     break;
                 case (false):
                     if (counter_levels >= 3 && rnd.Next(100) <= 55 ||
-                        counter_levels >= 4 && rnd.Next(100) <= 85 ||
-                        counter_levels >= 6 && rnd.Next(100) <= 95)
+                        counter_levels >= 4 && rnd.Next(100) <= 75 ||
+                        counter_levels >= 6 && rnd.Next(100) <= 85)
                     {
                         Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
 
@@ -610,35 +623,34 @@ namespace KeepYourFocus
             }
         }
 
-        private void ReplaceAllColorSquares() // Called in SetCounters()
+        // Replace and switch all tiles when level up
+        private void ReplaceAllTiles() // Called in SetCounters()
         {
             if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
-                counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 85 ||
-                counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 95)
+                counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
+                counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 85)
             {
 
-                Dictionary<string, string> shuffledColourSquares = ShuffleDictOfAllSquares();
+                Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
 
                 // Ensure that we have enough colors to assign
-                if (shuffledColourSquares.Count >= 3)
+                if (shuffledTiles.Count >= 3)
                 {
-                    // Retrieve the first 4 key-value pairs from shuffledColourSquares
-                    KeyValuePair<string, string> kvp1 = shuffledColourSquares.ElementAt(0);
-                    KeyValuePair<string, string> kvp2 = shuffledColourSquares.ElementAt(1);
-                    KeyValuePair<string, string> kvp3 = shuffledColourSquares.ElementAt(2);
-                    KeyValuePair<string, string> kvp4 = shuffledColourSquares.ElementAt(3);
+                    // Retrieve the first 4 key-value pairs from shuffledTiles
+                    KeyValuePair<string, string> kvp1 = shuffledTiles.ElementAt(0);
+                    KeyValuePair<string, string> kvp2 = shuffledTiles.ElementAt(1);
+                    KeyValuePair<string, string> kvp3 = shuffledTiles.ElementAt(2);
+                    KeyValuePair<string, string> kvp4 = shuffledTiles.ElementAt(3);
 
                     try
                     {
-                        // Clear the dictionary and add the new colors
+                        // Clear the dictionary and add the new tiles
                         pictureBoxDictionary.Clear();
 
                         InitializePictureBox(pictureBox1, kvp1.Key, kvp1.Value);
                         InitializePictureBox(pictureBox2, kvp2.Key, kvp2.Value);
                         InitializePictureBox(pictureBox3, kvp3.Key, kvp3.Value);
                         InitializePictureBox(pictureBox4, kvp4.Key, kvp4.Value);
-
-                        Debug.WriteLine("Activate ReplaceAllColorSquares()");
                     }
                     catch (ArgumentException ex)
                     {
@@ -651,25 +663,25 @@ namespace KeepYourFocus
                 }
                 else
                 {
-                    Debug.WriteLine("Not enough colors in shuffledColourSquares to initialize picture boxes.");
+                    Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
                 }
             }
         }
 
-        // Method to replace 1 color in running sequence and/or on board
-        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceColorOnBoardAndInSequence() // Called in DisplaySequence()
+        // Method to replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
+        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence() // Called in DisplaySequence()
         {
-            string newColor = RandomizerColor();
-            Dictionary<string, string> dictOfAllSquares = DictOfAllSquares();
-            List<KeyValuePair<string, string>> listOfAllSquares = dictOfAllSquares.ToList();
+            string newTile = RandomizerTiles();
+            Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
+            List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
             bool checkReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                        (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 95);
+                                       (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
+                                       (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
 
             bool checkReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                        (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                        (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 95);
+                                       (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
+                                       (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
 
             bool replacementOccurred = false; // Flag to indicate if any replacement happened
 
@@ -678,18 +690,18 @@ namespace KeepYourFocus
                 // Make copy of correctOrder as copyCorrectOrder
                 List<string> copyCorrectOrder = new List<string>(correctOrder);
 
-                // Randomize color to delete from copyCorrectOrder
+                // Randomize tile to delete from copyCorrectOrder
                 int randomIndex = rnd.Next(copyCorrectOrder.Count);
-                string deleteColor = copyCorrectOrder[randomIndex];
+                string deleteTile = copyCorrectOrder[randomIndex];
 
-                Debug.WriteLine($"deleteColor: [{deleteColor}]");
+                Debug.WriteLine($"deleteTile: [{deleteTile}]");
 
-                if (checkReplaceInOrder && newColor != deleteColor && randomIndex != copyCorrectOrder.Count - 1)
+                if (checkReplaceInOrder && newTile != deleteTile && randomIndex != copyCorrectOrder.Count - 1)
                 {
                     Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replacing in order [{deleteColor}] at index [{randomIndex}] with new color [{newColor}]\n");
+                    Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]\n");
 
-                    copyCorrectOrder[randomIndex] = newColor;
+                    copyCorrectOrder[randomIndex] = newTile;
 
                     // Update correctOrder with the new copyCorrectOrder
                     correctOrder = copyCorrectOrder;
@@ -697,35 +709,35 @@ namespace KeepYourFocus
                 }
                 if (checkReplaceOnBoard)
                 {
-                    // Get the PictureBox associated with the deleteColor
-                    PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteColor];
+                    // Get the PictureBox associated with the deleteTile
+                    PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteTile];
 
-                    // Remove the old color square from the board
-                    pictureBoxDictionary.Remove(deleteColor);
+                    // Remove the old tile from the board
+                    pictureBoxDictionary.Remove(deleteTile);
 
-                    // Randomize new color that's not in the remaining colors on the board
-                    string pickNewColor;
+                    // Randomize new tile that's not in the remaining colors on the board
+                    string pickNewTile;
                     do
                     {
-                        pickNewColor = listOfAllSquares[rnd.Next(listOfAllSquares.Count)].Key;
-                        Debug.WriteLine($"pickNewColor: [{pickNewColor}]");
-                    } while (copyCorrectOrder.Contains(pickNewColor) || pictureBoxDictionary.ContainsKey(pickNewColor));
+                        pickNewTile = listOfAllTiles[rnd.Next(listOfAllTiles.Count)].Key;
+                        Debug.WriteLine($"pickNewTile: [{pickNewTile}]");
+                    } while (copyCorrectOrder.Contains(pickNewTile) || pictureBoxDictionary.ContainsKey(pickNewTile));
 
                     Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replaced on board and in order [{deleteColor}] with [{pickNewColor}]");
+                    Debug.WriteLine($"Replaced on board and in order [{deleteTile}] with [{pickNewTile}]");
 
-                    // Initialize the PictureBox with the new color
-                    InitializePictureBox(pictureBoxToReplace, pickNewColor, dictOfAllSquares[pickNewColor]);
+                    // Initialize the PictureBox with the new tile
+                    InitializePictureBox(pictureBoxToReplace, pickNewTile, dictOfAllTiles[pickNewTile]);
 
-                    // Add the new color to the pictureBoxDictionary
-                    pictureBoxDictionary[pickNewColor] = pictureBoxToReplace;
+                    // Add the new tile to the pictureBoxDictionary
+                    pictureBoxDictionary[pickNewTile] = pictureBoxToReplace;
 
-                    // Iter through copyCorrectOrder and replace deleteColor with pickNewcolor at the same index
+                    // Iter through copyCorrectOrder and replace all deleteTile with pickNewcolor at their index
                     for (int indexItem = 0; indexItem < copyCorrectOrder.Count; indexItem++)
                     {
-                        if (copyCorrectOrder[indexItem] == deleteColor)
+                        if (copyCorrectOrder[indexItem] == deleteTile)
                         {
-                            copyCorrectOrder[indexItem] = pickNewColor;
+                            copyCorrectOrder[indexItem] = pickNewTile;
                         }
                     }
 
@@ -743,7 +755,7 @@ namespace KeepYourFocus
         {
             /*
              * Show labels with text in either computer's or Player's turn
-             * computer's turn: "Click Here", "Start Here!", "Start With this One!", etc (45%, 55% or 65% chance depending on level)
+             * E.g. Computer's turn: "Click Here", "Start Here!", "Start With this One!" (45%, 55% or 65% chance depending on level)
              * Player's turn: various messages based on different levels and conditions
              */
 
@@ -764,11 +776,11 @@ namespace KeepYourFocus
                 else // is Player's turn
                 {
                     labelText = new List<string>
-                        {
-                         "Click Here", "This Is NOT\nThe Correct color!", "The computer\nIs Lying!",
-                         "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Color!",
-                         "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
-                        };
+                                                {
+                                                 "Click Here", "This Is NOT\nThe Correct tile!", "The computer\nIs Lying!",
+                                                 "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Tile!",
+                                                 "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
+                                                };
                 }
 
                 // Randomize Label 1 - label 4
@@ -814,9 +826,9 @@ namespace KeepYourFocus
             }
         }
 
-        private void PlaySound(string color)
+        private void PlaySound(string tile)
         {
-            switch (color)
+            switch (tile)
             {
                 case "Red":
                     redSound.Play();
@@ -841,6 +853,12 @@ namespace KeepYourFocus
                     break;
                 case "Maroon":
                     maroonSound.Play();
+                    break;
+                case "Olive":
+                    oliveSound.Play();
+                    break;
+                case "Pink":
+                    pinkSound.Play();
                     break;
             }
         }
@@ -870,7 +888,7 @@ namespace KeepYourFocus
 
                         richTextBoxTurn.Text = $"\n{new string(' ', 8)}Level  Up";
 
-                        // ReplaceAllColorSquares();
+                        // ReplaceAllTiles();
 
                         await Task.Delay(1000);
                         break;
@@ -975,15 +993,55 @@ namespace KeepYourFocus
             }
         }
 
-
         private void PlayerInfo(object sender, EventArgs e)
         {
-            // 
+            // empty textbox Click action for input playerName
         }
 
-        private void SaveGamerScore(int playerScore, int levelReached, string levelName)
+        private void TextBoxMessage()
         {
-            string file = Path.Combine(SetRootPath(), "Highscore.txt");
+            // empty textbox Click action for input playerName
+        }
+
+        // Shows Top 5 of best scores in TextBoxTopFive
+        private void TextBoxTopFive()
+        {
+            Dictionary<int, (int, string)> allScores = OrderBestScores();
+
+            // Sort and take the top five scores
+            var topFiveScores = allScores.OrderByDescending(kvp => kvp.Key).Take(5);
+
+            // Set textbox visible
+            textBoxTopFive.Visible = true;
+
+            // Clear any existing text
+            textBoxTopFive.Clear();
+
+            // Use a fixed-width font for proper alignment
+            textBoxTopFive.Font = new Font("Courier New", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+
+            // Add the header
+            // Format "{0, -8} {1, -8} {2, -8} {3}\r\n" specifies the column widths, where -8 indicates left alignment with a width of 8 characters.
+            textBoxTopFive.Text = "===========\r\n===BestScores===\r\n===========\r\n\n\n";
+            textBoxTopFive.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3}\r\n\n", "Place", "Score", "Level", "Name"));
+
+            // Append the top five scores
+            int lineNumber = 1;
+            foreach (var kvp in topFiveScores)
+            {
+                int score = kvp.Key;
+                int levelReached = kvp.Value.Item1;
+                string levelName = kvp.Value.Item2;
+
+                textBoxTopFive.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3}\r\n", lineNumber, score, levelReached, levelName));
+                lineNumber++;
+            }
+        }
+
+        // When Game Over, saves score in Highscore.txt on new line
+        private void SaveScore(int playerScore, int levelReached, string levelName)
+        {
+            string file = Path.Combine(RootPath(), "Highscore.txt");
 
             try
             {
@@ -993,7 +1051,7 @@ namespace KeepYourFocus
                 // Write the new score followed by the existing content
                 using (StreamWriter saveScore = new StreamWriter(file, false))
                 {
-                    saveScore.WriteLine($"{playerScore},{levelReached},{levelName}");
+                    saveScore.WriteLine($"{playerScore},{levelReached},{levelName.Trim()}");
                     saveScore.Write(existingContent);
                 }
 
@@ -1006,10 +1064,10 @@ namespace KeepYourFocus
             }
         }
 
-        // Method retuns dictionary with highest score
+        // Method returns dictionary from all data in Highscore.txt
         private Dictionary<int, (int, string)> GetScoresFromFile()
         {
-            string file = Path.Combine(SetRootPath(), "Highscore.txt");
+            string file = Path.Combine(RootPath(), "Highscore.txt");
             Dictionary<int, (int, string)> dictScores = new Dictionary<int, (int, string)>();
 
             try
@@ -1017,24 +1075,24 @@ namespace KeepYourFocus
                 using (StreamReader getHighscore = new StreamReader(file))
                 {
                     string line;
+                    int counter_lines = 0;
+
                     while ((line = getHighscore.ReadLine()) != null)
                     {
-                        Debug.WriteLine(line);  // Output each line to debug
-
                         // Split the line into parts if needed
                         string[] parts = line.Split(',');
                         if (parts.Length >= 3)
                         {
-                            int playerScore = int.Parse(parts[0]);
-                            int levelReached = int.Parse(parts[1]);
-                            string levelName = parts[2].Trim();
+                            if (int.TryParse(parts[0], out int playerScore) && int.TryParse(parts[1], out int levelReached))
+                            {
+                                string levelName = parts[2].Trim();
+                                dictScores[playerScore] = (levelReached, levelName);
 
-                            dictScores[playerScore] = (levelReached, levelName);
-
-
-                            // Process the parsed values as needed
-                            Debug.WriteLine($"Player Score: {playerScore}, Level Reached: {levelReached}, Level Name: {levelName}");
+                                // Process the parsed values as needed
+                                Debug.WriteLine($"Player Score: {playerScore}, Level Reached: {levelReached}, Level Name: {levelName}");
+                            }
                         }
+                        counter_lines++;
                     }
                 }
                 MessageBox.Show("Scores read successfully.", "Read Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1046,29 +1104,23 @@ namespace KeepYourFocus
             return dictScores;
         }
 
-        private Dictionary<int, (int, string)> GetTopTen()
+        // Returns decreasing ordered dictionary of higscores.txt
+        private Dictionary<int, (int, string)> OrderBestScores()
         {
-            Dictionary<int, (int, string)> topTenScores = new Dictionary<int, (int, string)>();
+            Dictionary<int, (int, string)> bestScores = new Dictionary<int, (int, string)>();
 
             try
             {
                 // Get scores from file
                 Dictionary<int, (int, string)> orderDictScores = GetScoresFromFile();
 
-                // Order by playerScore (Key) and take the top ten scores
-                topTenScores = orderDictScores.OrderByDescending(x => x.Key)
-                                              .Take(10)
+                // Order by playerScore (Key) and take the top five scores
+                bestScores = orderDictScores.OrderByDescending(x => x.Key)
+                                              .Take(orderDictScores.Count)
                                               .ToDictionary(x => x.Key, x => x.Value);
 
-                // Ensure there are exactly 10 entries in topTenScores
-                do
-                {
-                    int placeholderScore = topTenScores.Count + 1; // Example placeholder score
-                    topTenScores.Add(placeholderScore, (0, "")); // Placeholder values (0, "None")
-                } while (topTenScores.Count < 10);
-
-                // Example output to Debug (you can adjust how you use topTenScores)
-                foreach (var score in topTenScores)
+                // Example output to Debug (you can adjust how you use bestScores)
+                foreach (var score in bestScores)
                 {
                     Debug.WriteLine($"Player Score: {score.Key}, Level Reached: {score.Value.Item1}, Level Name: {score.Value.Item2}");
                 }
@@ -1078,17 +1130,15 @@ namespace KeepYourFocus
                 Debug.WriteLine($"An error occurred while getting top ten scores: {e.Message}");
                 // Optionally handle or log the exception
             }
-
-            return topTenScores;
+            return bestScores;
         }
 
         private void GameOver()
         {
-            gameOver = true;
             computer = false;
             startButton = true;
 
-            SaveGamerScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
+            SaveScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
 
             correctOrder.Clear();
             playerOrder.Clear();
@@ -1098,9 +1148,8 @@ namespace KeepYourFocus
             counter_levels = 999;
 
             UpdateLevelName();
-
-            SetGameOverButton();
-            SetupFieldAtStart();
+            GameOverButton();
+            InitialDictionaryOfTilesAtStart();
 
             counter_rounds = 1;
             counter_levels = 1;
