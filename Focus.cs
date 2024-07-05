@@ -19,6 +19,7 @@
  * level 666 [HELLMODE]: No Clear correctOrder; sequences++ untill game over
  */
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -30,6 +31,7 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Media;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Windows.Forms;
 
@@ -65,10 +67,14 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
+        private bool gameTime = false;
+
+        private Stopwatch gameStopwatch = new Stopwatch();
 
         private int counter_sequences = 1;
         private int counter_levels = 1;
         private int counter_rounds = 1;
+
 
         public PlayerField()
         {
@@ -114,7 +120,14 @@ namespace KeepYourFocus
             correctSound = new SoundPlayer(soundPathCorrect);
             startupSound = new SoundPlayer(soundPathStartupSound);
 
+            // Initialize Stopwatch for gametime
+            Debug.WriteLine("Initialize Stopwatch for gametime");
+            gameStopwatch = new Stopwatch();
+
             ////>>>> Start Program <<<<////
+
+            // Welcome MessageBox
+            WelcomeMessageBox();
 
             // Play startup sound
             startupSound.Play();
@@ -124,6 +137,63 @@ namespace KeepYourFocus
 
             // Use initial dictionary for start setup
             InitialDictionaryOfTilesAtStart();
+        }
+
+        private void WelcomeMessageBox()
+        {
+            MessageBox.Show(
+                            " Thanks for testing the heck out of my game!\r\n\r\n" +
+                            " * Simon Says-like game with some level based challenges\r\n" +
+                            " * Each level has 6 sequences. After 6 succesful sequences:\r\n" +
+                            " * Level++; Add 1 challenge; Clear correctOrder and playerOrder and start with new sequence = 1\r\n" +
+                            " * From Level >= 7: no Clear correctOrder; sequences++ untill game over\r\n" +
+                            " * More challenges in progress\r\n" +
+                            " * === Levels ===\r\n" +
+                            " * Level 1 [EasyPeasy]: standard\r\n" +
+                            " * level 2 [OkiDoki] and onward: some misleading text in pictureboxes, plus:\r\n *" +
+                            "    Shuffle Pictureboxes before start player's turn with 55% chance; level 3 75% chance; >= level 5 85% chance\r\n" +
+                            " * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 75% chance; >= level 6 85% chance\r\n" +
+                            " * Level 4 [No Way!]: When level up, replace all tile squares on board with 55%; level 5 75%; >= level 7 85%\r\n" +
+                            " * level 5 [HELL NO]: In each sequence, replace one tile in running order with 55% chance; level 6 75% chance; level 8 85%\r\n" +
+                            " * level 6 [NONONONO]: Replace 1 tile with other tile on board and in running order in the running order with 55% chance; level 7 75% chance; >= level 9 85%\r\n" +
+                            " * level 666 [HELLMODE]: No Clear correctOrder; sequences++ untill game over\r\n" +
+                            "" +
+                            " * You can find all the chaos at:\r\n" +
+                            "   https://github.com/Peanutsch/KeepYourFocus.git\r\n\r\n" +
+                            " Michiel / Peanutsch", 
+                            "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information
+                            );
+        }
+
+        // Stopwatch for tracking gametime
+        private string GameStopwatch()
+        {
+            if (gameTime)
+            {
+                // Reset stopwatch before Start
+                gameStopwatch.Reset();
+                gameStopwatch.Start();
+                Debug.WriteLine("\n[Start Stopwatch]\n");
+                return "";
+            }
+            else
+            {
+                gameStopwatch.Stop();
+                Debug.WriteLine("\n[Stop Stopwatch]\n");
+
+                if (gameStopwatch.Elapsed.TotalMilliseconds > 0)
+                {
+                    // Format the elapsed time 12Hour
+                    string elapsedGameTime = gameStopwatch.Elapsed.ToString(@"mm\:ss");
+
+                    return elapsedGameTime;
+                }
+                else
+                {
+                    Debug.WriteLine("elapsedTime is empty. No time recorded!");
+                    return string.Empty;
+                }
+            }
         }
 
         // Initialize and return root path including directory \KeepYourFocus\
@@ -160,12 +230,19 @@ namespace KeepYourFocus
         // Click Event for Start Button at start
         private void StartButtonClick(object sender, EventArgs e)
         {
+            Debug.WriteLine("StartButtonClick()");
+
             if (!startButton) return;
 
             buttonClickSound.Play();
 
+            Debug.WriteLine("gameTime = true");
+            gameTime = true;
             startButton = false;
             computer = true;
+
+            // Start Stopwatch
+            GameStopwatch();
 
             // Set visibility text- and pictureboxes
             textBoxTopFive.Visible = false;
@@ -190,6 +267,10 @@ namespace KeepYourFocus
         // Initialize Game Over Button
         private async void GameOverButton()
         {
+            Debug.WriteLine("GameOverButton()");
+
+            textBoxTopFive.Visible = true;
+
             startBTN.Visible = true;
             startBTN.Enabled = true;
             startBTN.BackColor = Color.DarkRed;
@@ -200,10 +281,9 @@ namespace KeepYourFocus
 
             await Task.Delay(500);
 
-            textBoxTopFive.Visible = false;
             textBoxMessage.Visible = false;
 
-            ReplaceAllTiles();
+            InitialDictionaryOfTilesAtStart();
         }
 
         // Startup tiles dictionary 
@@ -313,7 +393,7 @@ namespace KeepYourFocus
             {
                 // Select a new tile
                 newTile = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
-                Debug.WriteLine($"\nGenerated newTile: {newTile}");
+                // Debug.WriteLine($"\nGenerated newTile: {newTile}");
 
                 // Validate the new tile
                 if (previousTiles.Count < 2)
@@ -327,7 +407,7 @@ namespace KeepYourFocus
                     isValid = newTile != previousTiles[^1] || newTile != previousTiles[^2];
                 }
 
-                Debug.WriteLine($"Is newTile valid? {isValid}");
+                // Debug.WriteLine($"Is newTile valid? {isValid}");
 
             } while (!isValid);
 
@@ -337,10 +417,11 @@ namespace KeepYourFocus
             // Keep only the last three tiles in the list
             if (previousTiles.Count > 3)
             {
-                Debug.WriteLine($"Removed: {previousTiles[0]}");
+                Debug.WriteLine($"\nRemoved: {previousTiles[0]}");
                 previousTiles.RemoveAt(0);
             }
-
+            
+            Debug.WriteLine($"Added: {newTile}");
             Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
 
             return newTile;
@@ -428,7 +509,7 @@ namespace KeepYourFocus
 
             Debug.WriteLine($"\nDisplay Sequence: {counter_sequences}");
             Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
-            Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
+            // Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
 
             await Task.Delay(500);
 
@@ -1006,10 +1087,9 @@ namespace KeepYourFocus
         // Shows Top 5 of best scores in TextBoxTopFive
         private void TextBoxTopFive()
         {
-            Dictionary<int, (int, string)> allScores = OrderBestScores();
+            List<(int, int, string, string)> topFiveScores = OrderBestScores();
 
-            // Sort and take the top five scores
-            var topFiveScores = allScores.OrderByDescending(kvp => kvp.Key).Take(5);
+            Debug.WriteLine($"topFiveScores count: {topFiveScores.Count}");
 
             // Set textbox visible
             textBoxTopFive.Visible = true;
@@ -1021,19 +1101,19 @@ namespace KeepYourFocus
             textBoxTopFive.Font = new Font("Courier New", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
 
             // Add the header
-            // Format "{0, -8} {1, -8} {2, -8} {3}\r\n" specifies the column widths, where -8 indicates left alignment with a width of 8 characters.
-            textBoxTopFive.Text = "===========\r\n===BestScores===\r\n===========\r\n\n\n";
-            textBoxTopFive.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3}\r\n\n", "Place", "Score", "Level", "Name"));
+            textBoxTopFive.Text = "\r\n===Best Scores===\r\n\r\n";
+            textBoxTopFive.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -12} {4}\r\n", "Place", "Score", "Level", "lvlName", "Time"));
 
             // Append the top five scores
             int lineNumber = 1;
-            foreach (var kvp in topFiveScores)
+            foreach (var score in topFiveScores)
             {
-                int score = kvp.Key;
-                int levelReached = kvp.Value.Item1;
-                string levelName = kvp.Value.Item2;
+                int playerScore = score.Item1;
+                int levelReached = score.Item2;
+                string levelName = score.Item3;
+                string elapsedGameTime = score.Item4;
 
-                textBoxTopFive.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3}\r\n", lineNumber, score, levelReached, levelName));
+                textBoxTopFive.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -12} {4}\r\n", lineNumber, playerScore, levelReached, levelName, elapsedGameTime));
                 lineNumber++;
             }
         }
@@ -1041,6 +1121,8 @@ namespace KeepYourFocus
         // When Game Over, saves score in Highscore.txt on new line
         private void SaveScore(int playerScore, int levelReached, string levelName)
         {
+            string elapsedGameTime = GameStopwatch();
+
             string file = Path.Combine(RootPath(), "Highscore.txt");
 
             try
@@ -1051,7 +1133,7 @@ namespace KeepYourFocus
                 // Write the new score followed by the existing content
                 using (StreamWriter saveScore = new StreamWriter(file, false))
                 {
-                    saveScore.WriteLine($"{playerScore},{levelReached},{levelName.Trim()}");
+                    saveScore.WriteLine($"{playerScore},{levelReached},{levelName.Trim()},{elapsedGameTime}");
                     saveScore.Write(existingContent);
                 }
 
@@ -1064,70 +1146,72 @@ namespace KeepYourFocus
             }
         }
 
-        // Method returns dictionary from all data in Highscore.txt
-        private Dictionary<int, (int, string)> GetScoresFromFile()
+        // Method returns list with all data in Highscore.txt
+        private List<(int, int, string, string)> GetScoresFromFile()
         {
             string file = Path.Combine(RootPath(), "Highscore.txt");
-            Dictionary<int, (int, string)> dictScores = new Dictionary<int, (int, string)>();
+            List<(int, int, string, string)> scoresList = new List<(int, int, string, string)>();
 
             try
             {
                 using (StreamReader getHighscore = new StreamReader(file))
                 {
-                    string line;
-                    int counter_lines = 0;
-
+                    string? line;
                     while ((line = getHighscore.ReadLine()) != null)
                     {
-                        // Split the line into parts if needed
+                        // Split the line into parts
                         string[] parts = line.Split(',');
-                        if (parts.Length >= 3)
+                        if (parts.Length >= 4)
                         {
                             if (int.TryParse(parts[0], out int playerScore) && int.TryParse(parts[1], out int levelReached))
                             {
                                 string levelName = parts[2].Trim();
-                                dictScores[playerScore] = (levelReached, levelName);
+                                string elapsedGameTime = parts[3].Trim();
+                                scoresList.Add((playerScore, levelReached, levelName, elapsedGameTime));
 
                                 // Process the parsed values as needed
-                                Debug.WriteLine($"Player Score: {playerScore}, Level Reached: {levelReached}, Level Name: {levelName}");
+                                // Debug.WriteLine($"Player Score: {playerScore}, Level Reached: {levelReached}, Level Name: {levelName}, Game Time: {elapsedGameTime}");
                             }
                         }
-                        counter_lines++;
                     }
                 }
-                MessageBox.Show("Scores read successfully.", "Read Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Debug.WriteLine("Scores read successfully");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred while reading scores: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            return dictScores;
+            Debug.WriteLine($"scoresList count: {scoresList.Count}");
+            return scoresList;
         }
 
-        // Returns decreasing ordered dictionary of higscores.txt
-        private Dictionary<int, (int, string)> OrderBestScores()
+
+        // Returns decreasing ordered list of higscores.txt
+        private List<(int, int, string, string)> OrderBestScores()
         {
-            Dictionary<int, (int, string)> bestScores = new Dictionary<int, (int, string)>();
+            List<(int, int, string, string)> bestScores = new List<(int, int, string, string)>();
 
             try
             {
                 // Get scores from file
-                Dictionary<int, (int, string)> orderDictScores = GetScoresFromFile();
+                List<(int, int, string, string)> scoresList = GetScoresFromFile();
 
-                // Order by playerScore (Key) and take the top five scores
-                bestScores = orderDictScores.OrderByDescending(x => x.Key)
-                                              .Take(orderDictScores.Count)
-                                              .ToDictionary(x => x.Key, x => x.Value);
+                // Order by playerScore (first item in tuple) and take the top five scores
+                bestScores = scoresList.OrderByDescending(x => x.Item1)
+                                       .Take(5)
+                                       .ToList();
 
+                /*
                 // Example output to Debug (you can adjust how you use bestScores)
                 foreach (var score in bestScores)
                 {
-                    Debug.WriteLine($"Player Score: {score.Key}, Level Reached: {score.Value.Item1}, Level Name: {score.Value.Item2}");
+                    Debug.WriteLine($"Player Score: {score.Item1}, Level Reached: {score.Item2}, Level Name: {score.Item3}, Game Time: {score.Item4}");
                 }
+                */
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"An error occurred while getting top ten scores: {e.Message}");
+                Debug.WriteLine($"An error occurred while getting top scores: {e.Message}");
                 // Optionally handle or log the exception
             }
             return bestScores;
@@ -1135,9 +1219,19 @@ namespace KeepYourFocus
 
         private void GameOver()
         {
+            Debug.WriteLine("GameOver()");
+
             computer = false;
             startButton = true;
 
+            Debug.WriteLine("gameTime = false");
+            gameTime = false;
+
+            //Stop Stopwatch
+            Debug.WriteLine("GameOver() Stop Stopwatch");
+            GameStopwatch();
+
+            // Save the score
             SaveScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
 
             correctOrder.Clear();
