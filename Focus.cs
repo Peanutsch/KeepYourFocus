@@ -22,7 +22,7 @@ namespace KeepYourFocus
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
         private List<string> previousTiles = new List<string>();
-        private List<string> dumpPlayerName = new List<string> { "PEANUTSCH" };
+        private List<string> storePlayerName = new List<string> { "PEANUTSCH" };
 
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
@@ -154,8 +154,8 @@ namespace KeepYourFocus
                             " * Please feel free to review my code and give feedback!\r\n\r\n" +
                             "                                   Michiel / Peanutsch\r\n" +
                             "                                   peanutsch@duck.com\r\n" +
-                            "                           (preRookie wannabeeCodeDev)\r\n", 
-                            "   Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information
+                            "                           (preRookie wannabeeCodeDev)\r\n",
+                            "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information
                             );
         }
 
@@ -165,51 +165,9 @@ namespace KeepYourFocus
             // Display textbox for input
             textBoxInputName.Visible = true;
             textBoxInputName.Enabled = true;
-            // Continue when input is valid
+
+            // Continue when buttonEnter is clicked
             textBoxInputName.Focus();
-
-            // Wait for user input and handle validation
-            string playerName = "";
-
-            // Event handler for KeyDown within this method
-            textBoxInputName.KeyDown += (sender, e) =>
-            {
-                if (e.KeyCode == Keys.Enter)
-                {
-                    e.Handled = true; // Prevents the Enter key from inserting a newline
-                    e.SuppressKeyPress = true; // Stops the "ding" sound
-                    playerName = textBoxInputName.Text.Trim().ToUpper();
-
-                    if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" || playerName != "YOUR NAME")
-                    {
-                        dumpPlayerName.Clear();
-                        dumpPlayerName.Add(playerName);
-
-                        // After valid input: disable textBoxInputName, enable startBTN
-                        textBoxInputName.Visible = false;
-                        textBoxInputName.Enabled = false;
-                        startBTN.Enabled = true;
-                        startButton = true;
-
-                        Debug.WriteLine($"Input name is {playerName}");
-
-                        // Fill richtextboxes
-                        richTextBoxShowLevelName.Text = $"  Click Start";
-                        richTextBoxShowRounds.Text = $"Succes {playerName}";
-                    }
-                    else
-                    {
-                        playerName = dumpPlayerName[0];
-                        Debug.WriteLine($"Forced input name is {playerName}");
-
-                        // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
-                        textBoxInputName.Visible = false;
-                        textBoxInputName.Enabled = false;
-                        startBTN.Enabled = true;
-                        startButton = true;
-                    }
-                }
-            };
         }
 
         // Stopwatch for recording gametime
@@ -334,6 +292,50 @@ namespace KeepYourFocus
             await Task.Delay(500);
 
             InitialDictionaryOfTilesAtStart();
+        }
+
+        // Initialize OK button for input playerName
+        private void ButtonEnter_Click(object sender, EventArgs e)
+        {
+            string playerName = textBoxInputName.Text.Trim().ToUpper();
+
+            if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
+            {
+                storePlayerName.Clear();
+                storePlayerName.Add(playerName);
+
+                // After valid input: disable textBoxInputName, enable startBTN
+                textBoxInputName.Visible = false;
+                textBoxInputName.Enabled = false;
+                startBTN.Enabled = true;
+                startButton = true;
+
+                Debug.WriteLine($"Input name is {playerName}");
+
+                // Fill richtextboxes
+                richTextBoxShowLevelName.Text = "Click Start";
+                richTextBoxShowRounds.Text = $"Success {playerName}";
+
+                buttonEnter.Enabled = false;
+                buttonEnter.Visible = false;
+            }
+            else
+            {
+                if (storePlayerName.Count > 0)
+                {
+                    playerName = storePlayerName[0];
+                    Debug.WriteLine($"Forced input name is {playerName}");
+                }
+
+                // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
+                richTextBoxShowLevelName.Text = "Click Start";
+                textBoxInputName.Visible = false;
+                textBoxInputName.Enabled = false;
+                buttonEnter.Enabled = false;
+                buttonEnter.Visible = false;
+                startBTN.Enabled = true;
+                startButton = true;
+            }
         }
 
         private void InitializeLinkLabels()
@@ -1203,8 +1205,8 @@ namespace KeepYourFocus
         // When Game Over, saves score in setters.txt on new line
         private void SaveScore(int playerScore, int levelReached, string levelName)
         {
-            // Get playerName from dumpPlayerName
-            string playerName = dumpPlayerName[0];
+            // Get playerName from storePlayerName
+            string playerName = storePlayerName[0];
 
             // Get elapsed game time
             string elapsedGameTime = GameStopwatch();
@@ -1257,9 +1259,6 @@ namespace KeepYourFocus
                                 string levelName = parts[3].Trim();
                                 string elapsedGameTime = parts[4].Trim();
                                 scoresList.Add((playerName, playerScore, levelReached, levelName, elapsedGameTime));
-
-                                // Process the parsed values as needed
-                                // Debug.WriteLine($"\nReadScoresFromFile():\nPlayer Name: {playerName}, Player Score: {playerScore}, Level Reached: {levelReached}, Level Name: {levelName}, Game Time: {elapsedGameTime}");
                             }
                         }
                     }

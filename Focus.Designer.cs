@@ -36,6 +36,7 @@ namespace KeepYourFocus
             textBoxHighscore = new TextBox();
             linkLabelGitHub = new LinkLabel();
             linkLabelEmail = new LinkLabel();
+            buttonEnter = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -226,7 +227,7 @@ namespace KeepYourFocus
             textBoxInputName.Location = new Point(242, 302);
             textBoxInputName.MaxLength = 8;
             textBoxInputName.Name = "textBoxInputName";
-            textBoxInputName.PlaceholderText = "EnterYourName";
+            textBoxInputName.PlaceholderText = "YourNamePlease";
             textBoxInputName.Size = new Size(154, 26);
             textBoxInputName.TabIndex = 14;
             textBoxInputName.TextAlign = HorizontalAlignment.Center;
@@ -275,6 +276,19 @@ namespace KeepYourFocus
             linkLabelEmail.Text = "peanutsch@duck.com";
             linkLabelEmail.LinkClicked += LinkLabelEmail_LinkClicked;
             // 
+            // buttonEnter
+            // 
+            buttonEnter.BackColor = Color.LightSkyBlue;
+            buttonEnter.FlatStyle = FlatStyle.Popup;
+            buttonEnter.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            buttonEnter.Location = new Point(243, 376);
+            buttonEnter.Name = "buttonEnter";
+            buttonEnter.Size = new Size(154, 27);
+            buttonEnter.TabIndex = 20;
+            buttonEnter.Text = "ENTER";
+            buttonEnter.UseVisualStyleBackColor = false;
+            buttonEnter.Click += ButtonEnter_Click;
+            // 
             // PlayerField
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -283,6 +297,7 @@ namespace KeepYourFocus
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Black;
             ClientSize = new Size(631, 668);
+            Controls.Add(buttonEnter);
             Controls.Add(linkLabelEmail);
             Controls.Add(linkLabelGitHub);
             Controls.Add(textBoxInputName);
@@ -339,5 +354,6 @@ namespace KeepYourFocus
         private TextBox textBoxHighscore;
         private LinkLabel linkLabelGitHub;
         private LinkLabel linkLabelEmail;
+        private Button buttonEnter;
     }
 }
