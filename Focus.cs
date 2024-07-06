@@ -154,8 +154,8 @@ namespace KeepYourFocus
                             " * Please feel free to review my code and give feedback!\r\n\r\n" +
                             "                                   Michiel / Peanutsch\r\n" +
                             "                                   peanutsch@duck.com\r\n" +
-                            "                           (preRookie wannabeeCodeDev)",
-                            "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information
+                            "                           (preRookie wannabeeCodeDev)\r\n", 
+                            "   Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information
                             );
         }
 
