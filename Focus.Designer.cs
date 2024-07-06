@@ -32,9 +32,8 @@ namespace KeepYourFocus
             LabelMessage2 = new Label();
             LabelMessage3 = new Label();
             LabelMessage4 = new Label();
-            txtInput = new TextBox();
-            textBoxMessage = new TextBox();
-            textBoxTopFive = new TextBox();
+            textBoxInputName = new TextBox();
+            textBoxHighscore = new TextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -85,11 +84,12 @@ namespace KeepYourFocus
             // 
             startBTN.BackColor = Color.Lime;
             startBTN.Cursor = Cursors.Hand;
+            startBTN.Enabled = false;
             startBTN.FlatStyle = FlatStyle.Popup;
             startBTN.Font = new Font("Microsoft Sans Serif", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            startBTN.Location = new Point(243, 277);
+            startBTN.Location = new Point(242, 277);
             startBTN.Name = "startBTN";
-            startBTN.Size = new Size(153, 70);
+            startBTN.Size = new Size(154, 70);
             startBTN.TabIndex = 0;
             startBTN.Text = "Start";
             startBTN.UseVisualStyleBackColor = false;
@@ -213,47 +213,34 @@ namespace KeepYourFocus
             LabelMessage4.TextAlign = ContentAlignment.MiddleCenter;
             LabelMessage4.Visible = false;
             // 
-            // txtInput
+            // textBoxInputName
             // 
-            txtInput.BorderStyle = BorderStyle.FixedSingle;
-            txtInput.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            txtInput.Location = new Point(354, 198);
-            txtInput.Name = "txtInput";
-            txtInput.Size = new Size(240, 26);
-            txtInput.TabIndex = 14;
-            txtInput.Text = "YOUR NAME HERE";
-            txtInput.TextAlign = HorizontalAlignment.Center;
-            txtInput.Visible = false;
-            txtInput.TextChanged += PlayerInfo;
+            textBoxInputName.AcceptsReturn = true;
+            textBoxInputName.BorderStyle = BorderStyle.FixedSingle;
+            textBoxInputName.Cursor = Cursors.IBeam;
+            textBoxInputName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            textBoxInputName.ImeMode = ImeMode.On;
+            textBoxInputName.Location = new Point(242, 302);
+            textBoxInputName.MaxLength = 8;
+            textBoxInputName.Name = "textBoxInputName";
+            textBoxInputName.PlaceholderText = "EnterYourName";
+            textBoxInputName.Size = new Size(154, 26);
+            textBoxInputName.TabIndex = 14;
+            textBoxInputName.TextAlign = HorizontalAlignment.Center;
             // 
-            // textBoxMessage
+            // textBoxHighscore
             // 
-            textBoxMessage.BackColor = Color.RosyBrown;
-            textBoxMessage.BorderStyle = BorderStyle.None;
-            textBoxMessage.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            textBoxMessage.ForeColor = Color.Black;
-            textBoxMessage.Location = new Point(321, 12);
-            textBoxMessage.Multiline = true;
-            textBoxMessage.Name = "textBoxMessage";
-            textBoxMessage.Size = new Size(300, 294);
-            textBoxMessage.TabIndex = 15;
-            textBoxMessage.Text = "\r\n================================\r\nCongratulations!\r\nYou're in the top 10!\r\nPlease enter your name\r\n================================\r\n";
-            textBoxMessage.TextAlign = HorizontalAlignment.Center;
-            textBoxMessage.Visible = false;
-            // 
-            // textBoxTopFive
-            // 
-            textBoxTopFive.BackColor = Color.DarkSalmon;
-            textBoxTopFive.BorderStyle = BorderStyle.None;
-            textBoxTopFive.Enabled = false;
-            textBoxTopFive.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            textBoxTopFive.ForeColor = Color.Black;
-            textBoxTopFive.Location = new Point(14, 12);
-            textBoxTopFive.Multiline = true;
-            textBoxTopFive.Name = "textBoxTopFive";
-            textBoxTopFive.Size = new Size(607, 294);
-            textBoxTopFive.TabIndex = 17;
-            textBoxTopFive.TextAlign = HorizontalAlignment.Center;
+            textBoxHighscore.BackColor = Color.Black;
+            textBoxHighscore.BorderStyle = BorderStyle.None;
+            textBoxHighscore.Enabled = false;
+            textBoxHighscore.Font = new Font("Courier New", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            textBoxHighscore.ForeColor = Color.WhiteSmoke;
+            textBoxHighscore.Location = new Point(13, 12);
+            textBoxHighscore.Multiline = true;
+            textBoxHighscore.Name = "textBoxHighscore";
+            textBoxHighscore.Size = new Size(608, 294);
+            textBoxHighscore.TabIndex = 17;
+            textBoxHighscore.TextAlign = HorizontalAlignment.Center;
             // 
             // PlayerField
             // 
@@ -263,14 +250,13 @@ namespace KeepYourFocus
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Black;
             ClientSize = new Size(631, 668);
+            Controls.Add(textBoxInputName);
             Controls.Add(richTextBoxShowLevelName);
             Controls.Add(richTextBoxShowLevelNumber);
             Controls.Add(richTextBoxShowRounds);
             Controls.Add(richTextBoxShowNumbersOfSequences);
             Controls.Add(startBTN);
-            Controls.Add(textBoxTopFive);
-            Controls.Add(txtInput);
-            Controls.Add(textBoxMessage);
+            Controls.Add(textBoxHighscore);
             Controls.Add(LabelMessage4);
             Controls.Add(LabelMessage3);
             Controls.Add(LabelMessage2);
@@ -281,7 +267,7 @@ namespace KeepYourFocus
             Controls.Add(pictureBox2);
             Controls.Add(pictureBox1);
             Font = new Font("Segoe UI Symbol", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4, 3, 4, 3);
             MaximizeBox = false;
@@ -314,9 +300,7 @@ namespace KeepYourFocus
         private Label LabelMessage2;
         private Label LabelMessage3;
         private Label LabelMessage4;
-        private TextBox txtInput;
-        private TextBox textBoxMessage;
-        private TextBox textBoxTopFive;
-        //private RichTextBox richTextBoxLevelNumber;
+        private TextBox textBoxInputName;
+        private TextBox textBoxHighscore;
     }
 }
