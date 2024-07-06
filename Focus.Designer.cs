@@ -34,6 +34,8 @@ namespace KeepYourFocus
             LabelMessage4 = new Label();
             textBoxInputName = new TextBox();
             textBoxHighscore = new TextBox();
+            linkLabelGitHub = new LinkLabel();
+            linkLabelEmail = new LinkLabel();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -216,6 +218,7 @@ namespace KeepYourFocus
             // textBoxInputName
             // 
             textBoxInputName.AcceptsReturn = true;
+            textBoxInputName.BackColor = Color.White;
             textBoxInputName.BorderStyle = BorderStyle.FixedSingle;
             textBoxInputName.Cursor = Cursors.IBeam;
             textBoxInputName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -242,6 +245,36 @@ namespace KeepYourFocus
             textBoxHighscore.TabIndex = 17;
             textBoxHighscore.TextAlign = HorizontalAlignment.Center;
             // 
+            // linkLabelGitHub
+            // 
+            linkLabelGitHub.AutoSize = true;
+            linkLabelGitHub.BackColor = Color.Transparent;
+            linkLabelGitHub.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Underline);
+            linkLabelGitHub.ForeColor = Color.White;
+            linkLabelGitHub.LinkColor = Color.White;
+            linkLabelGitHub.Location = new Point(14, 615);
+            linkLabelGitHub.Name = "linkLabelGitHub";
+            linkLabelGitHub.Size = new Size(270, 15);
+            linkLabelGitHub.TabIndex = 18;
+            linkLabelGitHub.TabStop = true;
+            linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
+            linkLabelGitHub.LinkClicked += LinkLabelGitHub_LinkClicked;
+            // 
+            // linkLabelEmail
+            // 
+            linkLabelEmail.AutoSize = true;
+            linkLabelEmail.BackColor = Color.Transparent;
+            linkLabelEmail.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Underline);
+            linkLabelEmail.ForeColor = Color.White;
+            linkLabelEmail.LinkColor = Color.White;
+            linkLabelEmail.Location = new Point(492, 615);
+            linkLabelEmail.Name = "linkLabelEmail";
+            linkLabelEmail.Size = new Size(129, 15);
+            linkLabelEmail.TabIndex = 19;
+            linkLabelEmail.TabStop = true;
+            linkLabelEmail.Text = "peanutsch@duck.com";
+            linkLabelEmail.LinkClicked += LinkLabelEmail_LinkClicked;
+            // 
             // PlayerField
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -250,6 +283,8 @@ namespace KeepYourFocus
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Black;
             ClientSize = new Size(631, 668);
+            Controls.Add(linkLabelEmail);
+            Controls.Add(linkLabelGitHub);
             Controls.Add(textBoxInputName);
             Controls.Add(richTextBoxShowLevelName);
             Controls.Add(richTextBoxShowLevelNumber);
@@ -302,5 +337,7 @@ namespace KeepYourFocus
         private Label LabelMessage4;
         private TextBox textBoxInputName;
         private TextBox textBoxHighscore;
+        private LinkLabel linkLabelGitHub;
+        private LinkLabel linkLabelEmail;
     }
 }

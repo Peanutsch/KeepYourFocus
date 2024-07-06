@@ -22,7 +22,7 @@ namespace KeepYourFocus
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
         private List<string> previousTiles = new List<string>();
-        private List<string> dumpPlayerName = new List<string> {"PEANUTSCH"};
+        private List<string> dumpPlayerName = new List<string> { "PEANUTSCH" };
 
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
@@ -108,6 +108,9 @@ namespace KeepYourFocus
             // Welcome MessageBox
             WelcomeMessageBox();
 
+            // LinkLabels GitHub and Email
+            InitializeLinkLabels();
+
             // Display highscore at start
             TextBoxHighscore();
             //SecondTextBoxTopFive();
@@ -129,25 +132,28 @@ namespace KeepYourFocus
         private void WelcomeMessageBox()
         {
             MessageBox.Show(
-                            " Thanks for testing the heck out of my game!\r\n\r\n" +
+                            " Thank you for testing the heck out of my very first try-out in\r\n C# coding!\r\n\r\n" +
                             " * Simon Says-like game with some level based challenges\r\n" +
                             " * Each level has 6 sequences. After 6 succesful sequences:\r\n" +
-                            " * Level++; Add 1 challenge; Clear correctOrder and playerOrder and start with new sequence = 1\r\n" +
-                            " * From Level >= 7: no Clear correctOrder; sequences++ untill game over\r\n" +
+                            " * Level++; Add 1 challenge; Clear correctOrder and\r\n   playerOrder and start with new sequence = 1\r\n" +
+                            " * From Level >= 7: no Clear correctOrder; sequences++\r\n   untill game over\r\n" +
                             " * More challenges in progress\r\n" +
                             " * === Levels ===\r\n" +
                             " * Level 1 [EasyPeasy]: standard\r\n" +
-                            " * level 2 [OkiDoki] and onward: some misleading text in pictureboxes, plus:\r\n *" +
-                            "    Shuffle Pictureboxes before start player's turn with 55% chance; level 3 75% chance; >= level 5 85% chance\r\n" +
-                            " * level 3 [Please No]: Shuffle Pictureboxes per player click with 55% chance; level 4 75% chance; >= level 6 85% chance\r\n" +
-                            " * Level 4 [No Way!]: When level up, replace all tile squares on board with 55%; level 5 75%; >= level 7 85%\r\n" +
-                            " * level 5 [HELL NO]: In each sequence, replace one tile in running order with 55% chance; level 6 75% chance; level 8 85%\r\n" +
-                            " * level 6 [NONONONO]: Replace 1 tile with other tile on board and in running order in the running order with 55% chance; level 7 75% chance; >= level 9 85%\r\n" +
-                            " * level 666 [HELLMODE]: No Clear correctOrder; sequences++ untill game over\r\n" +
+                            " * level 2 [OkiDoki] and onward: some misleading text in\r\n   pictureboxes, plus:\r\n *" +
+                            " Shuffle Pictureboxes before start player's turn\r\n   with 55% chance; level 3 75% chance; >= level 5 85% chance\r\n" +
+                            " * level 3 [Please No]: Shuffle Pictureboxes per player click\r\n   with 55% chance; level 4 75% chance; >= level 6 85% chance\r\n" +
+                            " * Level 4 [No Way!]: When level up, replace all tile squares\r\n   on board with 55%; level 5 75%; >= level 7 85%\r\n" +
+                            " * level 5 [HELL NO]: In each sequence, replace one tile\r\n   in running order with 55% chance; level 6 75% chance;\r\n   level 8 85%\r\n" +
+                            " * level 6 [NONONONO]: Replace 1 tile with other tile on board\r\n   and in running order in the running order with 55% chance;\r\n   level 7 75% chance; >= level 9 85%\r\n" +
+                            " * level 666 [HELLMODE]: No Clear correctOrder; sequences++\r\n   untill game over\r\n" +
                             "" +
                             " * You can find all the chaos at:\r\n" +
-                            "   https://github.com/Peanutsch/KeepYourFocus.git\r\n\r\n" +
-                            " Michiel / Peanutsch",
+                            "   https://github.com/Peanutsch/KeepYourFocus.git\r\n" +
+                            " * Please feel free to review my code and give feedback!\r\n\r\n" +
+                            "                                   Michiel / Peanutsch\r\n" +
+                            "                                   peanutsch@duck.com\r\n" +
+                            "                           (preRookie wannabeeCodeDev)",
                             "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information
                             );
         }
@@ -282,9 +288,8 @@ namespace KeepYourFocus
             // Start Stopwatch
             GameStopwatch();
 
-            // Set visibility text- and pictureboxes
+            // Set Highscores invisible
             textBoxHighscore.Visible = false;
-
             // Enable all pictureboxes
             pictureBox1.Enabled = true;
             pictureBox2.Enabled = true;
@@ -293,6 +298,11 @@ namespace KeepYourFocus
             // Set startBTN invisible
             startBTN.Visible = false;
             startBTN.Enabled = false;
+            //Set LinkLabels invisible
+            linkLabelGitHub.Visible = false;
+            linkLabelGitHub.Enabled = false;
+            linkLabelEmail.Visible = false;
+            linkLabelEmail.Enabled = false;
 
             counter_sequences = 1;
 
@@ -314,9 +324,51 @@ namespace KeepYourFocus
             startBTN.Text = $"{new string(' ', 1)}GAME\nOVER";
             startBTN.FlatStyle = FlatStyle.Popup;
 
+            //Set LinkLabels invisible
+            linkLabelGitHub.Visible = true;
+            linkLabelGitHub.Enabled = true;
+            linkLabelEmail.Visible = true;
+            linkLabelEmail.Enabled = true;
+
             await Task.Delay(500);
 
             InitialDictionaryOfTilesAtStart();
+        }
+
+        private void InitializeLinkLabels()
+        {
+            // Setup LinkLabels text
+            linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
+            linkLabelEmail.Text = "peanutsch@duck.com";
+
+            // Add link data
+            linkLabelGitHub.Links.Add(0, linkLabelGitHub.Text.Length, "https://github.com/Peanutsch/KeepYourFocus.git");
+            linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
+        }
+
+        // Click Event for linklabel GitHub
+        private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            OpenLink(e.Link.LinkData.ToString());
+        }
+
+        // Click Event for LinkLabel Email
+        private void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            OpenLink(e.Link.LinkData.ToString());
+        }
+
+        // Null Check for open links in default browser and email client
+        private void OpenLink(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Unable to open link. Error: " + ex.Message);
+            }
         }
 
         // Startup tiles dictionary 
@@ -653,7 +705,7 @@ namespace KeepYourFocus
         {
             switch (counter_sequences)
             {
-                case (6) when counter_levels < 7:
+                case (6) when counter_levels < 8:
                     levelUp = true;
                     correctOrder.Clear();
                     playerOrder.Clear();
@@ -667,7 +719,7 @@ namespace KeepYourFocus
                     levelUp = false;
                     break;
                 default:
-                    if (counter_levels >= 7)
+                    if (counter_levels >= 8)
                     {
                         levelUp = true;
                         counter_sequences++;
@@ -1129,7 +1181,7 @@ namespace KeepYourFocus
             // Add the header
             textBoxHighscore.Text = "\r\n===HIGHSCORES===\r\n\r\n";
             // textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10} {5, 7}\r\n", "Place", "Player", "Score", "Level", "lvlName", "Time"));
-            textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10}\r\n", "Place", "Player", "Score", "Level", "lvlName"));
+            textBoxHighscore.AppendText(string.Format("{0, -9} {1, -9} {2, -9} {3, -9} {4, -10}\r\n", "Place", "Player", "Score", "Level", "lvlName"));
 
             // Append the highscores in textbox
             int lineNumber = 1;
@@ -1142,12 +1194,12 @@ namespace KeepYourFocus
                 string elapsedGameTime = score.Item5;
 
                 // textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10} {5, 7}\r\n", lineNumber, playerName, playerScore, levelReached, levelName, elapsedGameTime));
-                textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10}\r\n", lineNumber, playerName, playerScore, levelReached, levelName));
+                textBoxHighscore.AppendText(string.Format("{0, -9} {1, -9} {2, -9} {3, -9} {4, -10}\r\n", lineNumber, playerName, playerScore, levelReached, levelName));
                 lineNumber++;
             }
         }
 
-        // When Game Over, saves score in Highscore.txt on new line
+        // When Game Over, saves score in setters.txt on new line
         private void SaveScore(int playerScore, int levelReached, string levelName)
         {
             // Get playerName from dumpPlayerName
@@ -1157,7 +1209,7 @@ namespace KeepYourFocus
             string elapsedGameTime = GameStopwatch();
 
             // Construct the file path
-            string file = Path.Combine(RootPath(), "Highscore.txt");
+            string file = Path.Combine(RootPath(), "setters.txt");
 
             try
             {
@@ -1181,10 +1233,10 @@ namespace KeepYourFocus
             }
         }
 
-        // Returns list with all data in Highscore.txt
+        // Returns list with all data in setters.txt
         private List<(string, int, int, string, string)> ReadScoresFromFile()
         {
-            string file = Path.Combine(RootPath(), "Highscore.txt");
+            string file = Path.Combine(RootPath(), "setters.txt");
             List<(string, int, int, string, string)> scoresList = new List<(string, int, int, string, string)>();
 
             try
