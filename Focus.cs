@@ -128,7 +128,7 @@ namespace KeepYourFocus
             PlayerName();
         }
 
-        // Thank You + some info Spam
+        // Thank You + some info Spam MessageBox
         private void WelcomeMessageBox()
         {
             MessageBox.Show(
@@ -137,7 +137,8 @@ namespace KeepYourFocus
                             " * Each level has 6 sequences. After 6 succesful sequences:\r\n" +
                             " * Level++; Add 1 challenge; Clear correctOrder and\r\n   playerOrder and start with new sequence = 1\r\n" +
                             " * From Level >= 7: no Clear correctOrder; sequences++\r\n   untill game over\r\n" +
-                            " * More challenges in progress\r\n" +
+                            " * More challenges, tiles and sounds in progress\r\n" +
+                            " * Next update: file encryption!\r\n" +
                             " * === Levels ===\r\n" +
                             " * Level 1 [EasyPeasy]: standard\r\n" +
                             " * level 2 [OkiDoki] and onward: some misleading text in\r\n   pictureboxes, plus:\r\n *" +
