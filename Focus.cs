@@ -10,9 +10,9 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Media;
 using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
-using System.Windows.Forms;
 
 namespace KeepYourFocus
 {
@@ -48,6 +48,11 @@ namespace KeepYourFocus
         private bool nextRound = false;
         private bool levelUp = false;
         private bool gameTime = false;
+
+        bool isComputerTurn = false;
+        bool isPlayerTurn = false;
+        bool isSetCounters = false;
+        bool isDisplaySequence = false;
 
         private Stopwatch gameStopwatch = new Stopwatch();
 
@@ -624,10 +629,14 @@ namespace KeepYourFocus
 
         private void ComputersTurn()
         {
+            isComputerTurn = true;
+
             computer = true;
             correctOrder.Add(RandomizerTiles());
             UpdateTurn(); // case computer's Turn
             DisplaySequence();
+
+            isComputerTurn = false;
         }
 
         private async void DisplaySequence()
@@ -645,6 +654,8 @@ namespace KeepYourFocus
                 pictureBoxDictionary = updatedPictureBoxDictionary;
                 correctOrder = updatedCorrectOrder;
             }
+
+            isDisplaySequence = true;
 
             computer = true;
 
@@ -676,13 +687,18 @@ namespace KeepYourFocus
 
             computer = false;
 
+            isDisplaySequence = false;
+
             UpdateTurn(); // case Player's Turn
         }
 
         private async void PlayersTurn(object? sender, EventArgs e)
         {
+            isPlayerTurn = true;
+
             // Block Player's clicks in computer's turn AND before StartButton is clicked
             if (startButton || computer) return;
+
 
             if (sender is PictureBox clickedBox)
             {
@@ -708,6 +724,9 @@ namespace KeepYourFocus
                         await Task.Delay(250); // Delay to provide feedback before game over
                         GameOver();
                         TextBoxHighscore();
+
+                        isPlayerTurn = false;
+
                         return;
                     }
                 }
@@ -718,14 +737,19 @@ namespace KeepYourFocus
                     await Task.Delay(50);
 
                     VerifyAndManageCountersAndLevels();
+
+                    isPlayerTurn = false;
                 }
                 else
                 {
                     await Task.Delay(100);
                     SetHighlight(clickedBox, false);
                     await Task.Delay(50);
+
+                    isPlayerTurn = false;
                 }
             }
+            isPlayerTurn = false;
         }
 
         private async void VerifyAndManageCountersAndLevels()
@@ -758,6 +782,8 @@ namespace KeepYourFocus
         // TESTING WITH 6 SEQUENCES PER LEVEL
         private void SetCounters()
         {
+            isSetCounters = true;
+
             switch (counter_sequences)
             {
                 case (6) when counter_levels < 8:
@@ -776,19 +802,26 @@ namespace KeepYourFocus
                 default:
                     if (counter_levels >= 8)
                     {
+                        isSetCounters = true;
+
                         levelUp = true;
                         counter_sequences++;
                         counter_rounds++;
                         UpdateTurn();
+
+                        isSetCounters = false;
                     }
                     else
                     {
                         counter_sequences++;
                         counter_rounds++;
                         UpdateTurn();
+
+                        isSetCounters = false;
                     }
                     break;
             }
+            isSetCounters = false;
         }
 
         // Verify difficulties. 2 cases: computers turn and Players turn
@@ -806,6 +839,22 @@ namespace KeepYourFocus
                     DisplayLabelMessage(false);
                     ShufflePictureBoxes();
                     break;
+            }
+        }
+
+        private void PerformTurnActions()
+        {
+            if (isComputerTurn || isPlayerTurn)
+            {
+                ShufflePictureBoxes();
+            }
+            if (isDisplaySequence)
+            {
+                ReplaceTileOnBoardAndInSequence();
+            }
+            if (isSetCounters)
+            {
+                ReplaceAllTiles();
             }
         }
 
@@ -846,52 +895,6 @@ namespace KeepYourFocus
             }
         }
 
-        // Replace and switch all tiles when level up
-        private void ReplaceAllTiles() // Called in SetCounters()
-        {
-            if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
-                counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
-                counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 85)
-            {
-
-                Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
-
-                // Ensure that we have enough colors to assign
-                if (shuffledTiles.Count >= 3)
-                {
-                    // Retrieve the first 4 key-value pairs from shuffledTiles
-                    KeyValuePair<string, string> kvp1 = shuffledTiles.ElementAt(0);
-                    KeyValuePair<string, string> kvp2 = shuffledTiles.ElementAt(1);
-                    KeyValuePair<string, string> kvp3 = shuffledTiles.ElementAt(2);
-                    KeyValuePair<string, string> kvp4 = shuffledTiles.ElementAt(3);
-
-                    try
-                    {
-                        // Clear the dictionary and add the new tiles
-                        pictureBoxDictionary.Clear();
-
-                        InitializePictureBox(pictureBox1, kvp1.Key, kvp1.Value);
-                        InitializePictureBox(pictureBox2, kvp2.Key, kvp2.Value);
-                        InitializePictureBox(pictureBox3, kvp3.Key, kvp3.Value);
-                        InitializePictureBox(pictureBox4, kvp4.Key, kvp4.Value);
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        Debug.WriteLine($"An item with the same key has already been added: {ex.Message}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
-                }
-            }
-        }
-
-        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
         private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence() // Called in DisplaySequence()
         {
             string newTile = RandomizerTiles();
@@ -973,6 +976,53 @@ namespace KeepYourFocus
             }
             return (pictureBoxDictionary, correctOrder, replacementOccurred);
         }
+
+        // Replace and switch all tiles when level up
+        private void ReplaceAllTiles() // Called in SetCounters()
+        {
+            if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
+                counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
+                counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 85)
+            {
+
+                Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
+
+                // Ensure that we have enough colors to assign
+                if (shuffledTiles.Count >= 3)
+                {
+                    // Retrieve the first 4 key-value pairs from shuffledTiles
+                    KeyValuePair<string, string> kvp1 = shuffledTiles.ElementAt(0);
+                    KeyValuePair<string, string> kvp2 = shuffledTiles.ElementAt(1);
+                    KeyValuePair<string, string> kvp3 = shuffledTiles.ElementAt(2);
+                    KeyValuePair<string, string> kvp4 = shuffledTiles.ElementAt(3);
+
+                    try
+                    {
+                        // Clear the dictionary and add the new tiles
+                        pictureBoxDictionary.Clear();
+
+                        InitializePictureBox(pictureBox1, kvp1.Key, kvp1.Value);
+                        InitializePictureBox(pictureBox2, kvp2.Key, kvp2.Value);
+                        InitializePictureBox(pictureBox3, kvp3.Key, kvp3.Value);
+                        InitializePictureBox(pictureBox4, kvp4.Key, kvp4.Value);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        Debug.WriteLine($"An item with the same key has already been added: {ex.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
+                }
+            }
+        }
+
+        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
 
         private async void DisplayLabelMessage(bool iscomputerTurn)
         {
