@@ -168,6 +168,8 @@ namespace KeepYourFocus
 
             // Continue when buttonEnter is clicked
             textBoxInputName.Focus();
+
+            KeyDownEnter();
         }
 
         // Stopwatch for recording gametime
@@ -233,7 +235,7 @@ namespace KeepYourFocus
         }
 
         // Click Event for Start Button at start
-        private void StartButtonClick(object sender, EventArgs e)
+        private void ButtonStart_Click(object sender, EventArgs e)
         {
             if (!startButton) return;
 
@@ -272,7 +274,7 @@ namespace KeepYourFocus
         }
 
         // Initialize Game Over Button
-        private async void GameOverButton()
+        private async void ButtonGameOver_Click()
         {
             textBoxHighscore.Visible = true;
 
@@ -292,6 +294,58 @@ namespace KeepYourFocus
             await Task.Delay(500);
 
             InitialDictionaryOfTilesAtStart();
+        }
+
+        // InitializeKeyDownENTER
+        private void KeyDownEnter()
+        {
+            // Wait for user input and handle validation
+            string playerName = "";
+
+            // Event handler for KeyDown within this method
+            textBoxInputName.KeyDown += (sender, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true; // Prevents the Enter key from inserting a newline
+                    e.SuppressKeyPress = true; // Stops the "ding" sound
+                    playerName = textBoxInputName.Text.Trim().ToUpper();
+
+                    if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" || playerName != "YOUR NAME")
+                    {
+                        storePlayerName.Clear();
+                        storePlayerName.Add(playerName);
+
+                        // After valid input: disable textBoxInputName and buttonEnter, enable startBTN
+                        textBoxInputName.Visible = false;
+                        textBoxInputName.Enabled = false;
+                        buttonEnter.Enabled = false;
+                        buttonEnter.Visible = false;
+                        startBTN.Enabled = true;
+                        startButton = true;
+
+                        Debug.WriteLine($"Input name is {playerName}");
+
+                        // Fill richtextboxes
+                        richTextBoxShowLevelName.Text = $"  Click Start";
+                        richTextBoxShowRounds.Text = $"Succes {playerName}";
+                    }
+                    else
+                    {
+                        playerName = storePlayerName[0];
+                        Debug.WriteLine($"Forced input name is {playerName}");
+
+                        // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
+                        textBoxInputName.Visible = false;
+                        textBoxInputName.Enabled = false;
+                        
+                        buttonEnter.Enabled = false;
+                        buttonEnter.Visible = false;
+                        startBTN.Enabled = true;
+                        startButton = true;
+                    }
+                }
+            };
         }
 
         // Initialize OK button for input playerName
@@ -1325,7 +1379,7 @@ namespace KeepYourFocus
             counter_levels = 999;
 
             UpdateLevelName();
-            GameOverButton();
+            ButtonGameOver_Click();
             InitialDictionaryOfTilesAtStart();
 
             counter_rounds = 1;
