@@ -5,16 +5,28 @@ VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Focus", "Focus.csproj", "{90835C1C-7832-4635-B29C-46A5A6A52857}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "FocusInstaller", "..\FocusInstaller\FocusInstaller\FocusInstaller.vdproj", "{EECE2A59-D692-49CA-89D7-FD7DCA5BDFF4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{90835C1C-7832-4635-B29C-46A5A6A52857}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{90835C1C-7832-4635-B29C-46A5A6A52857}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90835C1C-7832-4635-B29C-46A5A6A52857}.Debug|x64.ActiveCfg = Debug|x64
+		{90835C1C-7832-4635-B29C-46A5A6A52857}.Debug|x64.Build.0 = Debug|x64
 		{90835C1C-7832-4635-B29C-46A5A6A52857}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{90835C1C-7832-4635-B29C-46A5A6A52857}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{90835C1C-7832-4635-B29C-46A5A6A52857}.Release|x64.ActiveCfg = Release|x64
+		{90835C1C-7832-4635-B29C-46A5A6A52857}.Release|x64.Build.0 = Release|x64
+		{EECE2A59-D692-49CA-89D7-FD7DCA5BDFF4}.Debug|Any CPU.ActiveCfg = Debug
+		{EECE2A59-D692-49CA-89D7-FD7DCA5BDFF4}.Debug|x64.ActiveCfg = Debug
+		{EECE2A59-D692-49CA-89D7-FD7DCA5BDFF4}.Release|Any CPU.ActiveCfg = Release
+		{EECE2A59-D692-49CA-89D7-FD7DCA5BDFF4}.Release|x64.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -166,9 +166,8 @@ namespace KeepYourFocus
             textBoxInputName.Visible = true;
             textBoxInputName.Enabled = true;
 
-            // Continue when buttonEnter is clicked
+            // Continue when buttonEnter is clicked; as alternative Key.Enter is also possible
             textBoxInputName.Focus();
-
             KeyDownEnter();
         }
 
@@ -299,8 +298,7 @@ namespace KeepYourFocus
         // InitializeKeyDownENTER
         private void KeyDownEnter()
         {
-            // Wait for user input and handle validation
-            string playerName = "";
+            string playerName = textBoxInputName.Text.Trim().ToUpper();
 
             // Event handler for KeyDown within this method
             textBoxInputName.KeyDown += (sender, e) =>
@@ -796,7 +794,6 @@ namespace KeepYourFocus
         // Verify difficulties. 2 cases: computers turn and Players turn
         private void SetTurnActions()
         {
-
             switch (computer)
             {
                 // Computers Turn //
