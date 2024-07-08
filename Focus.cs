@@ -116,6 +116,9 @@ namespace KeepYourFocus
             // LinkLabels GitHub and Email
             InitializeLinkLabels();
 
+            // Alihning richTextBoxes
+            AlignRichTextboxesCenter();
+
             // Display highscore at start
             TextBoxHighscore();
             //SecondTextBoxTopFive();
@@ -137,29 +140,22 @@ namespace KeepYourFocus
         private void WelcomeMessageBox()
         {
             MessageBox.Show(
-                            " Thank you for testing the heck out of my very first try-out in\r\n C# coding!\r\n\r\n" +
+                            "   Thank you for testing the heck out of my very first try-out\r\n" +
+                            "   in C# coding!\r\n\r\n" +
                             " * Simon Says-like game with some level based challenges\r\n" +
                             " * Each level has 6 sequences. After 6 succesful sequences:\r\n" +
-                            " * Level++; Add 1 challenge; Clear correctOrder and\r\n   playerOrder and start with new sequence = 1\r\n" +
-                            " * From Level >= 7: no Clear correctOrder; sequences++\r\n   untill game over\r\n" +
+                            " * Level++; Add 1 challenge; Clear correctOrder and\r\n"+
+                            " * playerOrder and start with new sequence = 1\r\n" +
+                            " * From Level >= 7: no Clear correctOrder; sequences++\r\n" +
+                            " * untill game over\r\n" +
                             " * More challenges, tiles and sounds in progress\r\n" +
                             " * Next update: file encryption!\r\n" +
-                            " * === Levels ===\r\n" +
-                            " * Level 1 [EasyPeasy]: standard\r\n" +
-                            " * level 2 [OkiDoki] and onward: some misleading text in\r\n   pictureboxes, plus:\r\n *" +
-                            " Shuffle Pictureboxes before start player's turn\r\n   with 55% chance; level 3 75% chance; >= level 5 85% chance\r\n" +
-                            " * level 3 [Please No]: Shuffle Pictureboxes per player click\r\n   with 55% chance; level 4 75% chance; >= level 6 85% chance\r\n" +
-                            " * Level 4 [No Way!]: When level up, replace all tile squares\r\n   on board with 55%; level 5 75%; >= level 7 85%\r\n" +
-                            " * level 5 [HELL NO]: In each sequence, replace one tile\r\n   in running order with 55% chance; level 6 75% chance;\r\n   level 8 85%\r\n" +
-                            " * level 6 [NONONONO]: Replace 1 tile with other tile on board\r\n   and in running order in the running order with 55% chance;\r\n   level 7 75% chance; >= level 9 85%\r\n" +
-                            " * level 666 [HELLMODE]: No Clear correctOrder; sequences++\r\n   untill game over\r\n" +
-                            "" +
                             " * You can find all the chaos at:\r\n" +
                             "   https://github.com/Peanutsch/KeepYourFocus.git\r\n" +
                             " * Please feel free to review my code and give feedback!\r\n\r\n" +
-                            "                                   Michiel / Peanutsch\r\n" +
-                            "                                   peanutsch@duck.com\r\n" +
-                            "                           (preRookie wannabeeCodeDev)\r\n",
+                            "   Michiel / Peanutsch\r\n" +
+                            "   peanutsch@duck.com\r\n" +
+                            "   (preRookie wannabeeCodeDev)\r\n",
                             "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information
                             );
         }
@@ -314,7 +310,7 @@ namespace KeepYourFocus
                     e.SuppressKeyPress = true; // Stops the "ding" sound
                     playerName = textBoxInputName.Text.Trim().ToUpper();
 
-                    if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" || playerName != "YOUR NAME")
+                    if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
                     {
                         storePlayerName.Clear();
                         storePlayerName.Add(playerName);
@@ -330,7 +326,7 @@ namespace KeepYourFocus
                         Debug.WriteLine($"Input name is {playerName}");
 
                         // Fill richtextboxes
-                        richTextBoxShowLevelName.Text = $"  Click Start";
+                        richTextBoxShowLevelName.Text = $"Click Start";
                         richTextBoxShowRounds.Text = $"Succes {playerName}";
                     }
                     else
@@ -541,7 +537,7 @@ namespace KeepYourFocus
                 // Debug.WriteLine($"\nGenerated newTile: {newTile}");
 
                 // Validate the new tile
-                if (previousTiles.Count < 4)
+                if (previousTiles.Count < 2)
                 {
                     // If the list has fewer than 2 items, any new tile is valid as long as it differs from the last one
                     isValid = previousTiles.Count < 1 || newTile != previousTiles[^1];
@@ -550,25 +546,26 @@ namespace KeepYourFocus
                 {
                     // If the list has 2 or more items, ensure the new tile is different from the first and last
                     // isValid = newTile != previousTiles[^1] || newTile != previousTiles[^2];
-                    isValid = newTile != previousTiles[^1] && newTile != previousTiles[^2];
+                    isValid = newTile != previousTiles[0] && newTile != previousTiles[^1];
                 }
 
-                // Debug.WriteLine($"Is newTile valid? {isValid}");
+                Debug.WriteLine($"Is newTile valid? {isValid}");
 
             } while (!isValid);
 
             // Add the new tile to the list
             previousTiles.Add(newTile);
+            Debug.WriteLine($"New tile: {newTile}");
 
             // Keep only the last three tiles in the list
-            if (previousTiles.Count > 4)
+            if (previousTiles.Count > 3)
             {
                 // Debug.WriteLine($"\nRemoved: {previousTiles[0]}");
                 previousTiles.RemoveAt(0);
             }
 
             // Debug.WriteLine($"Added: {newTile}");
-            // Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
+            Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
 
             return newTile;
         }
@@ -681,7 +678,9 @@ namespace KeepYourFocus
                 await Task.Delay(50);
             }
             // Verify difficulty
-            SetTurnActions();
+            //SetTurnActions();
+            VerifyTurnActions();
+
 
             await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
 
@@ -712,7 +711,8 @@ namespace KeepYourFocus
                 Debug.WriteLine($"Player: [{tile}]");
 
                 // Verify difficulty
-                SetTurnActions();
+                //SetTurnActions();
+                VerifyTurnActions();
 
                 // Verify each input with correctOrder
                 for (int input = 0; input < playerOrder.Count; input++)
@@ -842,10 +842,18 @@ namespace KeepYourFocus
             }
         }
 
-        private void PerformTurnActions()
+        // Verify turn actions
+        private void VerifyTurnActions()
         {
-            if (isComputerTurn || isPlayerTurn)
+            if (isComputerTurn)
             {
+                DisplayLabelMessage(true);
+                ShufflePictureBoxes();
+                
+            }
+            if (isPlayerTurn)
+            {
+                DisplayLabelMessage(false);
                 ShufflePictureBoxes();
             }
             if (isDisplaySequence)
@@ -863,7 +871,7 @@ namespace KeepYourFocus
 
 
         // Shuffle currect tile setup before player's turn and/or after player's click
-        private async void ShufflePictureBoxes() // Called in SetTurnActions()
+        private async void ShufflePictureBoxes()
         {
             switch (computer)
             {
@@ -895,7 +903,7 @@ namespace KeepYourFocus
             }
         }
 
-        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence() // Called in DisplaySequence()
+        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
         {
             string newTile = RandomizerTiles();
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
@@ -978,7 +986,7 @@ namespace KeepYourFocus
         }
 
         // Replace and switch all tiles when level up
-        private void ReplaceAllTiles() // Called in SetCounters()
+        private void ReplaceAllTiles()
         {
             if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
                 counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
@@ -1033,7 +1041,7 @@ namespace KeepYourFocus
              */
 
             int chance = counter_levels >= 6 ? 55 : 45;
-            bool showMessage = iscomputerTurn
+            bool showMessage = computer
                 ? counter_levels >= 2 && rnd.Next(100) <= chance && correctOrder.Count != correctOrder.Count - 1
                 : counter_levels >= 2 && rnd.Next(100) <= 65 && playerOrder.Count != correctOrder.Count;
 
@@ -1136,11 +1144,50 @@ namespace KeepYourFocus
             }
         }
 
+        private void AlignRichTextboxesCenter()
+        {
+            // Align richTextBoxShowLevelNumber
+            richTextBoxShowLevelNumber.Visible = false;
+            richTextBoxShowLevelNumber.SelectAll();
+            richTextBoxShowLevelNumber.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowLevelNumber.DeselectAll();
+            richTextBoxShowLevelNumber.Visible = true;
+
+            // Align richTextBoxShowLevelName
+            richTextBoxShowLevelName.Visible = false;
+            richTextBoxShowLevelName.SelectAll();
+            richTextBoxShowLevelName.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowLevelName.DeselectAll();
+            richTextBoxShowLevelName.Visible = true;
+
+            // Align richTextBoxShowNumbersOfSequences
+            richTextBoxShowNumbersOfSequences.Visible = false;
+            richTextBoxShowNumbersOfSequences.SelectAll();
+            richTextBoxShowNumbersOfSequences.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowNumbersOfSequences.DeselectAll();
+            richTextBoxShowNumbersOfSequences.Visible = true;
+
+            // Align richTextBoxTurn
+            richTextBoxTurn.Visible = false;
+            richTextBoxTurn.SelectAll();
+            richTextBoxTurn.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxTurn.DeselectAll();
+            richTextBoxTurn.Visible = true;
+
+            // Align richTextBoxShowRounds
+            richTextBoxShowRounds.Visible = false;
+            richTextBoxShowRounds.SelectAll();
+            richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowRounds.DeselectAll();
+            richTextBoxShowRounds.Visible = true;
+        }
+
+
         // Update richtextbox ShowNumbersOfSequences
         private void UpdateSequence()
         {
             richTextBoxShowNumbersOfSequences.BackColor = Color.Yellow;
-            richTextBoxShowNumbersOfSequences.Text = $"{new string(' ', 4)}Sequence of {counter_sequences}";
+            richTextBoxShowNumbersOfSequences.Text = $"   Sequence of {counter_sequences}";
         }
 
         // Update richtextbox Turn
@@ -1155,13 +1202,11 @@ namespace KeepYourFocus
                         // Debug.WriteLine("UpdateTurn LevelUp");
 
                         richTextBoxTurn.BackColor = Color.LightGreen;
-                        richTextBoxTurn.Text = $"\n{new string(' ', 7)}CORRECT";
+                        richTextBoxTurn.Text = $"\nCORRECT";
 
                         await Task.Delay(1500);
 
-                        richTextBoxTurn.Text = $"\n{new string(' ', 8)}Level  Up";
-
-                        // ReplaceAllTiles();
+                        richTextBoxTurn.Text = $"\nLevel  Up";
 
                         await Task.Delay(1000);
                         break;
@@ -1171,10 +1216,10 @@ namespace KeepYourFocus
                         // Debug.WriteLine("UpdateTurn Correct");
 
                         richTextBoxTurn.BackColor = Color.LightGreen;
-                        richTextBoxTurn.Text = $"\n{new string(' ', 7)}CORRECT";
+                        richTextBoxTurn.Text = $"\nCORRECT";
 
                         await Task.Delay(1500);
-                        richTextBoxTurn.Text = $"\n{new string(' ', 3)}Next Sequence";
+                        richTextBoxTurn.Text = $"\nNext Sequence";
 
                         await Task.Delay(1000);
                         break;
@@ -1182,13 +1227,13 @@ namespace KeepYourFocus
                 // computer's turn
                 case (true, false, _):
                     richTextBoxTurn.BackColor = Color.Salmon;
-                    richTextBoxTurn.Text = $"{new string(' ', 4)}computer's Turn";
-                    richTextBoxTurn.Text = $"{new string(' ', 9)}Running\n{new string(' ', 14)}::\n{new string(' ', 8)}Sequence";
+                    richTextBoxTurn.Text = $"computer's Turn";
+                    richTextBoxTurn.Text = $"Running\n::\nSequence";
                     break;
                 // Player's turn
                 case (false, false, _):
                     richTextBoxTurn.BackColor = Color.Green;
-                    richTextBoxTurn.Text = $"\n{new string(' ', 5)}Player's Turn";
+                    richTextBoxTurn.Text = $"\nPlayer's Turn";
                     break;
             }
         }
@@ -1197,9 +1242,7 @@ namespace KeepYourFocus
         private void UpdateRound()
         {
             richTextBoxShowRounds.BackColor = Color.LightSkyBlue;
-            richTextBoxShowRounds.Text = $"{new string(' ', 1)}Total Rounds: {new string(' ', 0)}{counter_rounds}";
-            richTextBoxShowRounds.SelectAll();
-            richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowRounds.Text = $"Total Rounds: {counter_rounds}";
         }
 
         // Update richtextbox ShowLevel
@@ -1211,57 +1254,57 @@ namespace KeepYourFocus
                     richTextBoxShowLevelName.BackColor = Color.LightSkyBlue;
                     richTextBoxShowLevelNumber.BackColor = Color.LightSkyBlue;
 
-                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 1)}EasyPeasy";
+                    richTextBoxShowLevelNumber.Text = $"{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"EasyPeasy";
                     break;
                 case (2):
                     richTextBoxShowLevelName.BackColor = Color.SkyBlue;
                     richTextBoxShowLevelNumber.BackColor = Color.SkyBlue;
 
-                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 4)}OkiDoki";
+                    richTextBoxShowLevelNumber.Text = $"{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"OkiDoki";
                     break;
                 case (3):
                     richTextBoxShowLevelName.BackColor = Color.CornflowerBlue;
                     richTextBoxShowLevelNumber.BackColor = Color.CornflowerBlue;
 
-                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 2)}Please No";
+                    richTextBoxShowLevelNumber.Text = $"{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"Please No";
                     break;
                 case (4):
                     richTextBoxShowLevelName.BackColor = Color.RoyalBlue;
                     richTextBoxShowLevelNumber.BackColor = Color.RoyalBlue;
 
-                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 4)}No Way!";
+                    richTextBoxShowLevelNumber.Text = $"{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"No Way!";
                     break;
                 case (5):
                     richTextBoxShowLevelName.BackColor = Color.DarkKhaki;
                     richTextBoxShowLevelNumber.BackColor = Color.DarkKhaki;
 
-                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 1)}HELL NO";
+                    richTextBoxShowLevelNumber.Text = $"{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"HELL NO";
                     break;
                 case (6):
                     richTextBoxShowLevelName.BackColor = Color.DarkOrange;
                     richTextBoxShowLevelNumber.BackColor = Color.DarkOrange;
 
-                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 3)}{counter_levels}";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 0)}NONONONO";
+                    richTextBoxShowLevelNumber.Text = $"{counter_levels}";
+                    richTextBoxShowLevelName.Text = $"NONONONO";
                     break;
                 case (999):
                     richTextBoxShowLevelNumber.BackColor = Color.Red;
                     richTextBoxShowLevelName.BackColor = Color.Red;
                     richTextBoxShowRounds.BackColor = Color.Red;
 
-                    richTextBoxShowNumbersOfSequences.Text = $"{new string(' ', 1)}WRONGWRONG";
+                    richTextBoxShowNumbersOfSequences.Text = $" WRONGWRONG";
                     break;
                 default:
                     richTextBoxShowLevelName.BackColor = Color.OrangeRed;
                     richTextBoxShowLevelNumber.BackColor = Color.OrangeRed;
 
-                    richTextBoxShowLevelNumber.Text = $"{new string(' ', 1)}666";
-                    richTextBoxShowLevelName.Text = $"{new string(' ', 0)}HELLMODE";
+                    richTextBoxShowLevelNumber.Text = $"666";
+                    richTextBoxShowLevelName.Text = $"HELLMODE";
                     break;
             }
         }
