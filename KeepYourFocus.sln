@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		png\grid-two-up-32.ico = png\grid-two-up-32.ico
 	EndProjectSection
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "FocusInstaller", "..\Installer\FocusInstaller\FocusInstaller.vdproj", "{14B022A0-4895-494C-AA1A-9CAE76BBEEF3}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "KeepYourFocus", "..\Installer\KeepYourFocus\KeepYourFocus.vdproj", "{3902E316-E8D4-4674-BA8A-5248A8BA23C7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,10 +28,10 @@ Global
 		{90835C1C-7832-4635-B29C-46A5A6A52857}.Release|Any CPU.Build.0 = Debug|Any CPU
 		{90835C1C-7832-4635-B29C-46A5A6A52857}.Release|x64.ActiveCfg = Release|x64
 		{90835C1C-7832-4635-B29C-46A5A6A52857}.Release|x64.Build.0 = Release|x64
-		{14B022A0-4895-494C-AA1A-9CAE76BBEEF3}.Debug|Any CPU.ActiveCfg = Debug
-		{14B022A0-4895-494C-AA1A-9CAE76BBEEF3}.Debug|x64.ActiveCfg = Debug
-		{14B022A0-4895-494C-AA1A-9CAE76BBEEF3}.Release|Any CPU.ActiveCfg = Release
-		{14B022A0-4895-494C-AA1A-9CAE76BBEEF3}.Release|x64.ActiveCfg = Release
+		{3902E316-E8D4-4674-BA8A-5248A8BA23C7}.Debug|Any CPU.ActiveCfg = Debug
+		{3902E316-E8D4-4674-BA8A-5248A8BA23C7}.Debug|x64.ActiveCfg = Debug
+		{3902E316-E8D4-4674-BA8A-5248A8BA23C7}.Release|Any CPU.ActiveCfg = Release
+		{3902E316-E8D4-4674-BA8A-5248A8BA23C7}.Release|x64.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

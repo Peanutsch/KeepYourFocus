@@ -203,8 +203,41 @@ namespace KeepYourFocus
             }
         }
 
-        // Initialize and return root path including directory \KeepYourFocus\
+        // TESTING --> Initialize and return root path including directory \KeepYourFocus\
         static string RootPath()
+        {
+            // Use the local application data path and the app name to construct the root path
+            string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
+
+            if (string.IsNullOrEmpty(localAppDataPath))
+            {
+                Debug.WriteLine("Error: Application path is not valid.");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the directory exists, create if it doesn't
+            try
+            {
+                Directory.CreateDirectory(localAppDataPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error: Unable to create application directory. {ex.Message}");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the path ends with a directory separator
+            if (!localAppDataPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                localAppDataPath += Path.DirectorySeparatorChar;
+            }
+
+            return localAppDataPath;
+        }
+
+
+        // Initialize and return root path including directory \KeepYourFocus\
+        static string OrgRootPath()
         {
             string directoryPath = Environment.CurrentDirectory;
 
@@ -1319,7 +1352,7 @@ namespace KeepYourFocus
             }
         }
 
-        // When Game Over, saves score in setters.txt on new line
+        // TESTING --> When Game Over, saves score on new line
         private void SaveScore(int playerScore, int levelReached, string levelName)
         {
             // Get playerName from storePlayerName
@@ -1328,8 +1361,15 @@ namespace KeepYourFocus
             // Get elapsed game time
             string elapsedGameTime = GameStopwatch();
 
-            // Construct the file path
-            string file = Path.Combine(RootPath(), "sounds", "setters.txt");
+            // Construct the file path using RootPath
+            string rootPath = RootPath();
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string file = Path.Combine(rootPath, "sounds", "setters.txt");
 
             try
             {
@@ -1352,6 +1392,43 @@ namespace KeepYourFocus
                 MessageBox.Show($"An error occurred while saving game data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        // When Game Over, saves score on new line
+        private void OrgSaveScore(int playerScore, int levelReached, string levelName)
+        {
+            // Get playerName from storePlayerName
+            string playerName = storePlayerName[0];
+
+            // Get elapsed game time
+            string elapsedGameTime = GameStopwatch();
+
+            // Construct the file path in the user's local application data directory
+            string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
+            Directory.CreateDirectory(localAppDataPath); // Ensure the directory exists
+            string file = Path.Combine(localAppDataPath, "setters.txt");
+
+            try
+            {
+                // Read the existing content of the file
+                string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty;
+
+                // Write the new score followed by the existing content
+                using (StreamWriter saveScore = new StreamWriter(file, false))
+                {
+                    saveScore.WriteLine($"{playerName},{playerScore},{levelReached},{levelName.Trim()},{elapsedGameTime}");
+                    saveScore.Write(existingContent);
+                }
+
+                // Log the saved data
+                Debug.WriteLine($"Game data saved: {playerName}, {playerScore}, {levelReached}, {levelName.Trim()}, {elapsedGameTime}");
+                ReadScoresFromFile();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while saving game data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
 
         // Returns list with all data in setters.txt
         private List<(string, int, int, string, string)> ReadScoresFromFile()

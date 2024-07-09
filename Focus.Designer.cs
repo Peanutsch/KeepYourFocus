@@ -88,7 +88,7 @@ namespace KeepYourFocus
             startBTN.BackColor = Color.Lime;
             startBTN.Cursor = Cursors.Hand;
             startBTN.Enabled = false;
-            startBTN.FlatStyle = FlatStyle.Popup;
+            startBTN.FlatStyle = FlatStyle.Flat;
             startBTN.Font = new Font("Microsoft Sans Serif", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             startBTN.Location = new Point(242, 277);
             startBTN.Name = "startBTN";
@@ -101,10 +101,10 @@ namespace KeepYourFocus
             // richTextBoxShowNumbersOfSequences
             // 
             richTextBoxShowNumbersOfSequences.BackColor = Color.Yellow;
-            richTextBoxShowNumbersOfSequences.BorderStyle = BorderStyle.FixedSingle;
+            richTextBoxShowNumbersOfSequences.BorderStyle = BorderStyle.None;
             richTextBoxShowNumbersOfSequences.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             richTextBoxShowNumbersOfSequences.ImeMode = ImeMode.NoControl;
-            richTextBoxShowNumbersOfSequences.Location = new Point(242, 343);
+            richTextBoxShowNumbersOfSequences.Location = new Point(243, 353);
             richTextBoxShowNumbersOfSequences.Name = "richTextBoxShowNumbersOfSequences";
             richTextBoxShowNumbersOfSequences.ReadOnly = true;
             richTextBoxShowNumbersOfSequences.ShortcutsEnabled = false;
