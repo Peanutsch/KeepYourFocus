@@ -88,16 +88,16 @@ namespace KeepYourFocus
             string soundPathStartupSound = Path.Combine(RootPath(), @"sounds\startupSound.wav");
 
             // Initiaize SoundPlayers
-            redSound = new SoundPlayer(soundPathBeepALL);       //soundPathBeepRed
-            blueSound = new SoundPlayer(soundPathBeepALL);      //soundPathBeepBlue
-            orangeSound = new SoundPlayer(soundPathBeepALL);    //soundPathBeepOrange
-            greenSound = new SoundPlayer(soundPathBeepALL);     //soundPathBeepGreen
-            caribBlueSound = new SoundPlayer(soundPathBeepALL); //soundPathBeepCaribBlue
-            greySound = new SoundPlayer(soundPathBeepALL);      //soundPathBeepGrey
-            indigoSound = new SoundPlayer(soundPathBeepALL);    //soundPathBeepIndigo
-            maroonSound = new SoundPlayer(soundPathBeepALL);    //soundPathBeepMaroon
-            oliveSound = new SoundPlayer(soundPathBeepALL);     //soundPathBeepOlive
-            pinkSound = new SoundPlayer(soundPathBeepALL);      //soundPathBeepPink
+            redSound = new SoundPlayer(soundPathBeepALL);       // redSound = new SoundPlayer(soundPathBeepRed); 
+            blueSound = new SoundPlayer(soundPathBeepALL);      // blueSound = new SoundPlayer(soundPathBeepBlue); 
+            orangeSound = new SoundPlayer(soundPathBeepALL);    // orangeSound = new SoundPlayer(soundPathBeepOrange); 
+            greenSound = new SoundPlayer(soundPathBeepALL);     // greenSound = new SoundPlayer(soundPathBeepGreen);
+            caribBlueSound = new SoundPlayer(soundPathBeepALL); // caribBlueSound = new SoundPlayer(soundPathBeepCaribBlue);
+            greySound = new SoundPlayer(soundPathBeepALL);      // greySound = new SoundPlayer(soundPathBeepGrey); 
+            indigoSound = new SoundPlayer(soundPathBeepALL);    // indigoSound = new SoundPlayer(soundPathBeepIndigo);
+            maroonSound = new SoundPlayer(soundPathBeepALL);    // maroonSound = new SoundPlayer(soundPathBeepMaroon);
+            oliveSound = new SoundPlayer(soundPathBeepALL);     // oliveSound = new SoundPlayer(soundPathBeepOlive);
+            pinkSound = new SoundPlayer(soundPathBeepALL);      // pinkSound = new SoundPlayer(soundPathBeepPink);
 
             transitionSound = new SoundPlayer(soundPathTransition);
             buttonClickSound = new SoundPlayer(soundPathButtonClick);
@@ -117,7 +117,7 @@ namespace KeepYourFocus
             InitializeLinkLabels();
 
             // Alihning richTextBoxes
-            AlignRichTextboxesCenter();
+            AlignTextButtonBoxesCenter();
 
             // Display highscore at start
             TextBoxHighscore();
@@ -144,7 +144,7 @@ namespace KeepYourFocus
                             "   in C# coding!\r\n\r\n" +
                             " * Simon Says-like game with some level based challenges\r\n" +
                             " * Each level has 6 sequences. After 6 succesful sequences:\r\n" +
-                            " * Level++; Add 1 challenge; Clear correctOrder and\r\n"+
+                            " * Level++; Add 1 challenge; Clear correctOrder and\r\n" +
                             " * playerOrder and start with new sequence = 1\r\n" +
                             " * From Level >= 7: no Clear correctOrder; sequences++\r\n" +
                             " * untill game over\r\n" +
@@ -167,7 +167,7 @@ namespace KeepYourFocus
             textBoxInputName.Visible = true;
             textBoxInputName.Enabled = true;
 
-            // Continue when buttonEnter is clicked; as alternative Key.Enter is also possible
+            // Enter input by buttonEnter and Key.Enter
             textBoxInputName.Focus();
             KeyDownEnter();
         }
@@ -237,7 +237,8 @@ namespace KeepYourFocus
         // Click Event for Start Button at start
         private void ButtonStart_Click(object sender, EventArgs e)
         {
-            if (!startButton) return;
+            if (!startButton)
+                return;
 
             buttonClickSound.Play();
 
@@ -282,7 +283,9 @@ namespace KeepYourFocus
             startBTN.Enabled = true;
             startBTN.BackColor = Color.DarkRed;
             startBTN.Cursor = Cursors.Hand;
-            startBTN.Text = $"{new string(' ', 1)}GAME\nOVER";
+
+            //startBTN.Text = $"{new string(' ', 1)}GAME\nOVER";
+            startBTN.Text = $"GAME\nOVER\n";
             startBTN.FlatStyle = FlatStyle.Popup;
 
             //Set LinkLabels invisible
@@ -337,7 +340,7 @@ namespace KeepYourFocus
                         // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
                         textBoxInputName.Visible = false;
                         textBoxInputName.Enabled = false;
-                        
+
                         buttonEnter.Enabled = false;
                         buttonEnter.Visible = false;
                         startBTN.Enabled = true;
@@ -528,48 +531,35 @@ namespace KeepYourFocus
             }
 
             string newTile;
-            bool isValid;
+            Dictionary<string, int> tileCount = correctOrder
+                .GroupBy(tile => tile)
+                .ToDictionary(group => group.Key, group => group.Count());
 
             do
             {
                 // Select a new tile
                 newTile = pictureBoxDictionary.Keys.ElementAt(rnd.Next(pictureBoxDictionary.Count));
-                // Debug.WriteLine($"\nGenerated newTile: {newTile}");
 
-                // Validate the new tile
-                if (previousTiles.Count < 2)
-                {
-                    // If the list has fewer than 2 items, any new tile is valid as long as it differs from the last one
-                    isValid = previousTiles.Count < 1 || newTile != previousTiles[^1];
-                }
-                else
-                {
-                    // If the list has 2 or more items, ensure the new tile is different from the first and last
-                    // isValid = newTile != previousTiles[^1] || newTile != previousTiles[^2];
-                    isValid = newTile != previousTiles[0] && newTile != previousTiles[^1];
-                }
+                // Check if newTile appears less than three times in correctOrder
+            } while (tileCount.ContainsKey(newTile) && tileCount[newTile] >= 3);
 
-                Debug.WriteLine($"Is newTile valid? {isValid}");
-
-            } while (!isValid);
-
-            // Add the new tile to the list
+            // Add the new tile to previousTiles
             previousTiles.Add(newTile);
-            Debug.WriteLine($"New tile: {newTile}");
+            Debug.WriteLine($"Added: {newTile}");
 
             // Keep only the last three tiles in the list
             if (previousTiles.Count > 3)
             {
-                // Debug.WriteLine($"\nRemoved: {previousTiles[0]}");
                 previousTiles.RemoveAt(0);
+                Debug.WriteLine($"Removed: {previousTiles[0]}");
             }
 
-            // Debug.WriteLine($"Added: {newTile}");
             Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
 
             return newTile;
         }
 
+        
         // Shuffles dictionary of all tiles
         private Dictionary<string, string> ShuffleDictOfAllTiles()
         {
@@ -653,7 +643,6 @@ namespace KeepYourFocus
             }
 
             isDisplaySequence = true;
-
             computer = true;
 
             Debug.WriteLine($"\nDisplay Sequence: {counter_sequences}");
@@ -672,20 +661,18 @@ namespace KeepYourFocus
 
                 PlaySound(tile);
 
-                SetHighlight(box, true);
+                ManageHighlight(box, true);
                 await Task.Delay(150);
-                SetHighlight(box, false);
+                ManageHighlight(box, false);
                 await Task.Delay(50);
             }
             // Verify difficulty
-            //SetTurnActions();
-            VerifyTurnActions();
+            ManageActions();
 
 
             await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
 
             computer = false;
-
             isDisplaySequence = false;
 
             UpdateTurn(); // case Player's Turn
@@ -696,7 +683,8 @@ namespace KeepYourFocus
             isPlayerTurn = true;
 
             // Block Player's clicks in computer's turn AND before StartButton is clicked
-            if (startButton || computer) return;
+            if (startButton || computer)
+                return;
 
 
             if (sender is PictureBox clickedBox)
@@ -704,7 +692,7 @@ namespace KeepYourFocus
                 string tile = clickedBox.Tag?.ToString() ?? "";
 
                 PlaySound(tile);
-                SetHighlight(clickedBox, true);
+                ManageHighlight(clickedBox, true);
 
                 playerOrder.Add(tile);
 
@@ -712,7 +700,7 @@ namespace KeepYourFocus
 
                 // Verify difficulty
                 //SetTurnActions();
-                VerifyTurnActions();
+                ManageActions();
 
                 // Verify each input with correctOrder
                 for (int input = 0; input < playerOrder.Count; input++)
@@ -720,7 +708,7 @@ namespace KeepYourFocus
                     if (playerOrder[input] != correctOrder[input])
                     {
                         await Task.Delay(100);
-                        SetHighlight(clickedBox, false);
+                        ManageHighlight(clickedBox, false);
                         await Task.Delay(250); // Delay to provide feedback before game over
                         GameOver();
                         TextBoxHighscore();
@@ -733,17 +721,17 @@ namespace KeepYourFocus
                 if (playerOrder.Count == correctOrder.Count)
                 {
                     await Task.Delay(100);
-                    SetHighlight(clickedBox, false);
+                    ManageHighlight(clickedBox, false);
                     await Task.Delay(50);
 
-                    VerifyAndManageCountersAndLevels();
+                    ManageCountersAndLevels();
 
                     isPlayerTurn = false;
                 }
                 else
                 {
                     await Task.Delay(100);
-                    SetHighlight(clickedBox, false);
+                    ManageHighlight(clickedBox, false);
                     await Task.Delay(50);
 
                     isPlayerTurn = false;
@@ -752,7 +740,7 @@ namespace KeepYourFocus
             isPlayerTurn = false;
         }
 
-        private async void VerifyAndManageCountersAndLevels()
+        private async void ManageCountersAndLevels()
         {
             if (playerOrder.Count < correctOrder.Count)
                 return;
@@ -766,7 +754,7 @@ namespace KeepYourFocus
             await Task.Delay(250);
             correctSound.Play();
 
-            SetCounters();
+            UpdateCounters();
             UpdateSequence();
             UpdateRound();
             UpdateLevelName();
@@ -779,14 +767,14 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        // TESTING WITH 6 SEQUENCES PER LEVEL
-        private void SetCounters()
+        // TESTING WITH 2 SEQUENCES PER LEVEL
+        private void UpdateCounters()
         {
             isSetCounters = true;
 
             switch (counter_sequences)
             {
-                case (6) when counter_levels < 8:
+                case (2) when counter_levels < 8:
                     levelUp = true;
                     correctOrder.Clear();
                     playerOrder.Clear();
@@ -794,17 +782,16 @@ namespace KeepYourFocus
                     counter_levels++;
                     counter_rounds++;
 
-                    ReplaceAllTiles();
-
+                    ManageActions();
                     UpdateTurn();
+
                     levelUp = false;
                     break;
                 default:
                     if (counter_levels >= 8)
                     {
-                        isSetCounters = true;
-
                         levelUp = true;
+
                         counter_sequences++;
                         counter_rounds++;
                         UpdateTurn();
@@ -824,40 +811,26 @@ namespace KeepYourFocus
             isSetCounters = false;
         }
 
-        // Verify difficulties. 2 cases: computers turn and Players turn
-        private void SetTurnActions()
-        {
-            switch (computer)
-            {
-                // Computers Turn //
-                case true:
-                    DisplayLabelMessage(true);
-                    ShufflePictureBoxes();
-                    break;
-                // Players Turn //
-                case false:
-                    DisplayLabelMessage(false);
-                    ShufflePictureBoxes();
-                    break;
-            }
-        }
-
         // Verify turn actions
-        private void VerifyTurnActions()
+        private void ManageActions()
         {
             if (isComputerTurn)
             {
-                DisplayLabelMessage(true);
-                ShufflePictureBoxes();
+                // Debug.WriteLine("ManageActions> isComputerTurn = true");
+                // DisplayLabelMessage(true);
+                // ShufflePictureBoxes();
                 
             }
             if (isPlayerTurn)
             {
-                DisplayLabelMessage(false);
+                Debug.WriteLine("ManageActions> isPlayerTurn = true");
+                // DisplayLabelMessage(false);
                 ShufflePictureBoxes();
             }
             if (isDisplaySequence)
             {
+                Debug.WriteLine("ManageActions> isDisplaySequence = true");
+                ShufflePictureBoxes();
                 ReplaceTileOnBoardAndInSequence();
             }
             if (isSetCounters)
@@ -873,33 +846,28 @@ namespace KeepYourFocus
         // Shuffle currect tile setup before player's turn and/or after player's click
         private async void ShufflePictureBoxes()
         {
-            switch (computer)
+            // isDisplaySequence
+            if (counter_levels == 2 && rnd.Next(100) <= 55 && isDisplaySequence ||
+                counter_levels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
+                counter_levels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence)
             {
-                case (true):
-                    if (counter_levels == 2 && rnd.Next(100) <= 55 ||
-                        counter_levels >= 3 && rnd.Next(100) <= 75 ||
-                        counter_levels >= 5 && rnd.Next(100) <= 85)
-                    {
-                        // Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle before player's turn");
+                Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle before player's turn");
 
-                        await Task.Delay(250); // Delay 250 ms for space between colorSound and transitionSound
-                        transitionSound.Play();
-                        RandomizerShufflePictureBoxes();
-                        RefreshAndRepositionPictureBoxes();
-                        await Task.Delay(1000);
-                    }
-                    break;
-                case (false):
-                    if (counter_levels >= 3 && rnd.Next(100) <= 55 ||
-                        counter_levels >= 4 && rnd.Next(100) <= 75 ||
-                        counter_levels >= 6 && rnd.Next(100) <= 85)
-                    {
-                        // Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
+                await Task.Delay(250); // Delay 250 ms for space between colorSound and transitionSound
+                transitionSound.Play();
+                RandomizerShufflePictureBoxes();
+                RefreshAndRepositionPictureBoxes();
+                await Task.Delay(1000);
+            }
+            // isPlayerTurn
+            if (counter_levels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
+                counter_levels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
+                counter_levels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn)
+            {
+                Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
 
-                        RandomizerShufflePictureBoxes();
-                        RefreshAndRepositionPictureBoxes();
-                    }
-                    break;
+                RandomizerShufflePictureBoxes();
+                RefreshAndRepositionPictureBoxes();
             }
         }
 
@@ -1085,11 +1053,11 @@ namespace KeepYourFocus
 
         ////>>>> INITIALIZE HIGHLIGHTS, SOUND, TEXTBOXES AND GAME OVER <<<<////
 
-        private void SetHighlight(PictureBox pictureBox, bool highlight)
+        private void ManageHighlight(PictureBox pictureBox, bool highlight)
         {
             if (pictureBox.InvokeRequired)
             {
-                pictureBox.Invoke(new Action<PictureBox, bool>(SetHighlight), pictureBox, highlight);
+                pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
             }
             else
             {
@@ -1144,8 +1112,13 @@ namespace KeepYourFocus
             }
         }
 
-        private void AlignRichTextboxesCenter()
+        private void AlignTextButtonBoxesCenter()
         {
+            // Align Buttons
+            startBTN.Visible = false;
+            startBTN.TextAlign = ContentAlignment.MiddleCenter;
+            startBTN.Visible = true;
+
             // Align richTextBoxShowLevelNumber
             richTextBoxShowLevelNumber.Visible = false;
             richTextBoxShowLevelNumber.SelectAll();
@@ -1356,7 +1329,7 @@ namespace KeepYourFocus
             string elapsedGameTime = GameStopwatch();
 
             // Construct the file path
-            string file = Path.Combine(RootPath(), "setters.txt");
+            string file = Path.Combine(RootPath(), "sounds", "setters.txt");
 
             try
             {
@@ -1383,7 +1356,7 @@ namespace KeepYourFocus
         // Returns list with all data in setters.txt
         private List<(string, int, int, string, string)> ReadScoresFromFile()
         {
-            string file = Path.Combine(RootPath(), "setters.txt");
+            string file = Path.Combine(RootPath(), "sounds", "setters.txt");
             List<(string, int, int, string, string)> scoresList = new List<(string, int, int, string, string)>();
 
             try
