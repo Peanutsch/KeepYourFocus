@@ -767,14 +767,14 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        // TESTING WITH 2 SEQUENCES PER LEVEL
+        // TESTING WITH 6 SEQUENCES PER LEVEL
         private void UpdateCounters()
         {
             isSetCounters = true;
 
             switch (counter_sequences)
             {
-                case (2) when counter_levels < 8:
+                case (6) when counter_levels < 8:
                     levelUp = true;
                     correctOrder.Clear();
                     playerOrder.Clear();
