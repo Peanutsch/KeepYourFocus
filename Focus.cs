@@ -11,8 +11,6 @@ using System.Linq.Expressions;
 using System.Media;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
-using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
 
 namespace KeepYourFocus
 {
@@ -53,6 +51,7 @@ namespace KeepYourFocus
         bool isPlayerTurn = false;
         bool isSetCounters = false;
         bool isDisplaySequence = false;
+        bool gameOver = false;
 
         private Stopwatch gameStopwatch = new Stopwatch();
 
@@ -204,7 +203,7 @@ namespace KeepYourFocus
         }
 
         // TESTING --> Initialize and return root path including directory \KeepYourFocus\
-        static string RootPath()
+        static string TESTRootPath()
         {
             // Use the local application data path and the app name to construct the root path
             string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
@@ -237,7 +236,7 @@ namespace KeepYourFocus
 
 
         // Initialize and return root path including directory \KeepYourFocus\
-        static string OrgRootPath()
+        static string RootPath()
         {
             string directoryPath = Environment.CurrentDirectory;
 
@@ -318,7 +317,7 @@ namespace KeepYourFocus
             startBTN.Cursor = Cursors.Hand;
 
             //startBTN.Text = $"{new string(' ', 1)}GAME\nOVER";
-            startBTN.Text = $"GAME\nOVER\n";
+            startBTN.Text = $"Click to\nRETRY";
             startBTN.FlatStyle = FlatStyle.Popup;
 
             //Set LinkLabels invisible
@@ -356,14 +355,15 @@ namespace KeepYourFocus
                         textBoxInputName.Enabled = false;
                         buttonEnter.Enabled = false;
                         buttonEnter.Visible = false;
+
+                        startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                        startBTN.Text = "Click to Start";
                         startBTN.Enabled = true;
                         startButton = true;
+                        // Fill richtextboxes
+                        richTextBoxShowRounds.Text = $"Succes {playerName}";
 
                         Debug.WriteLine($"Input name is {playerName}");
-
-                        // Fill richtextboxes
-                        richTextBoxShowLevelName.Text = $"Click Start";
-                        richTextBoxShowRounds.Text = $"Succes {playerName}";
                     }
                     else
                     {
@@ -376,6 +376,9 @@ namespace KeepYourFocus
 
                         buttonEnter.Enabled = false;
                         buttonEnter.Visible = false;
+
+                        startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                        startBTN.Text = "Click to Start";
                         startBTN.Enabled = true;
                         startButton = true;
                     }
@@ -402,8 +405,10 @@ namespace KeepYourFocus
                 Debug.WriteLine($"Input name is {playerName}");
 
                 // Fill richtextboxes
-                richTextBoxShowLevelName.Text = "Click Start";
                 richTextBoxShowRounds.Text = $"Success {playerName}";
+
+                startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                startBTN.Text = "Click to Start";
 
                 buttonEnter.Enabled = false;
                 buttonEnter.Visible = false;
@@ -416,12 +421,13 @@ namespace KeepYourFocus
                     Debug.WriteLine($"Forced input name is {playerName}");
                 }
 
-                // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
-                richTextBoxShowLevelName.Text = "Click Start";
                 textBoxInputName.Visible = false;
                 textBoxInputName.Enabled = false;
                 buttonEnter.Enabled = false;
                 buttonEnter.Visible = false;
+
+                startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                startBTN.Text = "Click to Start";
                 startBTN.Enabled = true;
                 startButton = true;
             }
@@ -743,8 +749,8 @@ namespace KeepYourFocus
                         await Task.Delay(100);
                         ManageHighlight(clickedBox, false);
                         await Task.Delay(250); // Delay to provide feedback before game over
-                        GameOver();
                         TextBoxHighscore();
+                        GameOver();
 
                         isPlayerTurn = false;
 
@@ -1186,6 +1192,7 @@ namespace KeepYourFocus
             richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
             richTextBoxShowRounds.DeselectAll();
             richTextBoxShowRounds.Visible = true;
+
         }
 
 
@@ -1303,7 +1310,9 @@ namespace KeepYourFocus
                     richTextBoxShowLevelName.BackColor = Color.Red;
                     richTextBoxShowRounds.BackColor = Color.Red;
 
-                    richTextBoxShowNumbersOfSequences.Text = $" WRONGWRONG";
+                    richTextBoxShowNumbersOfSequences.Text = $"{new string(' ', 5)}GAME OVER";
+
+                    textBoxShowResults.Visible = true;
                     break;
                 default:
                     richTextBoxShowLevelName.BackColor = Color.OrangeRed;
@@ -1318,7 +1327,9 @@ namespace KeepYourFocus
         // Shows Top 8 Highscores in TextBoxHighscore
         private void TextBoxHighscore()
         {
-            List<(string, int, int, string, string)> topHighscores = SortBestScores();
+            List<(string, int, int, string, string, string)> topHighscores = SortBestScores();
+            List<int> listLineNumber = new List<int>();
+            List<int> listTotalRounds = new List<int>();
 
             Debug.WriteLine($"topHighscores count: {topHighscores.Count}");
 
@@ -1333,36 +1344,49 @@ namespace KeepYourFocus
 
             // Add the header
             textBoxHighscore.Text = "\r\n===HIGHSCORES===\r\n\r\n";
-            // textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10} {5, 7}\r\n", "Place", "Player", "Score", "Level", "lvlName", "Time"));
-            textBoxHighscore.AppendText(string.Format("{0, -9} {1, -9} {2, -9} {3, -9} {4, -10}\r\n", "Place", "Player", "Score", "Level", "lvlName"));
+            // textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10} {5, 7}\r\n", "Place", "Player", "Rounds", "Level", "lvlName", "Time"));
+            textBoxHighscore.AppendText(string.Format("{0, -9} {1, -9} {2, -9} {3, -9} {4, -10}\r\n", "Place", "Player", "Sequences", "Level", "Date"));
 
             // Append the highscores in textbox
             int lineNumber = 1;
             foreach (var score in topHighscores)
             {
                 string playerName = score.Item1;
-                int playerScore = score.Item2;
+                int totalRounds = score.Item2;
                 int levelReached = score.Item3;
                 string levelName = score.Item4;
-                string elapsedGameTime = score.Item5;
+                string isDate = score.Item5;
+                string elapsedGameTime = score.Item6;
 
-                // textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10} {5, 7}\r\n", lineNumber, playerName, playerScore, levelReached, levelName, elapsedGameTime));
-                textBoxHighscore.AppendText(string.Format("{0, -9} {1, -9} {2, -9} {3, -9} {4, -10}\r\n", lineNumber, playerName, playerScore, levelReached, levelName));
+                // textBoxHighscore.AppendText(string.Format("{0, -8} {1, -8} {2, -8} {3, -8} {4, -10} {5, 7}\r\n", lineNumber, playerName, totalRounds, levelReached, levelName, elapsedGameTime));
+                textBoxHighscore.AppendText(string.Format("{0, -9} {1, -9} {2, -9} {3, -9} {4, -10}\r\n", lineNumber, playerName, totalRounds, levelReached, isDate));
                 lineNumber++;
+
+                listLineNumber.Add(lineNumber);
+                listTotalRounds.Add(totalRounds);
             }
         }
 
         // TESTING --> When Game Over, saves score on new line
-        private void SaveScore(int playerScore, int levelReached, string levelName)
+        private void SaveScore(int totalRounds, int levelReached, string levelName)
         {
+            // ("playerName", totalRounds, levelReached, levelName, isDate, elapsedGameTime)
+            List<(string, int, int, string, string, string)> topHighScores = SortBestScores();
+
             // Get playerName from storePlayerName
             string playerName = storePlayerName[0];
 
             // Get elapsed game time
             string elapsedGameTime = GameStopwatch();
 
+            // Get current date
+            DateTime isToday = DateTime.Today;
+            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+
             // Construct the file path using RootPath
             string rootPath = RootPath();
+
+            // Null check
             if (string.IsNullOrEmpty(rootPath))
             {
                 MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1373,19 +1397,48 @@ namespace KeepYourFocus
 
             try
             {
-                // Read the existing content of the file
-                string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty;
+                // Check if the new score qualifies for the top scores list
+                bool qualifiesForTopScores = topHighScores.Count < 10 || topHighScores.Any(score => score.Item2 < totalRounds || (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
 
-                // Write the new score followed by the existing content
-                using (StreamWriter saveScore = new StreamWriter(file, false))
+                if (qualifiesForTopScores)
                 {
-                    saveScore.WriteLine($"{playerName},{playerScore},{levelReached},{levelName.Trim()},{elapsedGameTime}");
-                    saveScore.Write(existingContent);
-                }
+                    // Add the new score
+                    topHighScores.Add((playerName.Trim(), totalRounds, levelReached, levelName.Trim(), isDate, elapsedGameTime));
 
-                // Log the saved data
-                Debug.WriteLine($"Game data saved: {playerName}, {playerScore}, {levelReached}, {levelName.Trim()}, {elapsedGameTime}");
-                ReadScoresFromFile();
+                    // Sort and take the top 10 scores
+                    topHighScores = topHighScores.OrderByDescending(x => x.Item2)
+                                                 .ThenBy(x => TimeSpan.Parse(x.Item6))
+                                                 .Take(10)
+                                                 .ToList();
+
+                    // Determine the rank of the current score
+                    int ranking = topHighScores.FindIndex(score => score.Item1 == playerName.Trim() && score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
+
+                    // Write the updated top scores back to the file
+                    using (StreamWriter saveScore = new StreamWriter(file, false))
+                    {
+                        foreach (var score in topHighScores)
+                        {
+                            saveScore.WriteLine($"{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5},{score.Item6}");
+                        }
+                    }
+
+                    // Refresh and show textBoxHighscores and textBoxShowResults
+                    TextBoxHighscore();
+                    textBoxShowResults.Visible = true;
+                    textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYou ranked place:\r\n#{ranking}";
+
+                    // Log the saved data
+                    Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {isDate}, {elapsedGameTime}");
+                    ReadScoresFromFile();
+                }
+                else // Not in top 10; show only totalRounds
+                {
+                    // Refresh and show textBoxHighscores and textBoxShowResults
+                    TextBoxHighscore();
+                    textBoxShowResults.Visible = true;
+                    textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences";
+                }
             }
             catch (Exception ex)
             {
@@ -1393,8 +1446,10 @@ namespace KeepYourFocus
             }
         }
 
+
+
         // When Game Over, saves score on new line
-        private void OrgSaveScore(int playerScore, int levelReached, string levelName)
+        private void TESTSaveScore(int playerScore, int levelReached, string levelName)
         {
             // Get playerName from storePlayerName
             string playerName = storePlayerName[0];
@@ -1431,10 +1486,10 @@ namespace KeepYourFocus
 
 
         // Returns list with all data in setters.txt
-        private List<(string, int, int, string, string)> ReadScoresFromFile()
+        private List<(string, int, int, string, string, string)> ReadScoresFromFile()
         {
             string file = Path.Combine(RootPath(), "sounds", "setters.txt");
-            List<(string, int, int, string, string)> scoresList = new List<(string, int, int, string, string)>();
+            List<(string, int, int, string, string, string)> scoresList = new List<(string, int, int, string, string, string)>();
 
             try
             {
@@ -1445,14 +1500,15 @@ namespace KeepYourFocus
                     {
                         // Split the line into parts
                         string[] parts = line.Split(',');
-                        if (parts.Length >= 5)
+                        if (parts.Length >= 6)
                         {
                             if (int.TryParse(parts[1], out int playerScore) && int.TryParse(parts[2], out int levelReached))
                             {
                                 string playerName = parts[0].Trim();
                                 string levelName = parts[3].Trim();
-                                string elapsedGameTime = parts[4].Trim();
-                                scoresList.Add((playerName, playerScore, levelReached, levelName, elapsedGameTime));
+                                string isDate = parts[4].Trim();
+                                string elapsedGameTime = parts[5].Trim();
+                                scoresList.Add((playerName, playerScore, levelReached, levelName, isDate, elapsedGameTime));
                             }
                         }
                     }
@@ -1469,19 +1525,19 @@ namespace KeepYourFocus
 
 
         // Returns decreasing sorted list of higscores.txt
-        private List<(string, int, int, string, string)> SortBestScores()
+        private List<(string, int, int, string, string, string)> SortBestScores()
         {
-            List<(string, int, int, string, string)> bestScores = new List<(string, int, int, string, string)>();
+            List<(string, int, int, string, string, string)> bestScores = new List<(string, int, int, string, string, string)>();
 
             try
             {
                 // Get scores from file
-                List<(string, int, int, string, string)> scoresList = ReadScoresFromFile();
+                List<(string, int, int, string, string, string)> scoresList = ReadScoresFromFile();
 
                 // Sort by playerScore and then by gameTime
                 bestScores = scoresList.OrderByDescending(x => x.Item2)
-                                       .ThenBy(x => TimeSpan.Parse(x.Item5))
-                                       .Take(8)
+                                       .ThenBy(x => TimeSpan.Parse(x.Item6))
+                                       .Take(10)
                                        .ToList();
             }
             catch (Exception e)
@@ -1493,12 +1549,15 @@ namespace KeepYourFocus
 
         private void GameOver()
         {
+
+            gameOver = true;
             // Disable textBoxHighscore and all pictureboxes
             textBoxHighscore.Enabled = false;
             pictureBox1.Enabled = false;
             pictureBox2.Enabled = false;
             pictureBox3.Enabled = false;
             pictureBox4.Enabled = false;
+            textBoxShowResults.Visible = true;
 
             // Set flags
             computer = false;
