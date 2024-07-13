@@ -54,6 +54,7 @@ namespace KeepYourFocus
             pictureBox1.Size = new Size(300, 294);
             pictureBox1.TabIndex = 3;
             pictureBox1.TabStop = false;
+            pictureBox1.Visible = false;
             // 
             // pictureBox2
             // 
@@ -64,6 +65,7 @@ namespace KeepYourFocus
             pictureBox2.Size = new Size(300, 294);
             pictureBox2.TabIndex = 4;
             pictureBox2.TabStop = false;
+            pictureBox2.Visible = false;
             // 
             // pictureBox3
             // 
@@ -74,6 +76,7 @@ namespace KeepYourFocus
             pictureBox3.Size = new Size(300, 294);
             pictureBox3.TabIndex = 5;
             pictureBox3.TabStop = false;
+            pictureBox3.Visible = false;
             // 
             // pictureBox4
             // 
@@ -84,18 +87,19 @@ namespace KeepYourFocus
             pictureBox4.Size = new Size(300, 294);
             pictureBox4.TabIndex = 6;
             pictureBox4.TabStop = false;
+            pictureBox4.Visible = false;
             // 
             // startBTN
             // 
             startBTN.BackColor = Color.Lime;
             startBTN.Cursor = Cursors.Hand;
-            startBTN.Enabled = false;
             startBTN.FlatStyle = FlatStyle.Flat;
             startBTN.Font = new Font("Microsoft Sans Serif", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             startBTN.Location = new Point(242, 277);
             startBTN.Name = "startBTN";
             startBTN.Size = new Size(154, 70);
             startBTN.TabIndex = 0;
+            startBTN.Text = "START GAME";
             startBTN.UseVisualStyleBackColor = false;
             startBTN.Click += ButtonStart_Click;
             // 
@@ -105,7 +109,7 @@ namespace KeepYourFocus
             richTextBoxShowNumbersOfSequences.BorderStyle = BorderStyle.None;
             richTextBoxShowNumbersOfSequences.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             richTextBoxShowNumbersOfSequences.ImeMode = ImeMode.NoControl;
-            richTextBoxShowNumbersOfSequences.Location = new Point(243, 353);
+            richTextBoxShowNumbersOfSequences.Location = new Point(242, 353);
             richTextBoxShowNumbersOfSequences.Name = "richTextBoxShowNumbersOfSequences";
             richTextBoxShowNumbersOfSequences.ReadOnly = true;
             richTextBoxShowNumbersOfSequences.ShortcutsEnabled = false;
@@ -130,13 +134,13 @@ namespace KeepYourFocus
             richTextBoxShowRounds.BackColor = Color.LightSkyBlue;
             richTextBoxShowRounds.BorderStyle = BorderStyle.FixedSingle;
             richTextBoxShowRounds.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            richTextBoxShowRounds.Location = new Point(243, 376);
+            richTextBoxShowRounds.Location = new Point(242, 377);
             richTextBoxShowRounds.Multiline = false;
             richTextBoxShowRounds.Name = "richTextBoxShowRounds";
             richTextBoxShowRounds.ReadOnly = true;
             richTextBoxShowRounds.Size = new Size(154, 27);
             richTextBoxShowRounds.TabIndex = 7;
-            richTextBoxShowRounds.Text = "";
+            richTextBoxShowRounds.Text = "GOOD LUCK";
             // 
             // richTextBoxShowLevelName
             // 
@@ -221,17 +225,19 @@ namespace KeepYourFocus
             // 
             textBoxInputName.AcceptsReturn = true;
             textBoxInputName.BackColor = Color.White;
-            textBoxInputName.BorderStyle = BorderStyle.FixedSingle;
+            textBoxInputName.BorderStyle = BorderStyle.None;
             textBoxInputName.Cursor = Cursors.IBeam;
+            textBoxInputName.Enabled = false;
             textBoxInputName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             textBoxInputName.ImeMode = ImeMode.On;
-            textBoxInputName.Location = new Point(242, 302);
+            textBoxInputName.Location = new Point(80, 378);
             textBoxInputName.MaxLength = 9;
             textBoxInputName.Name = "textBoxInputName";
             textBoxInputName.PlaceholderText = "YourNamePlease";
-            textBoxInputName.Size = new Size(154, 26);
+            textBoxInputName.Size = new Size(156, 19);
             textBoxInputName.TabIndex = 14;
             textBoxInputName.TextAlign = HorizontalAlignment.Center;
+            textBoxInputName.Visible = false;
             // 
             // textBoxHighscore
             // 
@@ -280,14 +286,16 @@ namespace KeepYourFocus
             // buttonEnter
             // 
             buttonEnter.BackColor = Color.LightSkyBlue;
+            buttonEnter.Enabled = false;
             buttonEnter.FlatStyle = FlatStyle.Popup;
             buttonEnter.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            buttonEnter.Location = new Point(242, 376);
+            buttonEnter.Location = new Point(242, 410);
             buttonEnter.Name = "buttonEnter";
-            buttonEnter.Size = new Size(155, 27);
+            buttonEnter.Size = new Size(156, 28);
             buttonEnter.TabIndex = 20;
             buttonEnter.Text = "ENTER";
             buttonEnter.UseVisualStyleBackColor = false;
+            buttonEnter.Visible = false;
             buttonEnter.Click += ButtonEnter_Click;
             // 
             // textBoxShowResults
@@ -307,12 +315,13 @@ namespace KeepYourFocus
             // buttonRetry
             // 
             buttonRetry.BackColor = Color.LightSkyBlue;
+            buttonRetry.Cursor = Cursors.Hand;
             buttonRetry.Enabled = false;
             buttonRetry.FlatStyle = FlatStyle.Popup;
             buttonRetry.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            buttonRetry.Location = new Point(242, 376);
+            buttonRetry.Location = new Point(403, 376);
             buttonRetry.Name = "buttonRetry";
-            buttonRetry.Size = new Size(155, 37);
+            buttonRetry.Size = new Size(156, 26);
             buttonRetry.TabIndex = 22;
             buttonRetry.Text = "Click to Restart";
             buttonRetry.UseVisualStyleBackColor = false;

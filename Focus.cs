@@ -51,6 +51,7 @@ namespace KeepYourFocus
         bool isPlayerTurn = false;
         bool isSetCounters = false;
         bool isDisplaySequence = false;
+        bool enterName = false;
 
         private Stopwatch gameStopwatch = new Stopwatch();
 
@@ -127,15 +128,17 @@ namespace KeepYourFocus
             // Play startup sound
             startupSound.Play();
 
+            /*
             // Display textbox for input
             textBoxInputName.Visible = true;
 
             // Ask for Player's name
             PlayerName();
+            */
         }
 
         // Thank You + some info Spam MessageBox
-        private async Task WelcomeMessageBox()
+        private void WelcomeMessageBox()
         {
             MessageBox.Show(
                             "   Thank you for testing the heck out of my very first try-out\r\n" +
@@ -159,12 +162,11 @@ namespace KeepYourFocus
         }
 
 
-        // Initialization to both startButton and retryButton
+        // Initialization Start Game to both startButton and retryButton
         private void StartGame()
         {
             buttonClickSound.Play();
 
-            Debug.WriteLine("gameTime = true");
             gameTime = true;
             startButton = false;
             computer = true;
@@ -176,9 +178,13 @@ namespace KeepYourFocus
             textBoxHighscore.Visible = false;
 
             pictureBox1.Enabled = true;
+            pictureBox1.Visible = true;
             pictureBox2.Enabled = true;
+            pictureBox2.Visible = true;
             pictureBox3.Enabled = true;
+            pictureBox3.Visible = true;
             pictureBox4.Enabled = true;
+            pictureBox4.Visible = true;
 
             startBTN.Visible = false;
             startBTN.Enabled = false;
@@ -193,6 +199,8 @@ namespace KeepYourFocus
 
             // (re)Set counter_sequences
             counter_sequences = 1;
+            counter_rounds = 1;
+            counter_levels = 1;
 
             UpdateSequence();
             UpdateRound();
@@ -212,11 +220,18 @@ namespace KeepYourFocus
         // Click Event for buttonRetry at Game Over
         private async void ButtonRetry_Click(object sender, EventArgs e)
         {
+            await RetryGame();
+        }
+
+        // Perform actions after click buttonRetry
+        private async Task RetryGame()
+        {
             // Any additional logic specific to retry
             await Task.Delay(500);
 
             buttonRetry.Enabled = true;
             buttonRetry.Visible = true;
+            buttonRetry.Cursor = Cursors.Hand;
 
             //Set LinkLabels invisible
             linkLabelGitHub.Visible = true;
@@ -228,89 +243,52 @@ namespace KeepYourFocus
             StartGame();
         }
 
-
-        private async Task ButtonRetry_Click()
-        {
-            await Task.Delay(500);
-
-            InitialDictionaryOfTilesAtStart();
-        }
-
-        // Get playerName via TextBoxInputName
-        private void PlayerName()
-        {
-            // Display textbox for input
-            textBoxInputName.Visible = true;
-            textBoxInputName.Enabled = true;
-
-            // Enter input by buttonEnter and Key.Enter
-            textBoxInputName.Focus();
-            KeyDownEnter();
-        }
-
-        // Initialize KeyDownENTER for input playerName
+        // Perform action after pressing Enter key
         private void KeyDownEnter()
         {
-            string playerName = textBoxInputName.Text.Trim().ToUpper();
-
-            // Event handler for KeyDown within this method
             textBoxInputName.KeyDown += (sender, e) =>
             {
                 if (e.KeyCode == Keys.Enter)
                 {
                     e.Handled = true; // Prevents the Enter key from inserting a newline
                     e.SuppressKeyPress = true; // Stops the "ding" sound
-                    playerName = textBoxInputName.Text.Trim().ToUpper();
+                    string playerName = textBoxInputName.Text.Trim().ToUpper();
 
                     if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
                     {
                         storePlayerName.Clear();
                         storePlayerName.Add(playerName);
 
-                        // After valid input: disable textBoxInputName and buttonEnter, enable startBTN
+                        Debug.WriteLine($"Input name is {playerName}");
                         textBoxInputName.Visible = false;
                         textBoxInputName.Enabled = false;
-                        buttonEnter.Enabled = false;
-                        buttonEnter.Visible = false;
-
-                        startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                        startBTN.Text = "Click to Start";
-                        startBTN.Enabled = true;
-                        startButton = true;
-                        // Fill richtextboxes
-                        richTextBoxShowRounds.Text = $"Good Luck!";
-
-                        Debug.WriteLine($"Input name is {playerName}");
                     }
                     else
                     {
                         playerName = storePlayerName[0];
                         Debug.WriteLine($"Forced input name is {playerName}");
-
-                        // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
-                        textBoxInputName.Visible = false;
-                        textBoxInputName.Enabled = false;
-
-                        buttonEnter.Enabled = false;
-                        buttonEnter.Visible = false;
-
-                        startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                        startBTN.Text = "Click to Start";
-                        startBTN.Enabled = true;
-                        startButton = true;
-
-                        // Fill richtextboxes
-                        richTextBoxShowRounds.Text = $"Good Luck!";
                     }
                 }
             };
         }
 
+        private string WaitForPlayerNameInput()
+        {
+            while (string.IsNullOrWhiteSpace(storePlayerName.FirstOrDefault()))
+            {
+                Application.DoEvents(); // Process all Windows messages currently in the message queue
+            }
+            return storePlayerName[0];
+        }
+
+
         // Initialize OK button for input playerName
         private void ButtonEnter_Click(object sender, EventArgs e)
         {
             string playerName = textBoxInputName.Text.Trim().ToUpper();
-
+            buttonEnter.Cursor = Cursors.Hand;
+            buttonEnter.Enabled = true
+                ;
             if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
             {
                 storePlayerName.Clear();
@@ -417,7 +395,6 @@ namespace KeepYourFocus
 
             return localAppDataPath;
         }
-
 
         // Initialize and return root path including directory \KeepYourFocus\
         static string RootPath()
@@ -601,16 +578,16 @@ namespace KeepYourFocus
 
             // Add the new tile to previousTiles
             previousTiles.Add(newTile);
-            Debug.WriteLine($"Added: {newTile}");
+           //  Debug.WriteLine($"Added: {newTile}");
 
             // Keep only the last three tiles in the list
             if (previousTiles.Count > 3)
             {
                 previousTiles.RemoveAt(0);
-                Debug.WriteLine($"Removed: {previousTiles[0]}");
+                // Debug.WriteLine($"Removed: {previousTiles[0]}");
             }
 
-            Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
+            // Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
 
             return newTile;
         }
@@ -873,22 +850,17 @@ namespace KeepYourFocus
         {
             if (isComputerTurn)
             {
-                // Debug.WriteLine("ManageActions> isComputerTurn = true");
-                // DisplayLabelMessage(true);
-                // ShufflePictureBoxes();
-
-            }
-            if (isPlayerTurn)
-            {
-                Debug.WriteLine("ManageActions> isPlayerTurn = true");
-                // DisplayLabelMessage(false);
-                ShufflePictureBoxes();
+                DisplayLabelMessage(true);
+                ReplaceTileOnBoardAndInSequence();
             }
             if (isDisplaySequence)
             {
-                Debug.WriteLine("ManageActions> isDisplaySequence = true");
                 ShufflePictureBoxes();
-                ReplaceTileOnBoardAndInSequence();
+            }
+            if (isPlayerTurn)
+            {
+                // DisplayLabelMessage(false);
+                ShufflePictureBoxes();
             }
             if (isSetCounters)
             {
@@ -928,17 +900,17 @@ namespace KeepYourFocus
             }
         }
 
+        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
         private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
         {
             string newTile = RandomizerTiles();
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
             List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
-            bool checkReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+            bool checkReplaceOnBoard = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
                                        (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
-
-            bool checkReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+            bool checkReplaceInOrder = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                        (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
                                        (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
 
@@ -1055,9 +1027,8 @@ namespace KeepYourFocus
             }
         }
 
-        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
-
-        private async void DisplayLabelMessage(bool iscomputerTurn)
+        // TEST DisplayLabelMessage
+        private async void DisplayLabelMessage(bool isComputerTurn)
         {
             /*
              * Show labels with text in either computer's or Player's turn
@@ -1075,7 +1046,7 @@ namespace KeepYourFocus
                 List<Label> labels = new List<Label> { LabelMessage1, LabelMessage2, LabelMessage3, LabelMessage4 };
                 List<string> labelText;
 
-                if (iscomputerTurn)
+                if (isComputerTurn)
                 {
                     labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
                 }
@@ -1381,14 +1352,13 @@ namespace KeepYourFocus
             }
         }
 
-
         // When Game Over, saves score on new line in setters. Make copy in rootmap as Highscores.txt
         private void SaveScore(int totalRounds, int levelReached, string levelName)
         {
             List<(string, int, int, string, string, string)> topHighScores = SortBestScores();
-            string playerName = storePlayerName[0]; // Get playerName from storePlayerName
             string elapsedGameTime = GameStopwatch(); // Get elapsed game time
             string rootPath = RootPath(); // Construct the file path using RootPath
+
             // Get current date
             DateTime isToday = DateTime.Today;
             string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
@@ -1405,21 +1375,34 @@ namespace KeepYourFocus
             try
             {
                 // Check if the new score qualifies for the top scores list
-                bool qualifiesForTopScores = topHighScores.Count < 15 || topHighScores.Any(score => score.Item2 < totalRounds || (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
+                bool qualifiesForTopScores = topHighScores.Count < 8 || topHighScores.Any(score => score.Item2 < totalRounds || (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
 
                 if (qualifiesForTopScores)
                 {
+                    // Display textbox for input
+                    textBoxInputName.Visible = true;
+                    textBoxInputName.Enabled = true;
+                    textBoxInputName.Focus();
+                    KeyDownEnter();
+
+                    // Wait for the player to input their name
+                    string playerName = WaitForPlayerNameInput();
+
                     // Add the new score
-                    topHighScores.Add((playerName.Trim(), totalRounds, levelReached, levelName.Trim(), isDate, elapsedGameTime));
+                    topHighScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), isDate, elapsedGameTime));
 
                     // Sort and take the top scores
                     topHighScores = topHighScores.OrderByDescending(x => x.Item2)
                                                  .ThenBy(x => TimeSpan.Parse(x.Item6))
-                                                 .Take(15)
+                                                 .Take(8)
                                                  .ToList();
 
                     // Determine the rank of the current score
-                    int playerRank = topHighScores.FindIndex(score => score.Item1 == playerName.Trim() && score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
+                    int playerRank = topHighScores.FindIndex(score => score.Item1 == playerName && score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
+
+                    TextBoxHighscore();
+                    textBoxShowResults.Visible = true;
+                    textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
 
                     // Write the updated top scores back to the file
                     using (StreamWriter saveScore = new StreamWriter(file, false))
@@ -1430,17 +1413,17 @@ namespace KeepYourFocus
                         }
                     }
 
-                    // Copy the file to another directory
+                    // Copy file to another directory
                     string copyToDir = Path.Combine(rootPath);
                     Directory.CreateDirectory(copyToDir); // Ensure the directory exists
                     string copyFile = Path.Combine(copyToDir, "higscores.txt");
+                    // Copy file to BackUp
+                    string copyToDir2 = Path.Combine(rootPath, "BackUp");
+                    Directory.CreateDirectory(copyToDir2); // Ensure the directory exists
+                    string copyFile2 = Path.Combine(copyToDir2, "higscores.txt");
 
                     File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
-
-                    // Refresh and show textBoxHighscores and textBoxShowResults
-                    TextBoxHighscore();
-                    textBoxShowResults.Visible = true;
-                    textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
+                    File.Copy(file, copyFile2, true); // Copy the file2 to BackUp and overwrite if exists
 
                     // Log the saved data
                     Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {isDate}, {elapsedGameTime}");
@@ -1459,6 +1442,7 @@ namespace KeepYourFocus
                 MessageBox.Show($"An error occurred while saving game data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         // Returns list with all data in setters.txt
         private List<(string, int, int, string, string, string)> ReadScoresFromFile()
@@ -1518,11 +1502,12 @@ namespace KeepYourFocus
             catch (Exception e)
             {
                 Debug.WriteLine($"An error occurred while getting top scores: {e.Message}");
+                MessageBox.Show($"An error occurred while getting top scores: {e.Message}");
             }
             return bestScores;
         }
 
-        private async void GameOver()
+        private void GameOver()
         {
             // Set flags
             computer = false;
@@ -1531,9 +1516,13 @@ namespace KeepYourFocus
 
             textBoxHighscore.Enabled = false;
             pictureBox1.Enabled = false;
+            pictureBox1.Visible = false;
             pictureBox2.Enabled = false;
+            pictureBox2.Visible = false;
             pictureBox3.Enabled = false;
+            pictureBox3.Visible = false;
             pictureBox4.Enabled = false;
+            pictureBox4.Visible = false;
             textBoxShowResults.Visible = true;
 
             buttonRetry.Enabled = true;
@@ -1558,14 +1547,6 @@ namespace KeepYourFocus
             counter_levels = 999;
 
             UpdateLevelName();
-
-            // Await the retry button click logic
-            await ButtonRetry_Click();
-
-            InitialDictionaryOfTilesAtStart();
-
-            counter_rounds = 1;
-            counter_levels = 1;
         }
     }
 }
