@@ -1,7 +1,3 @@
-#region Imports
-using KeepYourFocus.GameRelated;
-using Microsoft.VisualBasic.Devices;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,18 +11,17 @@ using System.Linq.Expressions;
 using System.Media;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
-#endregion
+
 namespace KeepYourFocus
 {
     public partial class PlayerField : Form
     {
-        #region ClassProperties
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
         private List<string> previousTiles = new List<string>();
+        private List<string> storePlayerName = new List<string> { "PEANUTSCH" };
 
-        #region GameSound_Properties
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
         private readonly SoundPlayer orangeSound;
@@ -43,11 +38,9 @@ namespace KeepYourFocus
         private readonly SoundPlayer wrongSound;
         private readonly SoundPlayer correctSound;
         private readonly SoundPlayer startupSound;
-        #endregion
 
         private readonly Random rnd = new Random();
 
-        #region GameVariables_Properties
         private bool computer = false;
         private bool startButton = true;
         private bool nextRound = false;
@@ -58,42 +51,40 @@ namespace KeepYourFocus
         bool isPlayerTurn = false;
         bool isSetCounters = false;
         bool isDisplaySequence = false;
-        #endregion
+        bool enterName = false;
 
         private Stopwatch gameStopwatch = new Stopwatch();
 
         private int counter_sequences = 1;
         private int counter_levels = 1;
-        private int counter_rounds = 0;
-        #endregion
+        private int counter_rounds = 1;
 
 
         public PlayerField()
         {
-            #region Initialize Components
             InitializeComponent();
 
             // Load soundfiles. For now 1 beep sound for all colors
-            string soundPathBeepALL = Path.Combine(InitializeRootPath(), @"sounds\beep.wav");
+            string soundPathBeepALL = Path.Combine(RootPath(), @"sounds\beep.wav");
 
             /* Pre-made soundPath for all colors *\
-            string soundPathBeepRed = Path.Combine(InitializeRootPath(), @"sounds\redSound.wav");
-            string soundPathBeepBlue = Path.Combine(InitializeRootPath(), @"sounds\blueSound.wav");
-            string soundPathBeepOrange = Path.Combine(InitializeRootPath(), @"sounds\orangeSound.wav");
-            string soundPathBeepGreen = Path.Combine(InitializeRootPath(), @"sounds\greenSound.wav");
-            string soundPathBeepCaribBlue = Path.Combine(InitializeRootPath(), @"sounds\caribBlueSound.wav");
-            string soundPathBeepGrey = Path.Combine(InitializeRootPath(), @"sounds\greySound.wav");
-            string soundPathBeepIndigo = Path.Combine(InitializeRootPath(), @"sounds\indigoSound.wav");
-            string soundPathBeepMaroon = Path.Combine(InitializeRootPath(), @"sounds\maroonSound.wav");
-            string soundPathBeepOlive = Path.Combine(InitializeRootPath(), @"sounds\oliveSound.wav");
-            string soundPathBeepPink = Path.Combine(InitializeRootPath(), @"sounds\pinkSound.wav");
+            string soundPathBeepRed = Path.Combine(RootPath(), @"sounds\redSound.wav");
+            string soundPathBeepBlue = Path.Combine(RootPath(), @"sounds\blueSound.wav");
+            string soundPathBeepOrange = Path.Combine(RootPath(), @"sounds\orangeSound.wav");
+            string soundPathBeepGreen = Path.Combine(RootPath(), @"sounds\greenSound.wav");
+            string soundPathBeepCaribBlue = Path.Combine(RootPath(), @"sounds\caribBlueSound.wav");
+            string soundPathBeepGrey = Path.Combine(RootPath(), @"sounds\greySound.wav");
+            string soundPathBeepIndigo = Path.Combine(RootPath(), @"sounds\indigoSound.wav");
+            string soundPathBeepMaroon = Path.Combine(RootPath(), @"sounds\maroonSound.wav");
+            string soundPathBeepOlive = Path.Combine(RootPath(), @"sounds\oliveSound.wav");
+            string soundPathBeepPink = Path.Combine(RootPath(), @"sounds\pinkSound.wav");
             */
 
-            string soundPathTransition = Path.Combine(InitializeRootPath(), @"sounds\transistion.wav");
-            string soundPathButtonClick = Path.Combine(InitializeRootPath(), @"sounds\buttonclick.wav");
-            string soundPathWrong = Path.Combine(InitializeRootPath(), @"sounds\wrong.wav");
-            string soundPathCorrect = Path.Combine(InitializeRootPath(), @"sounds\correct.wav");
-            string soundPathStartupSound = Path.Combine(InitializeRootPath(), @"sounds\startupSound.wav");
+            string soundPathTransition = Path.Combine(RootPath(), @"sounds\transistion.wav");
+            string soundPathButtonClick = Path.Combine(RootPath(), @"sounds\buttonclick.wav");
+            string soundPathWrong = Path.Combine(RootPath(), @"sounds\wrong.wav");
+            string soundPathCorrect = Path.Combine(RootPath(), @"sounds\correct.wav");
+            string soundPathStartupSound = Path.Combine(RootPath(), @"sounds\startupSound.wav");
 
             // Initiaize SoundPlayers
             redSound = new SoundPlayer(soundPathBeepALL);        // redSound = new SoundPlayer(soundPathBeepRed); 
@@ -112,16 +103,14 @@ namespace KeepYourFocus
             wrongSound = new SoundPlayer(soundPathWrong);
             correctSound = new SoundPlayer(soundPathCorrect);
             startupSound = new SoundPlayer(soundPathStartupSound);
-            #endregion
 
-            #region Setup Startup Game
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
 
             ////>>>> Start Program <<<<////
 
             // Welcome MessageBox
-            InitializeWelcomeMessageBox();
+            WelcomeMessageBox();
 
             // LinkLabels GitHub and Email
             InitializeLinkLabels();
@@ -130,7 +119,7 @@ namespace KeepYourFocus
             AlignTextButtonBoxesCenter();
 
             // Display highscore at start
-            TextBoxHighscores();
+            TextBoxHighscore();
             //SecondTextBoxTopFive();
 
             // Use initial dictionary for start setup
@@ -138,12 +127,18 @@ namespace KeepYourFocus
 
             // Play startup sound
             startupSound.Play();
-            #endregion
+
+            /*
+            // Display textbox for input
+            textBoxInputName.Visible = true;
+
+            // Ask for Player's name
+            PlayerName();
+            */
         }
 
-        #region Initialisations and Setups
         // Thank You + some info Spam MessageBox
-        private async Task InitializeWelcomeMessageBox()
+        private void WelcomeMessageBox()
         {
             MessageBox.Show(
                             "   Thank you for testing the heck out of my very first try-out\r\n" +
@@ -166,26 +161,30 @@ namespace KeepYourFocus
                             );
         }
 
-        // Initialization to both startButton and retryButton
-        private void InitializeStartGame()
+
+        // Initialization Start Game to both startButton and retryButton
+        private void StartGame()
         {
             buttonClickSound.Play();
 
-            Debug.WriteLine("gameTime = true");
             gameTime = true;
             startButton = false;
             computer = true;
 
             // Start Stopwatch
-            InitializeGameStopwatch();
+            GameStopwatch();
 
             //Set Flags
             textBoxHighscore.Visible = false;
 
             pictureBox1.Enabled = true;
+            pictureBox1.Visible = true;
             pictureBox2.Enabled = true;
+            pictureBox2.Visible = true;
             pictureBox3.Enabled = true;
+            pictureBox3.Visible = true;
             pictureBox4.Enabled = true;
+            pictureBox4.Visible = true;
 
             startBTN.Visible = false;
             startBTN.Enabled = false;
@@ -200,6 +199,8 @@ namespace KeepYourFocus
 
             // (re)Set counter_sequences
             counter_sequences = 1;
+            counter_rounds = 1;
+            counter_levels = 1;
 
             UpdateSequence();
             UpdateRound();
@@ -207,129 +208,30 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        private void ManageHighlight(PictureBox pictureBox, bool highlight)
-        {
-            if (pictureBox.InvokeRequired)
-            {
-                pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
-            }
-            else
-            {
-                if (highlight) // Higlight on
-                {
-                    pictureBox.BorderStyle = BorderStyle.None;
-                    pictureBox.Padding = new Padding(5);
-                    pictureBox.BackColor = Color.White;
-                }
-                else // Highlight off
-                {
-                    pictureBox.Padding = new Padding(0);
-                    pictureBox.BackColor = Color.Transparent;
-                }
-            }
-        }
-
-        private void PlaySound(string tile)
-        {
-            switch (tile)
-            {
-                case "Red":
-                    redSound.Play();
-                    break;
-                case "Blue":
-                    blueSound.Play();
-                    break;
-                case "Orange":
-                    orangeSound.Play();
-                    break;
-                case "Green":
-                    greenSound.Play();
-                    break;
-                case "CaribBlue":
-                    caribBlueSound.Play();
-                    break;
-                case "Grey":
-                    greySound.Play();
-                    break;
-                case "Indigo":
-                    indigoSound.Play();
-                    break;
-                case "Maroon":
-                    maroonSound.Play();
-                    break;
-                case "Olive":
-                    oliveSound.Play();
-                    break;
-                case "Pink":
-                    pinkSound.Play();
-                    break;
-            }
-        }
-
-        private void AlignTextButtonBoxesCenter()
-        {
-            // Align startBTN
-            startBTN.Visible = false;
-            startBTN.TextAlign = ContentAlignment.MiddleCenter;
-            startBTN.Visible = true;
-
-            // Align richTextBoxShowLevelNumber
-            richTextBoxShowLevelNumber.Visible = false;
-            richTextBoxShowLevelNumber.SelectAll();
-            richTextBoxShowLevelNumber.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowLevelNumber.DeselectAll();
-            richTextBoxShowLevelNumber.Visible = true;
-
-            // Align richTextBoxShowLevelName
-            richTextBoxShowLevelName.Visible = false;
-            richTextBoxShowLevelName.SelectAll();
-            richTextBoxShowLevelName.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowLevelName.DeselectAll();
-            richTextBoxShowLevelName.Visible = true;
-
-            // Align richTextBoxShowNumbersOfSequences
-            richTextBoxShowNumbersOfSequences.Visible = false;
-            richTextBoxShowNumbersOfSequences.SelectAll();
-            richTextBoxShowNumbersOfSequences.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowNumbersOfSequences.DeselectAll();
-            richTextBoxShowNumbersOfSequences.Visible = true;
-
-            // Align richTextBoxTurn
-            richTextBoxTurn.Visible = false;
-            richTextBoxTurn.SelectAll();
-            richTextBoxTurn.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxTurn.DeselectAll();
-            richTextBoxTurn.Visible = true;
-
-            // Align richTextBoxShowRounds
-            richTextBoxShowRounds.Visible = false;
-            richTextBoxShowRounds.SelectAll();
-            richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowRounds.DeselectAll();
-            richTextBoxShowRounds.Visible = true;
-
-            // Align textBoxInputName
-            textBoxInputName.Visible = false;
-            textBoxInputName.Enabled = false;
-        }
-
         // Click Event for Start Button at start
-        private void InitializeButtonStart_Click(object sender, EventArgs e)
+        private void ButtonStart_Click(object sender, EventArgs e)
         {
             if (!startButton)
                 return;
 
-            InitializeStartGame();
+            StartGame();
         }
 
         // Click Event for buttonRetry at Game Over
-        private async void InitializeButtonRetry_Click(object sender, EventArgs e)
+        private async void ButtonRetry_Click(object sender, EventArgs e)
+        {
+            await RetryGame();
+        }
+
+        // Perform actions after click buttonRetry
+        private async Task RetryGame()
         {
             // Any additional logic specific to retry
             await Task.Delay(500);
 
             buttonRetry.Enabled = true;
             buttonRetry.Visible = true;
+            buttonRetry.Cursor = Cursors.Hand;
 
             //Set LinkLabels invisible
             linkLabelGitHub.Visible = true;
@@ -338,18 +240,11 @@ namespace KeepYourFocus
             linkLabelEmail.Enabled = true;
 
             InitialDictionaryOfTilesAtStart();
-            InitializeStartGame();
+            StartGame();
         }
 
-        // Initialize Enter button for input playerName
-        private void InitializeButtonEnter_Click(object sender, EventArgs e)
-        {
-            string playerName = ProcessInputName();
-            playerNameTcs.SetResult(playerName);
-        }
-
-        // Initialize KeyDownENTER for input playerName
-        private void InitializeKeyDownEnter()
+        // Perform action after pressing Enter key
+        private void KeyDownEnter()
         {
             textBoxInputName.KeyDown += (sender, e) =>
             {
@@ -357,14 +252,89 @@ namespace KeepYourFocus
                 {
                     e.Handled = true; // Prevents the Enter key from inserting a newline
                     e.SuppressKeyPress = true; // Stops the "ding" sound
-                    string playerName = ProcessInputName();
-                    playerNameTcs.SetResult(playerName);
+                    string playerName = textBoxInputName.Text.Trim().ToUpper();
+
+                    if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
+                    {
+                        storePlayerName.Clear();
+                        storePlayerName.Add(playerName);
+
+                        Debug.WriteLine($"Input name is {playerName}");
+                        textBoxInputName.Visible = false;
+                        textBoxInputName.Enabled = false;
+                    }
+                    else
+                    {
+                        playerName = storePlayerName[0];
+                        Debug.WriteLine($"Forced input name is {playerName}");
+                    }
                 }
             };
         }
 
+        private string WaitForPlayerNameInput()
+        {
+            while (string.IsNullOrWhiteSpace(storePlayerName.FirstOrDefault()))
+            {
+                Application.DoEvents(); // Process all Windows messages currently in the message queue
+            }
+            return storePlayerName[0];
+        }
+
+
+        // Initialize OK button for input playerName
+        private void ButtonEnter_Click(object sender, EventArgs e)
+        {
+            string playerName = textBoxInputName.Text.Trim().ToUpper();
+            buttonEnter.Cursor = Cursors.Hand;
+            buttonEnter.Enabled = true
+                ;
+            if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
+            {
+                storePlayerName.Clear();
+                storePlayerName.Add(playerName);
+
+                // After valid input: disable textBoxInputName, enable startBTN
+                textBoxInputName.Visible = false;
+                textBoxInputName.Enabled = false;
+                startBTN.Enabled = true;
+                startButton = true;
+
+                Debug.WriteLine($"Input name is {playerName}");
+
+                // Fill richtextboxes
+                richTextBoxShowRounds.Text = $"Good Luck!";
+
+                startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                startBTN.Text = "Click to Start";
+
+                buttonEnter.Enabled = false;
+                buttonEnter.Visible = false;
+            }
+            else
+            {
+                if (storePlayerName.Count > 0)
+                {
+                    playerName = storePlayerName[0];
+                    Debug.WriteLine($"Forced input name is {playerName}");
+                }
+
+                textBoxInputName.Visible = false;
+                textBoxInputName.Enabled = false;
+                buttonEnter.Enabled = false;
+                buttonEnter.Visible = false;
+
+                startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                startBTN.Text = "Click to Start";
+                startBTN.Enabled = true;
+                startButton = true;
+
+                richTextBoxShowRounds.Text = $"Good Luck!";
+            }
+        }
+
         // Stopwatch for recording gametime
-        private string InitializeGameStopwatch()
+        private string GameStopwatch()
         {
             if (gameTime)
             {
@@ -394,15 +364,46 @@ namespace KeepYourFocus
             }
         }
 
+        // TESTING --> Initialize and return root path including directory \KeepYourFocus\
+        static string TESTRootPath()
+        {
+            // Use the local application data path and the app name to construct the root path
+            string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
+
+            if (string.IsNullOrEmpty(localAppDataPath))
+            {
+                Debug.WriteLine("Error: Application path is not valid.");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the directory exists, create if it doesn't
+            try
+            {
+                Directory.CreateDirectory(localAppDataPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error: Unable to create application directory. {ex.Message}");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the path ends with a directory separator
+            if (!localAppDataPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                localAppDataPath += Path.DirectorySeparatorChar;
+            }
+
+            return localAppDataPath;
+        }
+
         // Initialize and return root path including directory \KeepYourFocus\
-        static string InitializeRootPath()
+        static string RootPath()
         {
             string directoryPath = Environment.CurrentDirectory;
 
             if (string.IsNullOrEmpty(directoryPath))
             {
-                Debug.WriteLine("Error: Unable to determine root path.");
-                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.WriteLine("Error: Application executable path is not valid.");
                 return string.Empty; // Return an empty string
             }
 
@@ -426,17 +427,16 @@ namespace KeepYourFocus
             }
         }
 
-        // Initialize Labels with links to github and email @duck.com
         private void InitializeLinkLabels()
-            {
-                // Setup LinkLabels text
-                linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
-                linkLabelEmail.Text = "peanutsch@duck.com";
+        {
+            // Setup LinkLabels text
+            linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
+            linkLabelEmail.Text = "peanutsch@duck.com";
 
-                // Add link data
-                linkLabelGitHub.Links.Add(0, linkLabelGitHub.Text.Length, "https://github.com/Peanutsch/KeepYourFocus.git");
-                linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
-            }
+            // Add link data
+            linkLabelGitHub.Links.Add(0, linkLabelGitHub.Text.Length, "https://github.com/Peanutsch/KeepYourFocus.git");
+            linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
+        }
 
         // Click Event for linklabel GitHub
         private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -472,25 +472,25 @@ namespace KeepYourFocus
                 return;
             }
 
-            InitializePictureBox(pictureBox1, "Red", Path.Combine(InitializeRootPath(), @"png\red_tile512.png"));
-            InitializePictureBox(pictureBox2, "Blue", Path.Combine(InitializeRootPath(), @"png\blue_tile512.png"));
-            InitializePictureBox(pictureBox3, "Orange", Path.Combine(InitializeRootPath(), @"png\orange_tile512.png"));
-            InitializePictureBox(pictureBox4, "Green", Path.Combine(InitializeRootPath(), @"png\green_tile512.png"));
+            InitializePictureBox(pictureBox1, "Red", Path.Combine(RootPath(), @"png\red_tile512.png"));
+            InitializePictureBox(pictureBox2, "Blue", Path.Combine(RootPath(), @"png\blue_tile512.png"));
+            InitializePictureBox(pictureBox3, "Orange", Path.Combine(RootPath(), @"png\orange_tile512.png"));
+            InitializePictureBox(pictureBox4, "Green", Path.Combine(RootPath(), @"png\green_tile512.png"));
         }
 
         // Returns a dictionary of all possible tiles
         static Dictionary<string, string> DictOfAllTiles()
         {
-            string redTile = Path.Combine(InitializeRootPath(), "png", "red_tile512.png");
-            string blueTile = Path.Combine(InitializeRootPath(), "png", "blue_tile512.png");
-            string orangeTile = Path.Combine(InitializeRootPath(), "png", "orange_tile512.png");
-            string greenTile = Path.Combine(InitializeRootPath(), "png", "green_tile512.png");
-            string caribBlueTile = Path.Combine(InitializeRootPath(), "png", "caribBlue_tile512.png");
-            string greyTile = Path.Combine(InitializeRootPath(), "png", "grey_tile512.png");
-            string indigoTile = Path.Combine(InitializeRootPath(), "png", "indigo_tile512.png");
-            string maroonTile = Path.Combine(InitializeRootPath(), "png", "maroon_tile512.png");
-            string oliveTile = Path.Combine(InitializeRootPath(), "png", "olive_tile512.png");
-            string pinkTile = Path.Combine(InitializeRootPath(), "png", "pink_tile512.png");
+            string redTile = Path.Combine(RootPath(), "png", "red_tile512.png");
+            string blueTile = Path.Combine(RootPath(), "png", "blue_tile512.png");
+            string orangeTile = Path.Combine(RootPath(), "png", "orange_tile512.png");
+            string greenTile = Path.Combine(RootPath(), "png", "green_tile512.png");
+            string caribBlueTile = Path.Combine(RootPath(), "png", "caribBlue_tile512.png");
+            string greyTile = Path.Combine(RootPath(), "png", "grey_tile512.png");
+            string indigoTile = Path.Combine(RootPath(), "png", "indigo_tile512.png");
+            string maroonTile = Path.Combine(RootPath(), "png", "maroon_tile512.png");
+            string oliveTile = Path.Combine(RootPath(), "png", "olive_tile512.png");
+            string pinkTile = Path.Combine(RootPath(), "png", "pink_tile512.png");
 
             Dictionary<string, string> dictOfAllTiles = new Dictionary<string, string>()
                                                                 {
@@ -578,16 +578,16 @@ namespace KeepYourFocus
 
             // Add the new tile to previousTiles
             previousTiles.Add(newTile);
-            Debug.WriteLine($"Added: {newTile}");
+           //  Debug.WriteLine($"Added: {newTile}");
 
             // Keep only the last three tiles in the list
             if (previousTiles.Count > 3)
             {
                 previousTiles.RemoveAt(0);
-                Debug.WriteLine($"Removed: {previousTiles[0]}");
+                // Debug.WriteLine($"Removed: {previousTiles[0]}");
             }
 
-            Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
+            // Debug.WriteLine($"Updated previousTiles: " + string.Join(", ", previousTiles));
 
             return newTile;
         }
@@ -632,10 +632,7 @@ namespace KeepYourFocus
                     return Point.Empty; // Default position if index is out of range
             }
         }
-        #endregion
 
-        #region Difficulties
-        
         private void RefreshAndRepositionPictureBoxes()
         {
             // Get the shuffled PictureBoxes
@@ -648,6 +645,232 @@ namespace KeepYourFocus
                 shuffledPictureBoxes[i].Visible = true;
             }
         }
+
+        private void ComputersTurn()
+        {
+            textBoxShowResults.Visible = false;
+
+            isComputerTurn = true;
+
+            computer = true;
+            correctOrder.Add(RandomizerTiles());
+            UpdateTurn(); // case computer's Turn
+            DisplaySequence();
+
+            isComputerTurn = false;
+        }
+
+        private async void DisplaySequence()
+        {
+            Dictionary<string, PictureBox> updatedPictureBoxDictionary;
+            List<string> updatedCorrectOrder;
+            bool replacementOccurred;
+
+            // Verify if squares are replaced
+            (updatedPictureBoxDictionary, updatedCorrectOrder, replacementOccurred) = ReplaceTileOnBoardAndInSequence();
+
+            if (replacementOccurred)
+            {
+                // Use updated dictionaries and orders
+                pictureBoxDictionary = updatedPictureBoxDictionary;
+                correctOrder = updatedCorrectOrder;
+            }
+
+            isDisplaySequence = true;
+            computer = true;
+
+            Debug.WriteLine($"\nDisplay Sequence: {counter_sequences}");
+            Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
+            // Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
+
+            await Task.Delay(500);
+
+            foreach (var tile in correctOrder)
+            {
+                var box = pictureBoxDictionary[tile];
+                if (box == null)
+                    continue;
+
+                await Task.Delay(500); // Delay 500 ms before start highlights and beepSound
+
+                PlaySound(tile);
+
+                ManageHighlight(box, true);
+                await Task.Delay(150);
+                ManageHighlight(box, false);
+                await Task.Delay(50);
+            }
+            // Verify difficulty
+            ManageActions();
+
+
+            await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
+
+            computer = false;
+            isDisplaySequence = false;
+
+            UpdateTurn(); // case Player's Turn
+        }
+
+        private async void PlayersTurn(object? sender, EventArgs e)
+        {
+            isPlayerTurn = true;
+
+            // Block Player's clicks in computer's turn AND before StartButton is clicked
+            if (startButton || computer)
+                return;
+
+
+            if (sender is PictureBox clickedBox)
+            {
+                string tile = clickedBox.Tag?.ToString() ?? "";
+
+                PlaySound(tile);
+                ManageHighlight(clickedBox, true);
+
+                playerOrder.Add(tile);
+
+                Debug.WriteLine($"Player: [{tile}]");
+
+                // Verify difficulty
+                //SetTurnActions();
+                ManageActions();
+
+                // Verify each input with correctOrder
+                for (int input = 0; input < playerOrder.Count; input++)
+                {
+                    if (playerOrder[input] != correctOrder[input])
+                    {
+                        await Task.Delay(100);
+                        ManageHighlight(clickedBox, false);
+                        await Task.Delay(250); // Delay to provide feedback before game over
+                        TextBoxHighscore();
+                        GameOver();
+
+                        isPlayerTurn = false;
+
+                        return;
+                    }
+                }
+                if (playerOrder.Count == correctOrder.Count)
+                {
+                    await Task.Delay(100);
+                    ManageHighlight(clickedBox, false);
+                    await Task.Delay(50);
+
+                    ManageCountersAndLevels();
+
+                    isPlayerTurn = false;
+                }
+                else
+                {
+                    await Task.Delay(100);
+                    ManageHighlight(clickedBox, false);
+                    await Task.Delay(50);
+
+                    isPlayerTurn = false;
+                }
+            }
+            isPlayerTurn = false;
+        }
+
+        private async void ManageCountersAndLevels()
+        {
+            if (playerOrder.Count < correctOrder.Count)
+                return;
+
+            // Block player's clicks
+            computer = true;
+
+            nextRound = true;
+
+            // Delay 250 ms between beepSound and correctSound
+            await Task.Delay(250);
+            correctSound.Play();
+
+            UpdateCounters();
+            UpdateSequence();
+            UpdateRound();
+            UpdateLevelName();
+            UpdateTurn();
+
+            await Task.Delay(2750);
+
+            playerOrder.Clear();
+            nextRound = false;
+            ComputersTurn();
+        }
+
+        // TESTING WITH 6 SEQUENCES PER LEVEL
+        private void UpdateCounters()
+        {
+            isSetCounters = true;
+
+            switch (counter_sequences)
+            {
+                case (6) when counter_levels < 8:
+                    levelUp = true;
+                    correctOrder.Clear();
+                    playerOrder.Clear();
+                    counter_sequences = 1; // Reset sequence to 1
+                    counter_levels++;
+                    counter_rounds++;
+
+                    ManageActions();
+                    UpdateTurn();
+
+                    levelUp = false;
+                    break;
+                default:
+                    if (counter_levels >= 8)
+                    {
+                        levelUp = true;
+
+                        counter_sequences++;
+                        counter_rounds++;
+                        UpdateTurn();
+
+                        isSetCounters = false;
+                    }
+                    else
+                    {
+                        counter_sequences++;
+                        counter_rounds++;
+                        UpdateTurn();
+
+                        isSetCounters = false;
+                    }
+                    break;
+            }
+            isSetCounters = false;
+        }
+
+        // Verify turn actions
+        private void ManageActions()
+        {
+            if (isComputerTurn)
+            {
+                DisplayLabelMessage(true);
+                ReplaceTileOnBoardAndInSequence();
+            }
+            if (isDisplaySequence)
+            {
+                ShufflePictureBoxes();
+            }
+            if (isPlayerTurn)
+            {
+                // DisplayLabelMessage(false);
+                ShufflePictureBoxes();
+            }
+            if (isSetCounters)
+            {
+                ReplaceAllTiles();
+            }
+        }
+
+
+        ////>>>> DIFFICULTIES <<<<////
+
 
         // Shuffle currect tile setup before player's turn and/or after player's click
         private async Task ShufflePictureBoxes()
@@ -677,17 +900,17 @@ namespace KeepYourFocus
             }
         }
 
+        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
         private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
         {
             string newTile = RandomizerTiles();
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
             List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
-            bool checkReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+            bool checkReplaceOnBoard = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                        (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
                                        (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
-
-            bool checkReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+            bool checkReplaceInOrder = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                        (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
                                        (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
 
@@ -804,8 +1027,8 @@ namespace KeepYourFocus
             }
         }
 
-        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
-        private async void DisplayLabelMessage(bool iscomputerTurn)
+        // TEST DisplayLabelMessage
+        private async void DisplayLabelMessage(bool isComputerTurn)
         {
             /*
              * Show labels with text in either computer's or Player's turn
@@ -823,7 +1046,7 @@ namespace KeepYourFocus
                 List<Label> labels = new List<Label> { LabelMessage1, LabelMessage2, LabelMessage3, LabelMessage4 };
                 List<string> labelText;
 
-                if (iscomputerTurn)
+                if (isComputerTurn)
                 {
                     labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
                 }
@@ -855,234 +1078,110 @@ namespace KeepYourFocus
                 randomizedLabelClickHere.Visible = false;
             }
         }
-        #endregion
 
-        #region Game Elements
-        private void ComputersTurn()
+        ////>>>> INITIALIZE HIGHLIGHTS, SOUND, TEXTBOXES AND GAME OVER <<<<////
+
+        private void ManageHighlight(PictureBox pictureBox, bool highlight)
         {
-            textBoxShowResults.Visible = false;
-
-            isComputerTurn = true;
-
-            computer = true;
-            correctOrder.Add(RandomizerTiles());
-            UpdateTurn(); // case computer's Turn
-            DisplaySequence();
-
-            isComputerTurn = false;
-        }
-
-        private async void DisplaySequence()
-        {
-            Dictionary<string, PictureBox> updatedPictureBoxDictionary;
-            List<string> updatedCorrectOrder;
-            bool replacementOccurred;
-
-            // Verify if squares are replaced
-            (updatedPictureBoxDictionary, updatedCorrectOrder, replacementOccurred) = ReplaceTileOnBoardAndInSequence();
-
-            if (replacementOccurred)
+            if (pictureBox.InvokeRequired)
             {
-                // Use updated dictionaries and orders
-                pictureBoxDictionary = updatedPictureBoxDictionary;
-                correctOrder = updatedCorrectOrder;
+                pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
             }
-
-            isDisplaySequence = true;
-            computer = true;
-
-            Debug.WriteLine($"\nDisplay Sequence: {counter_sequences}");
-            Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
-            // Debug.WriteLine("pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
-
-            await Task.Delay(500);
-
-            foreach (var tile in correctOrder)
+            else
             {
-                var box = pictureBoxDictionary[tile];
-                if (box == null)
-                    continue;
-
-                await Task.Delay(500); // Delay 500 ms before start highlights and beepSound
-
-                PlaySound(tile);
-
-                ManageHighlight(box, true);
-                await Task.Delay(150);
-                ManageHighlight(box, false);
-                await Task.Delay(50);
-            }
-            // Verify difficulty
-            ManageActions();
-
-
-            await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
-
-            computer = false;
-            isDisplaySequence = false;
-
-            UpdateTurn(); // case Player's Turn
-        }
-
-        private async void PlayersTurn(object? sender, EventArgs e)
-        {
-            isPlayerTurn = true;
-
-            // Block Player's clicks in computer's turn AND before StartButton is clicked
-            if (startButton || computer)
-                return;
-
-
-            if (sender is PictureBox clickedBox)
-            {
-                string tile = clickedBox.Tag?.ToString() ?? "";
-
-                PlaySound(tile);
-                ManageHighlight(clickedBox, true);
-
-                playerOrder.Add(tile);
-
-                Debug.WriteLine($"Player: [{tile}]");
-
-                // Verify difficulty
-                //SetTurnActions();
-                ManageActions();
-
-                // Verify each input with correctOrder
-                for (int input = 0; input < playerOrder.Count; input++)
+                if (highlight) // Higlight on
                 {
-                    if (playerOrder[input] != correctOrder[input])
-                    {
-                        await Task.Delay(100);
-                        ManageHighlight(clickedBox, false);
-                        await Task.Delay(250); // Delay to provide feedback before game over
-                        TextBoxHighscores();
-                        GameOver();
-
-                        isPlayerTurn = false;
-
-                        return;
-                    }
+                    pictureBox.BorderStyle = BorderStyle.None;
+                    pictureBox.Padding = new Padding(5);
+                    pictureBox.BackColor = Color.White;
                 }
-                if (playerOrder.Count == correctOrder.Count)
+                else // Highlight off
                 {
-                    await Task.Delay(100);
-                    ManageHighlight(clickedBox, false);
-                    await Task.Delay(50);
-
-                    ManageCountersAndLevels();
-
-                    isPlayerTurn = false;
-                }
-                else
-                {
-                    await Task.Delay(100);
-                    ManageHighlight(clickedBox, false);
-                    await Task.Delay(50);
-
-                    isPlayerTurn = false;
+                    pictureBox.Padding = new Padding(0);
+                    pictureBox.BackColor = Color.Transparent;
                 }
             }
-            isPlayerTurn = false;
         }
 
-        private async void ManageCountersAndLevels()
+        private void PlaySound(string tile)
         {
-            if (playerOrder.Count < correctOrder.Count)
-                return;
-
-            // Block player's clicks
-            computer = true;
-
-            nextRound = true;
-
-            // Delay 250 ms between beepSound and correctSound
-            await Task.Delay(250);
-            correctSound.Play();
-
-            UpdateCounters();
-            UpdateSequence();
-            UpdateRound();
-            UpdateLevelName();
-            UpdateTurn();
-
-            await Task.Delay(2750);
-
-            playerOrder.Clear();
-            nextRound = false;
-            ComputersTurn();
-        }
-
-        // TESTING WITH 6 SEQUENCES PER LEVEL
-        private void UpdateCounters()
-        {
-            isSetCounters = true;
-
-            switch (counter_sequences)
+            switch (tile)
             {
-                case (6) when counter_levels < 8:
-                    levelUp = true;
-                    correctOrder.Clear();
-                    playerOrder.Clear();
-                    counter_sequences = 1; // Reset sequence to 1
-                    counter_levels++;
-                    counter_rounds++;
-
-                    ManageActions();
-                    UpdateTurn();
-
-                    levelUp = false;
+                case "Red":
+                    redSound.Play();
                     break;
-                default:
-                    if (counter_levels >= 8)
-                    {
-                        levelUp = true;
-
-                        counter_sequences++;
-                        counter_rounds++;
-                        UpdateTurn();
-
-                        isSetCounters = false;
-                    }
-                    else
-                    {
-                        counter_sequences++;
-                        counter_rounds++;
-                        UpdateTurn();
-
-                        isSetCounters = false;
-                    }
+                case "Blue":
+                    blueSound.Play();
+                    break;
+                case "Orange":
+                    orangeSound.Play();
+                    break;
+                case "Green":
+                    greenSound.Play();
+                    break;
+                case "CaribBlue":
+                    caribBlueSound.Play();
+                    break;
+                case "Grey":
+                    greySound.Play();
+                    break;
+                case "Indigo":
+                    indigoSound.Play();
+                    break;
+                case "Maroon":
+                    maroonSound.Play();
+                    break;
+                case "Olive":
+                    oliveSound.Play();
+                    break;
+                case "Pink":
+                    pinkSound.Play();
                     break;
             }
-            isSetCounters = false;
         }
 
-        // Verify turn actions
-        private void ManageActions()
+        private void AlignTextButtonBoxesCenter()
         {
-            if (isComputerTurn)
-            {
-                // Debug.WriteLine("ManageActions> isComputerTurn = true");
-                // DisplayLabelMessage(true);
-                // ShufflePictureBoxes();
+            // Align Buttons
+            startBTN.Visible = false;
+            startBTN.TextAlign = ContentAlignment.MiddleCenter;
+            startBTN.Visible = true;
 
-            }
-            if (isPlayerTurn)
-            {
-                Debug.WriteLine("ManageActions> isPlayerTurn = true");
-                // DisplayLabelMessage(false);
-                ShufflePictureBoxes();
-            }
-            if (isDisplaySequence)
-            {
-                Debug.WriteLine("ManageActions> isDisplaySequence = true");
-                ShufflePictureBoxes();
-                ReplaceTileOnBoardAndInSequence();
-            }
-            if (isSetCounters)
-            {
-                ReplaceAllTiles();
-            }
+            // Align richTextBoxShowLevelNumber
+            richTextBoxShowLevelNumber.Visible = false;
+            richTextBoxShowLevelNumber.SelectAll();
+            richTextBoxShowLevelNumber.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowLevelNumber.DeselectAll();
+            richTextBoxShowLevelNumber.Visible = true;
+
+            // Align richTextBoxShowLevelName
+            richTextBoxShowLevelName.Visible = false;
+            richTextBoxShowLevelName.SelectAll();
+            richTextBoxShowLevelName.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowLevelName.DeselectAll();
+            richTextBoxShowLevelName.Visible = true;
+
+            // Align richTextBoxShowNumbersOfSequences
+            richTextBoxShowNumbersOfSequences.Visible = false;
+            richTextBoxShowNumbersOfSequences.SelectAll();
+            richTextBoxShowNumbersOfSequences.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowNumbersOfSequences.DeselectAll();
+            richTextBoxShowNumbersOfSequences.Visible = true;
+
+            // Align richTextBoxTurn
+            richTextBoxTurn.Visible = false;
+            richTextBoxTurn.SelectAll();
+            richTextBoxTurn.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxTurn.DeselectAll();
+            richTextBoxTurn.Visible = true;
+
+            // Align richTextBoxShowRounds
+            richTextBoxShowRounds.Visible = false;
+            richTextBoxShowRounds.SelectAll();
+            richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowRounds.DeselectAll();
+            richTextBoxShowRounds.Visible = true;
+
         }
 
         // Update richtextbox ShowNumbersOfSequences
@@ -1213,141 +1312,9 @@ namespace KeepYourFocus
                     break;
             }
         }
-        #endregion
-
-        #region Processing Game Over, Input playerName, sort and display Highscores
-        // Initialize setup when Game Over
-        private async void GameOver()
-        {
-            // Set flags
-            computer = false;
-            startButton = true;
-            gameTime = false;
-
-            pictureBox1.Enabled = false;
-            pictureBox2.Enabled = false;
-            pictureBox3.Enabled = false;
-            pictureBox4.Enabled = false;
-
-            textBoxHighscore.Visible = true;
-
-            textBoxShowResults.Visible = true;
-            
-            textBoxInputName.Enabled = true;
-            textBoxInputName.Visible = true;
-            buttonEnter.Visible = true;
-            buttonEnter.Enabled = true;
-
-            linkLabelGitHub.Visible = true;
-            linkLabelGitHub.Enabled = true;
-            linkLabelEmail.Visible = true;
-            linkLabelEmail.Enabled = true;
-
-            // Stop Stopwatch
-            InitializeGameStopwatch();
-
-            wrongSound.Play();
-
-            // Save the score
-            await VerifyPlayerRank(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
-
-            correctOrder.Clear();
-            playerOrder.Clear();
-
-            counter_levels = 999;
-
-            UpdateLevelName();
-
-            InitialDictionaryOfTilesAtStart();
-
-            counter_rounds = 0;
-            counter_levels = 1;
-        }
-        
-        // Return playerName and set flags (rich)textboxes
-        string ProcessInputName()
-        {
-            textBoxInputName.Clear();
-            string playerName = textBoxInputName.Text.ToUpper().Trim();
-
-            if (!string.IsNullOrWhiteSpace(playerName))
-            {
-                textBoxInputName.Enabled = false;
-                textBoxInputName.Visible = false;
-
-                //Refresh textbox Highscores
-                TextBoxHighscores();
-
-                // After valid input: disable textBoxInputName and buttonEnter, enable startBTN
-                textBoxInputName.Visible = false;
-                textBoxInputName.Enabled = false;
-                buttonEnter.Enabled = false;
-                buttonEnter.Visible = false;
-
-                startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                startBTN.Text = "Click to Start";
-                startBTN.Enabled = true;
-                startButton = true;
-                // Fill richtextboxes
-                richTextBoxShowRounds.Text = $"Good Luck!";
-
-                Debug.WriteLine($"Input name is {playerName}");
-                return playerName;
-            }
-            else
-            {
-                playerName = "PEANUTSCH";
-                Debug.WriteLine($"Forced input name is {playerName}");
-
-                // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
-                textBoxInputName.Visible = false;
-                textBoxInputName.Enabled = false;
-                buttonEnter.Enabled = false;
-                buttonEnter.Visible = false;
-
-                //Refresh textbox Highscores
-                TextBoxHighscores();
-
-                startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                startBTN.Text = "Click to Start";
-                startBTN.Enabled = true;
-                startButton = true;
-                // Fill richtextboxes
-                richTextBoxShowRounds.Text = $"Good Luck!";
-                return playerName;
-            }
-        }
-
-        // Get playerName via TextBoxInputName
-        private TaskCompletionSource<string> playerNameTcs;
-
-        private async Task<string> PlayerName()
-        {
-            playerNameTcs = new TaskCompletionSource<string>();
-
-            textBoxInputName.Clear();
-            string playerName = textBoxInputName.Text.ToUpper().Trim();
-
-            // Display textbox for input
-            textBoxInputName.PlaceholderText = "YourNameHere";
-            textBoxInputName.Visible = true;
-            textBoxInputName.Enabled = true;
-            buttonEnter.Visible = true;
-            buttonEnter.Enabled = true;
-
-            // Set focus to the input textbox
-            textBoxInputName.Focus();
-
-            // Set up the KeyDown event handler
-            InitializeKeyDownEnter();
-
-            // Wait for the player to enter their name and return it
-            playerName = await playerNameTcs.Task;
-            return playerName;
-        }
 
         // Shows Highscores in TextBoxHighscore
-        private void TextBoxHighscores()
+        private void TextBoxHighscore()
         {
             List<(string, int, int, string, string, string)> topHighscores = SortBestScores();
             List<int> listLineNumber = new List<int>();
@@ -1356,8 +1323,8 @@ namespace KeepYourFocus
             Debug.WriteLine($"topHighscores count: {topHighscores.Count}");
 
             // Set textboxHighscore properties for proper display
-            textBoxHighscore.Clear(); // Clear any existing text
             textBoxHighscore.Visible = true;
+            textBoxHighscore.Clear(); // Clear any existing text
 
             // Use a fixed-width font for proper alignment
             textBoxHighscore.Font = new Font("Courier New", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -1385,10 +1352,102 @@ namespace KeepYourFocus
             }
         }
 
+        // When Game Over, saves score on new line in setters. Make copy in rootmap as Highscores.txt
+        private void SaveScore(int totalRounds, int levelReached, string levelName)
+        {
+            List<(string, int, int, string, string, string)> topHighScores = SortBestScores();
+            string elapsedGameTime = GameStopwatch(); // Get elapsed game time
+            string rootPath = RootPath(); // Construct the file path using RootPath
+
+            // Get current date
+            DateTime isToday = DateTime.Today;
+            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+            // Null check
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string file = Path.Combine(rootPath, "sounds", "setters.txt");
+
+            try
+            {
+                // Check if the new score qualifies for the top scores list
+                bool qualifiesForTopScores = topHighScores.Count < 8 || topHighScores.Any(score => score.Item2 < totalRounds || (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
+
+                if (qualifiesForTopScores)
+                {
+                    // Display textbox for input
+                    textBoxInputName.Visible = true;
+                    textBoxInputName.Enabled = true;
+                    textBoxInputName.Focus();
+                    KeyDownEnter();
+
+                    // Wait for the player to input their name
+                    string playerName = WaitForPlayerNameInput();
+
+                    // Add the new score
+                    topHighScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), isDate, elapsedGameTime));
+
+                    // Sort and take the top scores
+                    topHighScores = topHighScores.OrderByDescending(x => x.Item2)
+                                                 .ThenBy(x => TimeSpan.Parse(x.Item6))
+                                                 .Take(8)
+                                                 .ToList();
+
+                    // Determine the rank of the current score
+                    int playerRank = topHighScores.FindIndex(score => score.Item1 == playerName && score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
+
+                    TextBoxHighscore();
+                    textBoxShowResults.Visible = true;
+                    textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
+
+                    // Write the updated top scores back to the file
+                    using (StreamWriter saveScore = new StreamWriter(file, false))
+                    {
+                        foreach (var score in topHighScores)
+                        {
+                            saveScore.WriteLine($"{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5},{score.Item6}");
+                        }
+                    }
+
+                    // Copy file to another directory
+                    string copyToDir = Path.Combine(rootPath);
+                    Directory.CreateDirectory(copyToDir); // Ensure the directory exists
+                    string copyFile = Path.Combine(copyToDir, "higscores.txt");
+                    // Copy file to BackUp
+                    string copyToDir2 = Path.Combine(rootPath, "BackUp");
+                    Directory.CreateDirectory(copyToDir2); // Ensure the directory exists
+                    string copyFile2 = Path.Combine(copyToDir2, "higscores.txt");
+
+                    File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
+                    File.Copy(file, copyFile2, true); // Copy the file2 to BackUp and overwrite if exists
+
+                    // Log the saved data
+                    Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {isDate}, {elapsedGameTime}");
+                    ReadScoresFromFile();
+                }
+                else // Not in top 10; show only totalRounds
+                {
+                    // Refresh and show textBoxHighscores and textBoxShowResults
+                    TextBoxHighscore();
+                    textBoxShowResults.Visible = true;
+                    textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while saving game data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
         // Returns list with all data in setters.txt
         private List<(string, int, int, string, string, string)> ReadScoresFromFile()
         {
-            string file = Path.Combine(InitializeRootPath(), "sounds", "setters.txt");
+            string file = Path.Combine(RootPath(), "sounds", "setters.txt");
             List<(string, int, int, string, string, string)> scoresList = new List<(string, int, int, string, string, string)>();
 
             try
@@ -1423,6 +1482,7 @@ namespace KeepYourFocus
             return scoresList;
         }
 
+
         // Returns decreasing sorted list of higscores.txt
         private List<(string, int, int, string, string, string)> SortBestScores()
         {
@@ -1442,197 +1502,51 @@ namespace KeepYourFocus
             catch (Exception e)
             {
                 Debug.WriteLine($"An error occurred while getting top scores: {e.Message}");
+                MessageBox.Show($"An error occurred while getting top scores: {e.Message}");
             }
             return bestScores;
         }
-        #endregion
 
-        #region Processing Score
-        private async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
+        private void GameOver()
         {
-            var highScores = SortBestScores()
-                .Select(score => (score.Item1, score.Item2, score.Item3, score.Item4, score.Item5, score.Item6))
-                .ToList();
+            // Set flags
+            computer = false;
+            startButton = true;
+            gameTime = false;
 
-            string elapsedGameTime = InitializeGameStopwatch();
-            string currentDate = DateTime.Today.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
-
-            if (QualifiesForTopScores(highScores, totalRounds, elapsedGameTime))
-            {
-                string placeholderText = string.Empty; // use placeholderText instead of create and adjust new list
-                highScores.Add((placeholderText, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime));
-
-                highScores = highScores
-                    .OrderByDescending(score => score.Item2)
-                    .ThenBy(score => TimeSpan.Parse(score.Item6))
-                    .Take(8)
-                    .ToList();
-
-                // Determine the rank of the current score
-                int playerRank = highScores.FindIndex(score => score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
-
-                IsHighscoreText(totalRounds, playerRank);
-
-                // Wait for valid input playerName
-                string playerName = await PlayerName();
-                // Update list highScores with playerName
-                highScores.Clear();
-                highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime));
-
-                SaveScoreToFile(highScores);
-                Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {currentDate}, {elapsedGameTime}");
-
-                // Set textboxHighscore properties for proper display
-                textBoxHighscore.Clear(); // Clear any existing text
-                TextBoxHighscores();
-
-                // De-activate and hide textBoxInputName and buttonEnter
-                textBoxInputName.Visible = false;
-                textBoxInputName.Enabled = false;
-                buttonEnter.Visible = false;
-                buttonEnter.Enabled = false;
-                // Activate and show buttonRetry
-                buttonRetry.Enabled = true;
-                buttonRetry.Visible = true;
-            }
-            else
-            {
-                // Set textboxHighscore properties for proper display
-                textBoxHighscore.Clear(); // Clear any existing text
-                TextBoxHighscores();
-
-                IsNotHighscoreText(totalRounds);
-
-                buttonRetry.Enabled = true;
-                buttonRetry.Visible = true;
-            }
-            TextBoxHighscores();
-        }
-
-        private bool QualifiesForTopScores(List<(string, int, int, string, string, string)> highScores, int totalRounds, string elapsedGameTime)
-        {
-            return highScores.Count < 8 && counter_rounds > 0 || 
-                    highScores.Any(score => score.Item2 < totalRounds || 
-                    (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
-        }
-
-        private void IsHighscoreText(int totalRounds, int playerRank)
-        {
-            TextBoxHighscores();
+            textBoxHighscore.Enabled = false;
+            pictureBox1.Enabled = false;
+            pictureBox1.Visible = false;
+            pictureBox2.Enabled = false;
+            pictureBox2.Visible = false;
+            pictureBox3.Enabled = false;
+            pictureBox3.Visible = false;
+            pictureBox4.Enabled = false;
+            pictureBox4.Visible = false;
             textBoxShowResults.Visible = true;
-            textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
+
+            buttonRetry.Enabled = true;
+            buttonRetry.Visible = true;
+
+            linkLabelGitHub.Visible = true;
+            linkLabelGitHub.Enabled = true;
+            linkLabelEmail.Visible = true;
+            linkLabelEmail.Enabled = true;
+
+            //Stop Stopwatch
+            GameStopwatch();
+
+            // Save the score
+            SaveScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
+
+            correctOrder.Clear();
+            playerOrder.Clear();
+
+            wrongSound.Play();
+
+            counter_levels = 999;
+
+            UpdateLevelName();
         }
-
-        private void IsNotHighscoreText(int totalRounds)
-        {
-            TextBoxHighscores();
-            textBoxShowResults.Visible = true;
-            textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
-        }
-
-        private void SaveScoreToFile(List<(string, int, int, string, string, string)> highScores)
-        {
-            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
-            string file = Path.Combine(rootPath, "sounds", "setters.txt");
-            string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty; // Read the existing content of the file
-
-            using (StreamWriter saveScore = new StreamWriter(file, false))
-            {
-                foreach (var score in highScores)
-                {
-                    saveScore.WriteLine($"{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5},{score.Item6}");
-                }
-
-                saveScore.Write(existingContent);
-                WriteToCopies();
-
-                string playerName = string.Empty;
-            }
-        }
-
-        public void WriteToCopies()
-        {
-            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
-
-            string file = Path.Combine(rootPath, "sounds", "setters.txt");
-
-            // Copy the file to another directory
-            string copyToDir = Path.Combine(rootPath);
-            Directory.CreateDirectory(copyToDir); // Ensure the directory exists
-            string copyFile = Path.Combine(copyToDir, "higscores.txt");
-            string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscores.txt");
-
-            File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
-            File.Copy(file, copyFile2, true); // Copy the file and overwrite if exists
-        }
-        #endregion
-
-        #region Revised_example_code
-
-        private async Task SaveScore_revised(int totalRounds, int levelReached, string levelName)
-        {
-            List<HighscoreItem> getHighScores = SortBestScores_revised();
-
-            string elapsedGameTime = InitializeGameStopwatch(); // Get elapsed game time
-            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
-            DateTime isToday = DateTime.Today; // Get current date
-            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture); // Set format date
-
-            // Null check
-            if (string.IsNullOrEmpty(rootPath))
-            {
-                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            string file = Path.Combine(rootPath, "sounds", "setters.txt");
-            HighscoreItem item = getHighScores[0];
-            Debug.WriteLine($" {item.PlayerName} ; {item.Round} ");
-            try
-            {
-                // TODO: fill in processing bits from non-revised function.
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.ToString());
-            }
-
-            throw new NotImplementedException();
-        }
-        private List<HighscoreItem> SortBestScores_revised()
-        {
-            List<(string, int, int, string, string, string)> bestScores = new List<(string, int, int, string, string, string)>();
-            List<HighscoreItem> bestScoresItems = new List<HighscoreItem>();
-            try
-            {
-                // Get scores from file
-                List<(string, int, int, string, string, string)> scoresList = ReadScoresFromFile();
-
-                // Sort by playerScore and then by gameTime
-                bestScores = scoresList.OrderByDescending(x => x.Item2)
-                                       .ThenBy(x => TimeSpan.Parse(x.Item6))
-                                       .Take(8)
-                                       .ToList();
-
-                foreach (var item in bestScores)
-                {
-                    string isName = item.Item1;
-                    int isRounds = item.Item2;
-                    int isLevelReached = item.Item3;
-                    string isLevelName = item.Item4;
-                    string dateToday = item.Item5;
-                    string gameTime = item.Item6;
-
-                    bestScoresItems.Add(new HighscoreItem() { Round = isRounds, LevelReached = isLevelReached, LevelName = isLevelName, DateToday = dateToday, GameTime = gameTime });
-                }
-
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"An error occurred while getting top scores: {e.Message}");
-            }
-            return bestScoresItems;
-        }
-        #endregion
     }
 }

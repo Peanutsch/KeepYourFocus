@@ -1,6 +1,6 @@
 using KeepYourFocus;
 
-namespace KeepYourFocus
+namespace Simon_Says
 {
     internal static class Program
     {
