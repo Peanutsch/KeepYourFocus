@@ -20,7 +20,6 @@ namespace KeepYourFocus
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
         private List<string> previousTiles = new List<string>();
-        private List<string> storePlayerName = new List<string> { "PEANUTSCH" };
 
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
@@ -128,7 +127,7 @@ namespace KeepYourFocus
             startupSound.Play();
 
             // Display textbox for input
-            textBoxInputName.Visible = true;
+            // textBoxInputName.Visible = true;
 
             // Ask for Player's name
             // PlayerName();
@@ -207,152 +206,6 @@ namespace KeepYourFocus
                 return;
 
             StartGame();
-        }
-
-        // Click Event for buttonRetry at Game Over
-        private async void ButtonRetry_Click(object sender, EventArgs e)
-        {
-            // Any additional logic specific to retry
-            await Task.Delay(500);
-
-            buttonRetry.Enabled = true;
-            buttonRetry.Visible = true;
-
-            //Set LinkLabels invisible
-            linkLabelGitHub.Visible = true;
-            linkLabelGitHub.Enabled = true;
-            linkLabelEmail.Visible = true;
-            linkLabelEmail.Enabled = true;
-
-            InitialDictionaryOfTilesAtStart();
-            StartGame();
-        }
-
-
-        private async Task ButtonRetry_Click()
-        {
-            await Task.Delay(500);
-
-            InitialDictionaryOfTilesAtStart();
-        }
-
-        // Get playerName via TextBoxInputName
-        private void PlayerName()
-        {
-            // Display textbox for input
-            textBoxInputName.Visible = true;
-            textBoxInputName.Enabled = true;
-
-            // Enter input by buttonEnter and Key.Enter
-            textBoxInputName.Focus();
-            KeyDownEnter();
-        }
-
-        // Initialize KeyDownENTER for input playerName
-        private void KeyDownEnter()
-        {
-            string playerName = textBoxInputName.Text.Trim().ToUpper();
-
-            // Event handler for KeyDown within this method
-            textBoxInputName.KeyDown += (sender, e) =>
-            {
-                if (e.KeyCode == Keys.Enter)
-                {
-                    e.Handled = true; // Prevents the Enter key from inserting a newline
-                    e.SuppressKeyPress = true; // Stops the "ding" sound
-                    playerName = textBoxInputName.Text.Trim().ToUpper();
-
-                    if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
-                    {
-                        storePlayerName.Clear();
-                        storePlayerName.Add(playerName);
-
-                        // After valid input: disable textBoxInputName and buttonEnter, enable startBTN
-                        textBoxInputName.Visible = false;
-                        textBoxInputName.Enabled = false;
-                        buttonEnter.Enabled = false;
-                        buttonEnter.Visible = false;
-
-                        startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                        startBTN.Text = "Click to Start";
-                        startBTN.Enabled = true;
-                        startButton = true;
-                        // Fill richtextboxes
-                        richTextBoxShowRounds.Text = $"Good Luck!";
-
-                        Debug.WriteLine($"Input name is {playerName}");
-                    }
-                    else
-                    {
-                        playerName = storePlayerName[0];
-                        Debug.WriteLine($"Forced input name is {playerName}");
-
-                        // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
-                        textBoxInputName.Visible = false;
-                        textBoxInputName.Enabled = false;
-
-                        buttonEnter.Enabled = false;
-                        buttonEnter.Visible = false;
-
-                        startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                        startBTN.Text = "Click to Start";
-                        startBTN.Enabled = true;
-                        startButton = true;
-
-                        // Fill richtextboxes
-                        richTextBoxShowRounds.Text = $"Good Luck!";
-                    }
-                }
-            };
-        }
-
-        // Initialize OK button for input playerName
-        private void ButtonEnter_Click(object sender, EventArgs e)
-        {
-            string playerName = textBoxInputName.Text.Trim().ToUpper();
-
-            if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
-            {
-                storePlayerName.Clear();
-                storePlayerName.Add(playerName);
-
-                // After valid input: disable textBoxInputName, enable startBTN
-                textBoxInputName.Visible = false;
-                textBoxInputName.Enabled = false;
-                startBTN.Enabled = true;
-                startButton = true;
-
-                Debug.WriteLine($"Input name is {playerName}");
-
-                // Fill richtextboxes
-                richTextBoxShowRounds.Text = $"Good Luck!";
-
-                startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                startBTN.Text = "Click to Start";
-
-                buttonEnter.Enabled = false;
-                buttonEnter.Visible = false;
-            }
-            else
-            {
-                if (storePlayerName.Count > 0)
-                {
-                    playerName = storePlayerName[0];
-                    Debug.WriteLine($"Forced input name is {playerName}");
-                }
-
-                textBoxInputName.Visible = false;
-                textBoxInputName.Enabled = false;
-                buttonEnter.Enabled = false;
-                buttonEnter.Visible = false;
-
-                startBTN.TextAlign = ContentAlignment.MiddleCenter;
-                startBTN.Text = "Click to Start";
-                startBTN.Enabled = true;
-                startButton = true;
-
-                richTextBoxShowRounds.Text = $"Good Luck!";
-            }
         }
 
         // Stopwatch for recording gametime
@@ -1171,7 +1024,7 @@ namespace KeepYourFocus
 
         private void AlignTextButtonBoxesCenter()
         {
-            // Align Buttons
+            // Align startBTN
             startBTN.Visible = false;
             startBTN.TextAlign = ContentAlignment.MiddleCenter;
             startBTN.Visible = true;
@@ -1210,6 +1063,10 @@ namespace KeepYourFocus
             richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
             richTextBoxShowRounds.DeselectAll();
             richTextBoxShowRounds.Visible = true;
+
+            // Align textBoxInputName
+            textBoxInputName.Visible = false;
+            textBoxInputName.PlaceholderText = "YourNameHere";
 
         }
 
@@ -1342,6 +1199,128 @@ namespace KeepYourFocus
             }
         }
 
+        // Click Event for buttonRetry at Game Over
+        private async void ButtonRetry_Click(object sender, EventArgs e)
+        {
+            // Any additional logic specific to retry
+            await Task.Delay(500);
+
+            buttonRetry.Enabled = true;
+            buttonRetry.Visible = true;
+
+            //Set LinkLabels invisible
+            linkLabelGitHub.Visible = true;
+            linkLabelGitHub.Enabled = true;
+            linkLabelEmail.Visible = true;
+            linkLabelEmail.Enabled = true;
+
+            InitialDictionaryOfTilesAtStart();
+            StartGame();
+        }
+
+        // 
+        string ProcessInputName()
+        {
+            string playerName = textBoxInputName.Text.Trim();
+
+            if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
+            {
+                textBoxInputName.Enabled = false;
+                textBoxInputName.Visible = false;
+
+
+                // After valid input: disable textBoxInputName and buttonEnter, enable startBTN
+                textBoxInputName.Visible = false;
+                textBoxInputName.Enabled = false;
+                buttonEnter.Enabled = false;
+                buttonEnter.Visible = false;
+                textBoxHighscore.Visible = false;
+                textBoxHighscore.Visible = true;
+
+                startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                startBTN.Text = "Click to Start";
+                startBTN.Enabled = true;
+                startButton = true;
+                // Fill richtextboxes
+                richTextBoxShowRounds.Text = $"Good Luck!";
+
+                Debug.WriteLine($"Input name is {playerName}");
+                return playerName;
+            }
+            else
+            {
+                playerName = "PEANUTSCH";
+                Debug.WriteLine($"Forced input name is {playerName}");
+
+                // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
+                textBoxInputName.Visible = false;
+                textBoxInputName.Enabled = false;
+                textBoxHighscore.Visible = false;
+                textBoxHighscore.Visible = true;
+
+                buttonEnter.Enabled = false;
+                buttonEnter.Visible = false;
+
+                startBTN.TextAlign = ContentAlignment.MiddleCenter;
+                startBTN.Text = "Click to Start";
+                startBTN.Enabled = true;
+                startButton = true;
+
+                // Fill richtextboxes
+                richTextBoxShowRounds.Text = $"Good Luck!";
+                return playerName;
+            }
+        }
+
+        // Initialize KeyDownENTER for input playerName
+        private void KeyDownEnter()
+        {
+            textBoxInputName.KeyDown += (sender, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true; // Prevents the Enter key from inserting a newline
+                    e.SuppressKeyPress = true; // Stops the "ding" sound
+                    string playerName = ProcessInputName();
+                    playerNameTcs.SetResult(playerName);
+                }
+            };
+        }
+
+
+        // Initialize Enter button for input playerName
+        private void ButtonEnter_Click(object sender, EventArgs e)
+        {
+            string playerName = ProcessInputName();
+            playerNameTcs.SetResult(playerName);
+        }
+
+
+        // Get playerName via TextBoxInputName
+        private TaskCompletionSource<string> playerNameTcs;
+
+        private async Task<string> PlayerName()
+        {
+            playerNameTcs = new TaskCompletionSource<string>();
+
+            // Display textbox for input
+            textBoxInputName.PlaceholderText = "YourNameHere";
+            textBoxInputName.Visible = true;
+            textBoxInputName.Enabled = true;
+            buttonEnter.Visible = true;
+            buttonEnter.Enabled = true;
+
+            // Set focus to the input textbox
+            textBoxInputName.Focus();
+
+            // Set up the KeyDown event handler
+            KeyDownEnter();
+
+            // Wait for the player to enter their name and return it
+            string playerName = await playerNameTcs.Task;
+            return playerName;
+        }
+
         // Shows Highscores in TextBoxHighscore
         private void TextBoxHighscores()
         {
@@ -1381,17 +1360,28 @@ namespace KeepYourFocus
             }
         }
 
-
         // When Game Over, saves score on new line in setters. Make copy in rootmap as Highscores.txt
-        private void SaveScore(int totalRounds, int levelReached, string levelName)
+        private async Task SaveScore(int totalRounds, int levelReached, string levelName)
         {
-            List<(string, int, int, string, string, string)> topHighScores = SortBestScores();
-            string playerName = storePlayerName[0]; // Get playerName from storePlayerName
+            List<(string, int, int, string, string, string)> getHighScores = SortBestScores();
+            List<(int, int, string, string, string)> topHighscores = new List<(int, int, string, string, string)>();
+            
+            foreach (var item in getHighScores)
+            {
+                string isName = item.Item1;
+                int isRounds = item.Item2;
+                int isLevelReached = item.Item3;
+                string isLevelName = item.Item4;
+                string dateToday = item.Item5;
+                string gameTime = item.Item6;
+
+                topHighscores.Add((isRounds, isLevelReached, isLevelName, dateToday, gameTime));
+            }
+
             string elapsedGameTime = GameStopwatch(); // Get elapsed game time
             string rootPath = RootPath(); // Construct the file path using RootPath
-            // Get current date
-            DateTime isToday = DateTime.Today;
-            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+            DateTime isToday = DateTime.Today; // Get current date
+            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture); // Set format date
 
             // Null check
             if (string.IsNullOrEmpty(rootPath))
@@ -1405,30 +1395,46 @@ namespace KeepYourFocus
             try
             {
                 // Check if the new score qualifies for the top scores list
-                bool qualifiesForTopScores = topHighScores.Count < 15 || topHighScores.Any(score => score.Item2 < totalRounds || (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
+                bool qualifiesForTopScores = topHighscores.Count < 8 || topHighscores.Any(score => score.Item1 < totalRounds || (score.Item1 == totalRounds && TimeSpan.Parse(score.Item5) > TimeSpan.Parse(elapsedGameTime)));
 
                 if (qualifiesForTopScores)
                 {
-                    // Add the new score
-                    topHighScores.Add((playerName.Trim(), totalRounds, levelReached, levelName.Trim(), isDate, elapsedGameTime));
-
                     // Sort and take the top scores
-                    topHighScores = topHighScores.OrderByDescending(x => x.Item2)
-                                                 .ThenBy(x => TimeSpan.Parse(x.Item6))
-                                                 .Take(15)
+                    topHighscores = topHighscores.OrderByDescending(x => x.Item1)
+                                                 .ThenBy(x => TimeSpan.Parse(x.Item5))
+                                                 .Take(8)
                                                  .ToList();
 
                     // Determine the rank of the current score
-                    int playerRank = topHighScores.FindIndex(score => score.Item1 == playerName.Trim() && score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
-
+                    int playerRank = topHighscores.FindIndex(score => score.Item1 == totalRounds && score.Item5 == elapsedGameTime) + 1;
                     if (playerRank <= 8) // If in top Highscores; show total rounds and ask playerName
                     {
-                        // Refresh and show textBoxHighscores and textBoxShowResults
-                        TextBoxHighscores();
                         textBoxShowResults.Visible = true;
                         textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
-                        PlayerName();
-                        TextBoxHighscores();
+
+                        // Get the player or default player name
+                        string playerName = await PlayerName();
+
+                        // Enter input by buttonEnter and Key.Enter
+                        textBoxInputName.Focus();
+
+                        // Insert playerName on index 0
+                        topHighscores.Insert(0, (totalRounds, levelReached, levelName.Trim(), isDate, elapsedGameTime));
+
+                        // Write the updated top scores back to the file
+                        using (StreamWriter saveScore = new StreamWriter(file, false))
+                        {
+                            foreach (var score in topHighscores)
+                            {
+                                //saveScore.WriteLine($"{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5},{score.Item6}");
+                                saveScore.WriteLine($"{playerName.Trim()},{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5}");
+                            }
+
+                            textBoxHighscore.Visible = false;
+                            textBoxHighscore.Visible = true;
+                        }
+                        
+                        Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {isDate}, {elapsedGameTime}");
                     }
                     else // If not in top Highscores; show only totalRounds
                     {
@@ -1436,15 +1442,6 @@ namespace KeepYourFocus
                         TextBoxHighscores();
                         textBoxShowResults.Visible = true;
                         textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
-                    }
-
-                    // Write the updated top scores back to the file
-                    using (StreamWriter saveScore = new StreamWriter(file, false))
-                    {
-                        foreach (var score in topHighScores)
-                        {
-                            saveScore.WriteLine($"{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5},{score.Item6}");
-                        }
                     }
 
                     // Copy the file to another directory
@@ -1456,8 +1453,7 @@ namespace KeepYourFocus
                     File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
                     File.Copy(file, copyFile2, true); // Copy the file and overwrite if exists
 
-                    // Log the saved data
-                    Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {isDate}, {elapsedGameTime}");
+                    // Read the saved data
                     ReadScoresFromFile();
                 }
             }
@@ -1466,6 +1462,7 @@ namespace KeepYourFocus
                 MessageBox.Show($"An error occurred while saving game data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         // Returns list with all data in setters.txt
         private List<(string, int, int, string, string, string)> ReadScoresFromFile()
@@ -1551,11 +1548,13 @@ namespace KeepYourFocus
             linkLabelEmail.Visible = true;
             linkLabelEmail.Enabled = true;
 
-            //Stop Stopwatch
+            // Stop Stopwatch
             GameStopwatch();
 
+            TextBoxHighscores();
+
             // Save the score
-            SaveScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
+            await SaveScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
 
             correctOrder.Clear();
             playerOrder.Clear();
@@ -1566,13 +1565,11 @@ namespace KeepYourFocus
 
             UpdateLevelName();
 
-            // Await the retry button click logic
-            await ButtonRetry_Click();
-
             InitialDictionaryOfTilesAtStart();
 
             counter_rounds = 1;
             counter_levels = 1;
         }
+
     }
 }
