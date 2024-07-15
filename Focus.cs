@@ -118,7 +118,7 @@ namespace KeepYourFocus
             AlignTextButtonBoxesCenter();
 
             // Display highscore at start
-            TextBoxHighscore();
+            TextBoxHighscores();
             //SecondTextBoxTopFive();
 
             // Use initial dictionary for start setup
@@ -131,7 +131,7 @@ namespace KeepYourFocus
             textBoxInputName.Visible = true;
 
             // Ask for Player's name
-            PlayerName();
+            // PlayerName();
         }
 
         // Thank You + some info Spam MessageBox
@@ -767,7 +767,7 @@ namespace KeepYourFocus
                         await Task.Delay(100);
                         ManageHighlight(clickedBox, false);
                         await Task.Delay(250); // Delay to provide feedback before game over
-                        TextBoxHighscore();
+                        TextBoxHighscores();
                         GameOver();
 
                         isPlayerTurn = false;
@@ -1343,7 +1343,7 @@ namespace KeepYourFocus
         }
 
         // Shows Highscores in TextBoxHighscore
-        private void TextBoxHighscore()
+        private void TextBoxHighscores()
         {
             List<(string, int, int, string, string, string)> topHighscores = SortBestScores();
             List<int> listLineNumber = new List<int>();
@@ -1421,6 +1421,23 @@ namespace KeepYourFocus
                     // Determine the rank of the current score
                     int playerRank = topHighScores.FindIndex(score => score.Item1 == playerName.Trim() && score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
 
+                    if (playerRank <= 8) // If in top Highscores; show total rounds and ask playerName
+                    {
+                        // Refresh and show textBoxHighscores and textBoxShowResults
+                        TextBoxHighscores();
+                        textBoxShowResults.Visible = true;
+                        textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
+                        PlayerName();
+                        TextBoxHighscores();
+                    }
+                    else // If not in top Highscores; show only totalRounds
+                    {
+                        // Refresh and show textBoxHighscores and textBoxShowResults
+                        TextBoxHighscores();
+                        textBoxShowResults.Visible = true;
+                        textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
+                    }
+
                     // Write the updated top scores back to the file
                     using (StreamWriter saveScore = new StreamWriter(file, false))
                     {
@@ -1434,24 +1451,14 @@ namespace KeepYourFocus
                     string copyToDir = Path.Combine(rootPath);
                     Directory.CreateDirectory(copyToDir); // Ensure the directory exists
                     string copyFile = Path.Combine(copyToDir, "higscores.txt");
+                    string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscores.txt");
 
                     File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
-
-                    // Refresh and show textBoxHighscores and textBoxShowResults
-                    TextBoxHighscore();
-                    textBoxShowResults.Visible = true;
-                    textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
+                    File.Copy(file, copyFile2, true); // Copy the file and overwrite if exists
 
                     // Log the saved data
                     Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {isDate}, {elapsedGameTime}");
                     ReadScoresFromFile();
-                }
-                else // Not in top 10; show only totalRounds
-                {
-                    // Refresh and show textBoxHighscores and textBoxShowResults
-                    TextBoxHighscore();
-                    textBoxShowResults.Visible = true;
-                    textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
                 }
             }
             catch (Exception ex)
