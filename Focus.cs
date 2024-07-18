@@ -52,7 +52,7 @@ namespace KeepYourFocus
         private bool startButton = true;
         private bool nextRound = false;
         private bool levelUp = false;
-        private bool gameTime = false;
+        private bool gameTime = false;      
 
         bool isComputerTurn = false;
         bool isPlayerTurn = false;
@@ -73,7 +73,7 @@ namespace KeepYourFocus
             // Load soundfiles. For now 1 beep sound for all colors
             string soundPathBeepALL = Path.Combine(InitializeRootPath(), @"sounds\beep.wav");
 
-            /* Pre-made soundPath for all colors *\
+            /* ***Pre-made soundPath for all colors*** *\
             string soundPathBeepRed = Path.Combine(InitializeRootPath(), @"sounds\redSound.wav");
             string soundPathBeepBlue = Path.Combine(InitializeRootPath(), @"sounds\blueSound.wav");
             string soundPathBeepOrange = Path.Combine(InitializeRootPath(), @"sounds\orangeSound.wav");
@@ -111,7 +111,7 @@ namespace KeepYourFocus
             startupSound = new SoundPlayer(soundPathStartupSound);
             #endregion
 
-            #region Setup Startup Game
+            #region Startup Game
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
 
@@ -163,7 +163,7 @@ namespace KeepYourFocus
                             );
         }
 
-        // Initialization to both startButton and retryButton
+        // Initialization to both startButton and retryButton to start or retry game
         private void InitializeStartGame()
         {
             buttonClickSound.Play();
@@ -345,9 +345,9 @@ namespace KeepYourFocus
         private void InitializeButtonEnter_Click(object sender, EventArgs e)
         {
             string playerName = ProcessInputName();
-            playerNameTcs.TrySetResult(ProcessInputName());
+            playerNameTcs.TrySetResult(ProcessInputName()); // TrySetResult() -> Mark Task as completed (Task will be set completed in PlayerName()
             textBoxShowResults.DeselectAll();
-            // TrySetResult() -> Mark Task as completed (Task will be set completed in PlayerName()
+            Debug.WriteLine("playerName entered by buttonEnter");
         }
 
         // Initialize KeyDownENTER for input playerName
@@ -360,9 +360,9 @@ namespace KeepYourFocus
                     e.Handled = true; // Prevents the Enter key from inserting a newline
                     e.SuppressKeyPress = true; // Stops the "ding" sound
                     string playerName = ProcessInputName();
-                    playerNameTcs.TrySetResult(ProcessInputName());
+                    playerNameTcs.TrySetResult(ProcessInputName()); // TrySetResult() -> Mark Task as completed (Task will be set completed in PlayerName()
                     textBoxShowResults.DeselectAll();
-                    // TrySetResult() -> Mark Task as completed (Task will be set completed in PlayerName()
+                    Debug.WriteLine("playerName entered by Keys.Enter");
                 }
             };
         }
@@ -467,7 +467,7 @@ namespace KeepYourFocus
             }
         }
 
-        // Startup tiles dictionary 
+        // Dictionary for start positions tiles
         private void InitialDictionaryOfTilesAtStart()
         {
             if (pictureBoxDictionary.Count > 0)
@@ -497,18 +497,18 @@ namespace KeepYourFocus
             string pinkTile = Path.Combine(InitializeRootPath(), "png", "pink_tile512.png");
 
             Dictionary<string, string> dictOfAllTiles = new Dictionary<string, string>()
-                                                                {
-                                                                    {"Red", redTile},
-                                                                    {"Blue", blueTile},
-                                                                    {"Orange", orangeTile},
-                                                                    {"Green", greenTile},
-                                                                    {"CaribBlue", caribBlueTile},
-                                                                    {"Grey", greyTile},
-                                                                    {"Indigo", indigoTile},
-                                                                    {"Maroon", maroonTile },
-                                                                    {"Olive", oliveTile},
-                                                                    {"Pink", pinkTile}
-                                                                };
+                                                        {
+                                                            {"Red", redTile},
+                                                            {"Blue", blueTile},
+                                                            {"Orange", orangeTile},
+                                                            {"Green", greenTile},
+                                                            {"CaribBlue", caribBlueTile},
+                                                            {"Grey", greyTile},
+                                                            {"Indigo", indigoTile},
+                                                            {"Maroon", maroonTile },
+                                                            {"Olive", oliveTile},
+                                                            {"Pink", pinkTile}
+                                                        };
             return dictOfAllTiles;
         }
 
@@ -567,6 +567,59 @@ namespace KeepYourFocus
                 throw new InvalidOperationException("PictureBoxDictionary is empty. Verify filepaths of tiles");
             }
 
+            // Shuffle the keys of pictureBoxDictionary using Fisher-Yates Shuffle
+            List<string> shuffledTiles = pictureBoxDictionary.Keys.ToList();
+            int numberOfItems = shuffledTiles.Count;
+            while (numberOfItems > 1)
+            {
+                numberOfItems--;
+                int randomIndex = rnd.Next(numberOfItems + 1);
+                string temp = shuffledTiles[randomIndex];
+                shuffledTiles[randomIndex] = shuffledTiles[numberOfItems];
+                shuffledTiles[numberOfItems] = temp;
+            }
+
+            // Ensure no tile appears more than twice in a row
+            for (int itemIndex = 2; itemIndex < shuffledTiles.Count; itemIndex++)
+            {
+                if (shuffledTiles[itemIndex] == shuffledTiles[itemIndex - 1] && shuffledTiles[itemIndex] == shuffledTiles[itemIndex - 2])
+                {
+                    Debug.WriteLine("3x in a row: swapIndex");
+                    // Find a new position for shuffledTiles[itemIndex]
+                    for (int swapIndex = itemIndex + 1; swapIndex < shuffledTiles.Count; swapIndex++)
+                    {
+                        if (shuffledTiles[swapIndex] != shuffledTiles[itemIndex - 1])
+                        {
+                            // Swap positions
+                            string temp = shuffledTiles[itemIndex];
+                            shuffledTiles[itemIndex] = shuffledTiles[swapIndex];
+                            shuffledTiles[swapIndex] = temp;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Select a new tile
+            string newTile = shuffledTiles[0]; // Take the first tile from the shuffled list
+
+            Debug.WriteLine($"Selected new tile: {newTile}");
+
+            return newTile;
+        }
+
+
+        // Randomize tiles. No more then 2 of the same tiles in a row (is the idea)
+        /*
+        private string RandomizerTiles()
+        {
+            // Verify if the dictionary is not empty
+            if (pictureBoxDictionary.Count == 0)
+            {
+                Debug.WriteLine("PictureBoxDictionary is empty. Verify filepaths of tiles in InitialDictionaryOfTilesAtStart()");
+                throw new InvalidOperationException("PictureBoxDictionary is empty. Verify filepaths of tiles");
+            }
+
             string newTile;
             Dictionary<string, int> tileCount = correctOrder
                 .GroupBy(tile => tile)
@@ -595,14 +648,16 @@ namespace KeepYourFocus
 
             return newTile;
         }
+        */
 
-        // Shuffles dictionary of all tiles
+        // Shuffles dictionary of all tiles (Fisher-Yates shuffle algoritme / Knuth shuffle)
         private Dictionary<string, string> ShuffleDictOfAllTiles()
         {
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
 
             List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
+            // Fisher-Yates shuffle algoritme / Knuth shuffle
             int numberOfItems = listOfAllTiles.Count;
             while (numberOfItems > 1)
             {
@@ -639,7 +694,7 @@ namespace KeepYourFocus
         #endregion
 
         #region Difficulties
-
+        // Randomizer reposition tiles
         private void RefreshAndRepositionPictureBoxes()
         {
             // Get the shuffled PictureBoxes
@@ -653,7 +708,7 @@ namespace KeepYourFocus
             }
         }
 
-        // Shuffle currect tile setup before player's turn and/or after player's click
+        // Shuffle current tile setup after display sequence and/or after player's click
         private async Task ShufflePictureBoxes()
         {
             // isDisplaySequence
@@ -681,6 +736,7 @@ namespace KeepYourFocus
             }
         }
 
+        // Randomizer for replacing tile on board and/or in sequence
         private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
         {
             string newTile = RandomizerTiles();
@@ -758,7 +814,7 @@ namespace KeepYourFocus
                     replacementOccurred = true;
                 }
                 Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
-                Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
+                //Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
             }
             return (pictureBoxDictionary, correctOrder, replacementOccurred);
         }
@@ -919,7 +975,6 @@ namespace KeepYourFocus
             // Verify difficulty
             ManageActions();
 
-
             await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
 
             computer = false;
@@ -935,7 +990,6 @@ namespace KeepYourFocus
             // Block Player's clicks in computer's turn AND before StartButton is clicked
             if (startButton || computer)
                 return;
-
 
             if (sender is PictureBox clickedBox)
             {
@@ -1227,6 +1281,7 @@ namespace KeepYourFocus
             computer = false;
             startButton = true;
             gameTime = false;
+            Debug.WriteLine("gameTime = false");
 
             pictureBox1.Enabled = false;
             pictureBox2.Enabled = false;
@@ -1267,6 +1322,7 @@ namespace KeepYourFocus
         // Return playerName and set flags (rich)textboxes
         private string ProcessInputName()
         {
+            Debug.WriteLine("\nProcessInputName()");
             string playerName = textBoxInputName.Text.ToUpper().Trim();
 
             if (string.IsNullOrWhiteSpace(playerName))
@@ -1287,7 +1343,7 @@ namespace KeepYourFocus
             startButton = true;
             richTextBoxShowRounds.Text = $"Good Luck!";
 
-            Debug.WriteLine($"Input name is {playerName}");
+            Debug.WriteLine($"Input name is {playerName}\n");
             return playerName;
         }
 
@@ -1307,7 +1363,7 @@ namespace KeepYourFocus
 
             InitializeKeyDownEnter();
 
-            string playerName = await playerNameTcs.Task; // complete task and return input as playerName
+            string playerName = await playerNameTcs.Task; // return input as playerName and complete task and
 
             if (string.IsNullOrWhiteSpace(playerName))
             {
