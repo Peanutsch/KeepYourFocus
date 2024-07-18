@@ -612,7 +612,6 @@ namespace KeepYourFocus
                 listOfAllTiles[randomIndex] = listOfAllTiles[numberOfItems];
                 listOfAllTiles[numberOfItems] = temp;
             }
-
             Dictionary<string, string> shuffledDictOfAllTiles = listOfAllTiles.ToDictionary(kv => kv.Key, kv => kv.Value);
 
             return shuffledDictOfAllTiles;
