@@ -18,8 +18,8 @@ using static System.Formats.Asn1.AsnWriter;
 namespace KeepYourFocus
 {
     public partial class PlayerField : Form
+    #region ClassProperties
     {
-        #region ClassProperties
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
