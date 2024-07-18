@@ -18,8 +18,8 @@ using static System.Formats.Asn1.AsnWriter;
 namespace KeepYourFocus
 {
     public partial class PlayerField : Form
+    #region ClassProperties
     {
-        #region ClassProperties
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
@@ -109,11 +109,11 @@ namespace KeepYourFocus
             wrongSound = new SoundPlayer(soundPathWrong);
             correctSound = new SoundPlayer(soundPathCorrect);
             startupSound = new SoundPlayer(soundPathStartupSound);
-        #endregion
+            #endregion
 
-        #region Setup Startup Game
-        // Initialize Stopwatch for gametime
-        gameStopwatch = new Stopwatch();
+            #region Setup Startup Game
+            // Initialize Stopwatch for gametime
+            gameStopwatch = new Stopwatch();
 
             ////>>>> Start Program <<<<////
 
@@ -1258,7 +1258,7 @@ namespace KeepYourFocus
             UpdateLevelName();
 
             InitialDictionaryOfTilesAtStart();
-            
+
             // Reset counters rounds and levels
             counter_rounds = 0;
             counter_levels = 1;
@@ -1422,7 +1422,7 @@ namespace KeepYourFocus
         #region Processing Score
         // Initialize new task as private field
         private TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
-        
+
         // If score in top scores, verify player's rank and save score
         private async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
         {
