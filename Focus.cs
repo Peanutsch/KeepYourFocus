@@ -173,6 +173,9 @@ namespace KeepYourFocus
             startButton = false;
             computer = true;
 
+            // Back to start setup tiles
+            InitialDictionaryOfTilesAtStart();
+
             // Start Stopwatch
             InitializeGameStopwatch();
 
@@ -476,10 +479,20 @@ namespace KeepYourFocus
                 return;
             }
 
+            pictureBox1.Visible = false;
+            pictureBox2.Visible = false;
+            pictureBox3.Visible = false;
+            pictureBox4.Visible = false;
+
             InitializePictureBox(pictureBox1, "Red", Path.Combine(InitializeRootPath(), @"png\red_tile512.png"));
             InitializePictureBox(pictureBox2, "Blue", Path.Combine(InitializeRootPath(), @"png\blue_tile512.png"));
             InitializePictureBox(pictureBox3, "Orange", Path.Combine(InitializeRootPath(), @"png\orange_tile512.png"));
             InitializePictureBox(pictureBox4, "Green", Path.Combine(InitializeRootPath(), @"png\green_tile512.png"));
+
+            pictureBox1.Visible = true;
+            pictureBox2.Visible = true;
+            pictureBox3.Visible = true;
+            pictureBox4.Visible = true;
         }
 
         // Returns a dictionary of all possible tiles
