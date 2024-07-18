@@ -97,7 +97,7 @@ namespace KeepYourFocus
             startBTN.Size = new Size(154, 70);
             startBTN.TabIndex = 0;
             startBTN.UseVisualStyleBackColor = false;
-            startBTN.Click += ButtonStart_Click;
+            startBTN.Click += InitializeButtonStart_Click;
             // 
             // richTextBoxShowNumbersOfSequences
             // 
@@ -288,7 +288,7 @@ namespace KeepYourFocus
             buttonEnter.TabIndex = 20;
             buttonEnter.Text = "ENTER";
             buttonEnter.UseVisualStyleBackColor = false;
-            buttonEnter.Click += ButtonEnter_Click;
+            buttonEnter.Click += InitializeButtonEnter_Click;
             // 
             // textBoxShowResults
             // 
@@ -317,7 +317,7 @@ namespace KeepYourFocus
             buttonRetry.Text = "Click to Restart";
             buttonRetry.UseVisualStyleBackColor = false;
             buttonRetry.Visible = false;
-            buttonRetry.Click += ButtonRetry_Click;
+            buttonRetry.Click += InitializeButtonRetry_Click;
             // 
             // PlayerField
             // 
