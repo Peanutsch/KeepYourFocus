@@ -97,7 +97,7 @@ namespace KeepYourFocus
             this.startBTN.TabIndex = 0;
             this.startBTN.Text = "Click Here To Start";
             this.startBTN.UseVisualStyleBackColor = false;
-            this.startBTN.Click += this.ButtonStart_Click;
+            this.startBTN.Click += this.InitializeButtonStart_Click;
             // 
             // richTextBoxShowNumbersOfSequences
             // 
@@ -226,7 +226,7 @@ namespace KeepYourFocus
             this.textBoxInputName.Enabled = false;
             this.textBoxInputName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             this.textBoxInputName.ImeMode = ImeMode.On;
-            this.textBoxInputName.Location = new Point(416, 245);
+            this.textBoxInputName.Location = new Point(404, 351);
             this.textBoxInputName.MaxLength = 9;
             this.textBoxInputName.Name = "textBoxInputName";
             this.textBoxInputName.PlaceholderText = "YourNamePlease";
@@ -285,14 +285,14 @@ namespace KeepYourFocus
             this.buttonEnter.Enabled = false;
             this.buttonEnter.FlatStyle = FlatStyle.Popup;
             this.buttonEnter.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            this.buttonEnter.Location = new Point(415, 273);
+            this.buttonEnter.Location = new Point(403, 375);
             this.buttonEnter.Name = "buttonEnter";
-            this.buttonEnter.Size = new Size(155, 27);
+            this.buttonEnter.Size = new Size(155, 38);
             this.buttonEnter.TabIndex = 20;
             this.buttonEnter.Text = "ENTER";
             this.buttonEnter.UseVisualStyleBackColor = false;
             this.buttonEnter.Visible = false;
-            this.buttonEnter.Click += this.ButtonEnter_Click;
+            this.buttonEnter.Click += this.InitializeButtonEnter_Click;
             // 
             // textBoxShowResults
             // 
@@ -321,7 +321,7 @@ namespace KeepYourFocus
             this.buttonRetry.Text = "Click to Restart";
             this.buttonRetry.UseVisualStyleBackColor = false;
             this.buttonRetry.Visible = false;
-            this.buttonRetry.Click += this.ButtonRetry_Click;
+            this.buttonRetry.Click += this.InitializeButtonRetry_Click;
             // 
             // PlayerField
             // 

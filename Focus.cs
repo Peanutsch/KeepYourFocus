@@ -1,3 +1,7 @@
+#region Imports
+using KeepYourFocus.GameRelated;
+using Microsoft.VisualBasic.Devices;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,16 +15,18 @@ using System.Linq.Expressions;
 using System.Media;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
-
+#endregion
 namespace KeepYourFocus
 {
     public partial class PlayerField : Form
     {
+        #region ClassProperties
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
         private List<string> playerOrder = new List<string>();
         private List<string> previousTiles = new List<string>();
 
+        #region GameSound_Properties
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
         private readonly SoundPlayer orangeSound;
@@ -37,9 +43,11 @@ namespace KeepYourFocus
         private readonly SoundPlayer wrongSound;
         private readonly SoundPlayer correctSound;
         private readonly SoundPlayer startupSound;
+        #endregion
 
         private readonly Random rnd = new Random();
 
+        #region GameVariables_Properties
         private bool computer = false;
         private bool startButton = true;
         private bool nextRound = false;
@@ -50,39 +58,42 @@ namespace KeepYourFocus
         bool isPlayerTurn = false;
         bool isSetCounters = false;
         bool isDisplaySequence = false;
+        #endregion
 
         private Stopwatch gameStopwatch = new Stopwatch();
 
         private int counter_sequences = 1;
         private int counter_levels = 1;
-        private int counter_rounds = 1;
+        private int counter_rounds = 0;
+        #endregion
 
 
         public PlayerField()
         {
+            #region Initialize Components
             InitializeComponent();
 
             // Load soundfiles. For now 1 beep sound for all colors
-            string soundPathBeepALL = Path.Combine(RootPath(), @"sounds\beep.wav");
+            string soundPathBeepALL = Path.Combine(InitializeRootPath(), @"sounds\beep.wav");
 
             /* Pre-made soundPath for all colors *\
-            string soundPathBeepRed = Path.Combine(RootPath(), @"sounds\redSound.wav");
-            string soundPathBeepBlue = Path.Combine(RootPath(), @"sounds\blueSound.wav");
-            string soundPathBeepOrange = Path.Combine(RootPath(), @"sounds\orangeSound.wav");
-            string soundPathBeepGreen = Path.Combine(RootPath(), @"sounds\greenSound.wav");
-            string soundPathBeepCaribBlue = Path.Combine(RootPath(), @"sounds\caribBlueSound.wav");
-            string soundPathBeepGrey = Path.Combine(RootPath(), @"sounds\greySound.wav");
-            string soundPathBeepIndigo = Path.Combine(RootPath(), @"sounds\indigoSound.wav");
-            string soundPathBeepMaroon = Path.Combine(RootPath(), @"sounds\maroonSound.wav");
-            string soundPathBeepOlive = Path.Combine(RootPath(), @"sounds\oliveSound.wav");
-            string soundPathBeepPink = Path.Combine(RootPath(), @"sounds\pinkSound.wav");
+            string soundPathBeepRed = Path.Combine(InitializeRootPath(), @"sounds\redSound.wav");
+            string soundPathBeepBlue = Path.Combine(InitializeRootPath(), @"sounds\blueSound.wav");
+            string soundPathBeepOrange = Path.Combine(InitializeRootPath(), @"sounds\orangeSound.wav");
+            string soundPathBeepGreen = Path.Combine(InitializeRootPath(), @"sounds\greenSound.wav");
+            string soundPathBeepCaribBlue = Path.Combine(InitializeRootPath(), @"sounds\caribBlueSound.wav");
+            string soundPathBeepGrey = Path.Combine(InitializeRootPath(), @"sounds\greySound.wav");
+            string soundPathBeepIndigo = Path.Combine(InitializeRootPath(), @"sounds\indigoSound.wav");
+            string soundPathBeepMaroon = Path.Combine(InitializeRootPath(), @"sounds\maroonSound.wav");
+            string soundPathBeepOlive = Path.Combine(InitializeRootPath(), @"sounds\oliveSound.wav");
+            string soundPathBeepPink = Path.Combine(InitializeRootPath(), @"sounds\pinkSound.wav");
             */
 
-            string soundPathTransition = Path.Combine(RootPath(), @"sounds\transistion.wav");
-            string soundPathButtonClick = Path.Combine(RootPath(), @"sounds\buttonclick.wav");
-            string soundPathWrong = Path.Combine(RootPath(), @"sounds\wrong.wav");
-            string soundPathCorrect = Path.Combine(RootPath(), @"sounds\correct.wav");
-            string soundPathStartupSound = Path.Combine(RootPath(), @"sounds\startupSound.wav");
+            string soundPathTransition = Path.Combine(InitializeRootPath(), @"sounds\transistion.wav");
+            string soundPathButtonClick = Path.Combine(InitializeRootPath(), @"sounds\buttonclick.wav");
+            string soundPathWrong = Path.Combine(InitializeRootPath(), @"sounds\wrong.wav");
+            string soundPathCorrect = Path.Combine(InitializeRootPath(), @"sounds\correct.wav");
+            string soundPathStartupSound = Path.Combine(InitializeRootPath(), @"sounds\startupSound.wav");
 
             // Initiaize SoundPlayers
             redSound = new SoundPlayer(soundPathBeepALL);        // redSound = new SoundPlayer(soundPathBeepRed); 
@@ -101,14 +112,16 @@ namespace KeepYourFocus
             wrongSound = new SoundPlayer(soundPathWrong);
             correctSound = new SoundPlayer(soundPathCorrect);
             startupSound = new SoundPlayer(soundPathStartupSound);
+            #endregion
 
+            #region Setup Startup Game
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
 
             ////>>>> Start Program <<<<////
 
             // Welcome MessageBox
-            WelcomeMessageBox();
+            InitializeWelcomeMessageBox();
 
             // LinkLabels GitHub and Email
             InitializeLinkLabels();
@@ -125,16 +138,12 @@ namespace KeepYourFocus
 
             // Play startup sound
             startupSound.Play();
-
-            // Display textbox for input
-            // textBoxInputName.Visible = true;
-
-            // Ask for Player's name
-            // PlayerName();
+            #endregion
         }
 
+        #region Initialisations and Setups
         // Thank You + some info Spam MessageBox
-        private async Task WelcomeMessageBox()
+        private async Task InitializeWelcomeMessageBox()
         {
             MessageBox.Show(
                             "   Thank you for testing the heck out of my very first try-out\r\n" +
@@ -157,9 +166,8 @@ namespace KeepYourFocus
                             );
         }
 
-
         // Initialization to both startButton and retryButton
-        private void StartGame()
+        private void InitializeStartGame()
         {
             buttonClickSound.Play();
 
@@ -169,7 +177,7 @@ namespace KeepYourFocus
             computer = true;
 
             // Start Stopwatch
-            GameStopwatch();
+            InitializeGameStopwatch();
 
             //Set Flags
             textBoxHighscore.Visible = false;
@@ -199,17 +207,164 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
+        private void ManageHighlight(PictureBox pictureBox, bool highlight)
+        {
+            if (pictureBox.InvokeRequired)
+            {
+                pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
+            }
+            else
+            {
+                if (highlight) // Higlight on
+                {
+                    pictureBox.BorderStyle = BorderStyle.None;
+                    pictureBox.Padding = new Padding(5);
+                    pictureBox.BackColor = Color.White;
+                }
+                else // Highlight off
+                {
+                    pictureBox.Padding = new Padding(0);
+                    pictureBox.BackColor = Color.Transparent;
+                }
+            }
+        }
+
+        private void PlaySound(string tile)
+        {
+            switch (tile)
+            {
+                case "Red":
+                    redSound.Play();
+                    break;
+                case "Blue":
+                    blueSound.Play();
+                    break;
+                case "Orange":
+                    orangeSound.Play();
+                    break;
+                case "Green":
+                    greenSound.Play();
+                    break;
+                case "CaribBlue":
+                    caribBlueSound.Play();
+                    break;
+                case "Grey":
+                    greySound.Play();
+                    break;
+                case "Indigo":
+                    indigoSound.Play();
+                    break;
+                case "Maroon":
+                    maroonSound.Play();
+                    break;
+                case "Olive":
+                    oliveSound.Play();
+                    break;
+                case "Pink":
+                    pinkSound.Play();
+                    break;
+            }
+        }
+
+        private void AlignTextButtonBoxesCenter()
+        {
+            // Align startBTN
+            startBTN.Visible = false;
+            startBTN.TextAlign = ContentAlignment.MiddleCenter;
+            startBTN.Visible = true;
+
+            // Align richTextBoxShowLevelNumber
+            richTextBoxShowLevelNumber.Visible = false;
+            richTextBoxShowLevelNumber.SelectAll();
+            richTextBoxShowLevelNumber.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowLevelNumber.DeselectAll();
+            richTextBoxShowLevelNumber.Visible = true;
+
+            // Align richTextBoxShowLevelName
+            richTextBoxShowLevelName.Visible = false;
+            richTextBoxShowLevelName.SelectAll();
+            richTextBoxShowLevelName.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowLevelName.DeselectAll();
+            richTextBoxShowLevelName.Visible = true;
+
+            // Align richTextBoxShowNumbersOfSequences
+            richTextBoxShowNumbersOfSequences.Visible = false;
+            richTextBoxShowNumbersOfSequences.SelectAll();
+            richTextBoxShowNumbersOfSequences.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowNumbersOfSequences.DeselectAll();
+            richTextBoxShowNumbersOfSequences.Visible = true;
+
+            // Align richTextBoxTurn
+            richTextBoxTurn.Visible = false;
+            richTextBoxTurn.SelectAll();
+            richTextBoxTurn.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxTurn.DeselectAll();
+            richTextBoxTurn.Visible = true;
+
+            // Align richTextBoxShowRounds
+            richTextBoxShowRounds.Visible = false;
+            richTextBoxShowRounds.SelectAll();
+            richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxShowRounds.DeselectAll();
+            richTextBoxShowRounds.Visible = true;
+
+            // Align textBoxInputName
+            textBoxInputName.Visible = false;
+            textBoxInputName.Enabled = false;
+        }
+
         // Click Event for Start Button at start
-        private void ButtonStart_Click(object sender, EventArgs e)
+        private void InitializeButtonStart_Click(object sender, EventArgs e)
         {
             if (!startButton)
                 return;
 
-            StartGame();
+            InitializeStartGame();
+        }
+
+        // Click Event for buttonRetry at Game Over
+        private async void InitializeButtonRetry_Click(object sender, EventArgs e)
+        {
+            // Any additional logic specific to retry
+            await Task.Delay(500);
+
+            buttonRetry.Enabled = true;
+            buttonRetry.Visible = true;
+
+            //Set LinkLabels invisible
+            linkLabelGitHub.Visible = true;
+            linkLabelGitHub.Enabled = true;
+            linkLabelEmail.Visible = true;
+            linkLabelEmail.Enabled = true;
+
+            InitialDictionaryOfTilesAtStart();
+            InitializeStartGame();
+        }
+
+        // Initialize Enter button for input playerName
+        private void InitializeButtonEnter_Click(object sender, EventArgs e)
+        {
+            string playerName = ProcessInputName();
+            playerNameTcs.SetResult(playerName);
+        }
+
+        // Initialize KeyDownENTER for input playerName
+        private void InitializeKeyDownEnter()
+        {
+            textBoxInputName.KeyDown += (sender, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true; // Prevents the Enter key from inserting a newline
+                    e.SuppressKeyPress = true; // Stops the "ding" sound
+                    string playerName = ProcessInputName();
+                    playerNameTcs.SetResult(playerName);
+                }
+            };
         }
 
         // Stopwatch for recording gametime
-        private string GameStopwatch()
+        private string InitializeGameStopwatch()
         {
             if (gameTime)
             {
@@ -239,47 +394,15 @@ namespace KeepYourFocus
             }
         }
 
-        // TESTING --> Initialize and return root path including directory \KeepYourFocus\
-        static string TESTRootPath()
-        {
-            // Use the local application data path and the app name to construct the root path
-            string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
-
-            if (string.IsNullOrEmpty(localAppDataPath))
-            {
-                Debug.WriteLine("Error: Application path is not valid.");
-                return string.Empty; // Return an empty string
-            }
-
-            // Ensure the directory exists, create if it doesn't
-            try
-            {
-                Directory.CreateDirectory(localAppDataPath);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: Unable to create application directory. {ex.Message}");
-                return string.Empty; // Return an empty string
-            }
-
-            // Ensure the path ends with a directory separator
-            if (!localAppDataPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            {
-                localAppDataPath += Path.DirectorySeparatorChar;
-            }
-
-            return localAppDataPath;
-        }
-
-
         // Initialize and return root path including directory \KeepYourFocus\
-        static string RootPath()
+        static string InitializeRootPath()
         {
             string directoryPath = Environment.CurrentDirectory;
 
             if (string.IsNullOrEmpty(directoryPath))
             {
-                Debug.WriteLine("Error: Application executable path is not valid.");
+                Debug.WriteLine("Error: Unable to determine root path.");
+                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return string.Empty; // Return an empty string
             }
 
@@ -303,16 +426,17 @@ namespace KeepYourFocus
             }
         }
 
+        // Initialize Labels with links to github and email @duck.com
         private void InitializeLinkLabels()
-        {
-            // Setup LinkLabels text
-            linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
-            linkLabelEmail.Text = "peanutsch@duck.com";
+            {
+                // Setup LinkLabels text
+                linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
+                linkLabelEmail.Text = "peanutsch@duck.com";
 
-            // Add link data
-            linkLabelGitHub.Links.Add(0, linkLabelGitHub.Text.Length, "https://github.com/Peanutsch/KeepYourFocus.git");
-            linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
-        }
+                // Add link data
+                linkLabelGitHub.Links.Add(0, linkLabelGitHub.Text.Length, "https://github.com/Peanutsch/KeepYourFocus.git");
+                linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
+            }
 
         // Click Event for linklabel GitHub
         private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -348,25 +472,25 @@ namespace KeepYourFocus
                 return;
             }
 
-            InitializePictureBox(pictureBox1, "Red", Path.Combine(RootPath(), @"png\red_tile512.png"));
-            InitializePictureBox(pictureBox2, "Blue", Path.Combine(RootPath(), @"png\blue_tile512.png"));
-            InitializePictureBox(pictureBox3, "Orange", Path.Combine(RootPath(), @"png\orange_tile512.png"));
-            InitializePictureBox(pictureBox4, "Green", Path.Combine(RootPath(), @"png\green_tile512.png"));
+            InitializePictureBox(pictureBox1, "Red", Path.Combine(InitializeRootPath(), @"png\red_tile512.png"));
+            InitializePictureBox(pictureBox2, "Blue", Path.Combine(InitializeRootPath(), @"png\blue_tile512.png"));
+            InitializePictureBox(pictureBox3, "Orange", Path.Combine(InitializeRootPath(), @"png\orange_tile512.png"));
+            InitializePictureBox(pictureBox4, "Green", Path.Combine(InitializeRootPath(), @"png\green_tile512.png"));
         }
 
         // Returns a dictionary of all possible tiles
         static Dictionary<string, string> DictOfAllTiles()
         {
-            string redTile = Path.Combine(RootPath(), "png", "red_tile512.png");
-            string blueTile = Path.Combine(RootPath(), "png", "blue_tile512.png");
-            string orangeTile = Path.Combine(RootPath(), "png", "orange_tile512.png");
-            string greenTile = Path.Combine(RootPath(), "png", "green_tile512.png");
-            string caribBlueTile = Path.Combine(RootPath(), "png", "caribBlue_tile512.png");
-            string greyTile = Path.Combine(RootPath(), "png", "grey_tile512.png");
-            string indigoTile = Path.Combine(RootPath(), "png", "indigo_tile512.png");
-            string maroonTile = Path.Combine(RootPath(), "png", "maroon_tile512.png");
-            string oliveTile = Path.Combine(RootPath(), "png", "olive_tile512.png");
-            string pinkTile = Path.Combine(RootPath(), "png", "pink_tile512.png");
+            string redTile = Path.Combine(InitializeRootPath(), "png", "red_tile512.png");
+            string blueTile = Path.Combine(InitializeRootPath(), "png", "blue_tile512.png");
+            string orangeTile = Path.Combine(InitializeRootPath(), "png", "orange_tile512.png");
+            string greenTile = Path.Combine(InitializeRootPath(), "png", "green_tile512.png");
+            string caribBlueTile = Path.Combine(InitializeRootPath(), "png", "caribBlue_tile512.png");
+            string greyTile = Path.Combine(InitializeRootPath(), "png", "grey_tile512.png");
+            string indigoTile = Path.Combine(InitializeRootPath(), "png", "indigo_tile512.png");
+            string maroonTile = Path.Combine(InitializeRootPath(), "png", "maroon_tile512.png");
+            string oliveTile = Path.Combine(InitializeRootPath(), "png", "olive_tile512.png");
+            string pinkTile = Path.Combine(InitializeRootPath(), "png", "pink_tile512.png");
 
             Dictionary<string, string> dictOfAllTiles = new Dictionary<string, string>()
                                                                 {
@@ -508,7 +632,10 @@ namespace KeepYourFocus
                     return Point.Empty; // Default position if index is out of range
             }
         }
+        #endregion
 
+        #region Difficulties
+        
         private void RefreshAndRepositionPictureBoxes()
         {
             // Get the shuffled PictureBoxes
@@ -522,6 +649,215 @@ namespace KeepYourFocus
             }
         }
 
+        // Shuffle currect tile setup before player's turn and/or after player's click
+        private async Task ShufflePictureBoxes()
+        {
+            // isDisplaySequence
+            if (counter_levels == 2 && rnd.Next(100) <= 100 && isDisplaySequence ||
+                counter_levels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
+                counter_levels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence)
+            {
+                Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle before player's turn");
+
+                await Task.Delay(500); // Delay 250 ms for space between colorSound and transitionSound
+                transitionSound.Play();
+                RandomizerShufflePictureBoxes();
+                RefreshAndRepositionPictureBoxes();
+                await Task.Delay(500);
+            }
+            // isPlayerTurn
+            if (counter_levels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
+                counter_levels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
+                counter_levels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn)
+            {
+                Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
+
+                RandomizerShufflePictureBoxes();
+                RefreshAndRepositionPictureBoxes();
+            }
+        }
+
+        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
+        {
+            string newTile = RandomizerTiles();
+            Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
+            List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
+
+            bool checkReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+                                       (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
+                                       (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
+
+            bool checkReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
+                                       (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
+                                       (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
+
+            bool replacementOccurred = false; // Flag to indicate if any replacement happened
+
+            if (checkReplaceInOrder || checkReplaceOnBoard)
+            {
+                // Make copy of correctOrder as copyCorrectOrder
+                List<string> copyCorrectOrder = new List<string>(correctOrder);
+
+                // Randomize tile to delete from copyCorrectOrder
+                int randomIndex = rnd.Next(copyCorrectOrder.Count);
+                string deleteTile = copyCorrectOrder[randomIndex];
+
+                Debug.WriteLine($"deleteTile: [{deleteTile}]");
+
+                if (checkReplaceInOrder && newTile != deleteTile && randomIndex != copyCorrectOrder.Count - 1)
+                {
+                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
+                    Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]\n");
+
+                    copyCorrectOrder[randomIndex] = newTile;
+
+                    // Update correctOrder with the new copyCorrectOrder
+                    correctOrder = copyCorrectOrder;
+                    replacementOccurred = true;
+                }
+                if (checkReplaceOnBoard)
+                {
+                    // Get the PictureBox associated with the deleteTile
+                    PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteTile];
+
+                    // Remove the old tile from the board
+                    pictureBoxDictionary.Remove(deleteTile);
+
+                    // Randomize new tile that's not in the remaining colors on the board
+                    string pickNewTile;
+                    do
+                    {
+                        pickNewTile = listOfAllTiles[rnd.Next(listOfAllTiles.Count)].Key;
+                        Debug.WriteLine($"pickNewTile: [{pickNewTile}]");
+                    } while (copyCorrectOrder.Contains(pickNewTile) || pictureBoxDictionary.ContainsKey(pickNewTile));
+
+                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
+                    Debug.WriteLine($"Replaced on board and in order [{deleteTile}] with [{pickNewTile}]");
+
+                    // Initialize the PictureBox with the new tile
+                    InitializePictureBox(pictureBoxToReplace, pickNewTile, dictOfAllTiles[pickNewTile]);
+
+                    // Add the new tile to the pictureBoxDictionary
+                    pictureBoxDictionary[pickNewTile] = pictureBoxToReplace;
+
+                    // Iter through copyCorrectOrder and replace all deleteTile with pickNewcolor at their index
+                    for (int indexItem = 0; indexItem < copyCorrectOrder.Count; indexItem++)
+                    {
+                        if (copyCorrectOrder[indexItem] == deleteTile)
+                        {
+                            copyCorrectOrder[indexItem] = pickNewTile;
+                        }
+                    }
+
+                    // Update correctOrder with the new copyCorrectOrder
+                    correctOrder = copyCorrectOrder;
+                    replacementOccurred = true;
+                }
+                Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
+                Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
+            }
+            return (pictureBoxDictionary, correctOrder, replacementOccurred);
+        }
+
+        // Replace and switch all tiles when level up
+        private void ReplaceAllTiles()
+        {
+            if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
+                counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
+                counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 85)
+            {
+
+                Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
+
+                // Ensure that we have enough colors to assign
+                if (shuffledTiles.Count >= 3)
+                {
+                    // Retrieve the first 4 key-value pairs from shuffledTiles
+                    KeyValuePair<string, string> kvp1 = shuffledTiles.ElementAt(0);
+                    KeyValuePair<string, string> kvp2 = shuffledTiles.ElementAt(1);
+                    KeyValuePair<string, string> kvp3 = shuffledTiles.ElementAt(2);
+                    KeyValuePair<string, string> kvp4 = shuffledTiles.ElementAt(3);
+
+                    try
+                    {
+                        // Clear the dictionary and add the new tiles
+                        pictureBoxDictionary.Clear();
+
+                        InitializePictureBox(pictureBox1, kvp1.Key, kvp1.Value);
+                        InitializePictureBox(pictureBox2, kvp2.Key, kvp2.Value);
+                        InitializePictureBox(pictureBox3, kvp3.Key, kvp3.Value);
+                        InitializePictureBox(pictureBox4, kvp4.Key, kvp4.Value);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        Debug.WriteLine($"An item with the same key has already been added: {ex.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
+                }
+            }
+        }
+
+        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
+        private async void DisplayLabelMessage(bool iscomputerTurn)
+        {
+            /*
+             * Show labels with text in either computer's or Player's turn
+             * E.g. Computer's turn: "Click Here", "Start Here!", "Start With this One!" (45%, 55% or 65% chance depending on level)
+             * Player's turn: various messages based on different levels and conditions
+             */
+
+            int chance = counter_levels >= 6 ? 55 : 45;
+            bool showMessage = computer
+                ? counter_levels >= 2 && rnd.Next(100) <= chance && correctOrder.Count != correctOrder.Count - 1
+                : counter_levels >= 2 && rnd.Next(100) <= 65 && playerOrder.Count != correctOrder.Count;
+
+            if (showMessage)
+            {
+                List<Label> labels = new List<Label> { LabelMessage1, LabelMessage2, LabelMessage3, LabelMessage4 };
+                List<string> labelText;
+
+                if (iscomputerTurn)
+                {
+                    labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
+                }
+                else // is Player's turn
+                {
+                    labelText = new List<string>
+                                                {
+                                                 "Click Here", "This Is NOT\nThe Correct tile!", "The computer\nIs Lying!",
+                                                 "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Tile!",
+                                                 "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
+                                                };
+                }
+
+                // Randomize Label 1 - label 4
+                int pickLabelIndex = rnd.Next(labels.Count);
+                Label randomizedLabelClickHere = labels[pickLabelIndex];
+
+                // Randomize labelText
+                int pickLabelText = rnd.Next(labelText.Count);
+                string randomizedText = labelText[pickLabelText];
+
+                await Task.Delay(250);
+
+                // Initialize label
+                randomizedLabelClickHere.AutoSize = true;
+                randomizedLabelClickHere.Text = randomizedText;
+                randomizedLabelClickHere.Visible = true;
+                await Task.Delay(750);
+                randomizedLabelClickHere.Visible = false;
+            }
+        }
+        #endregion
+
+        #region Game Elements
         private void ComputersTurn()
         {
             textBoxShowResults.Visible = false;
@@ -749,327 +1085,6 @@ namespace KeepYourFocus
             }
         }
 
-
-        ////>>>> DIFFICULTIES <<<<////
-
-
-        // Shuffle currect tile setup before player's turn and/or after player's click
-        private async Task ShufflePictureBoxes()
-        {
-            // isDisplaySequence
-            if (counter_levels == 2 && rnd.Next(100) <= 100 && isDisplaySequence ||
-                counter_levels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
-                counter_levels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence)
-            {
-                Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle before player's turn");
-
-                await Task.Delay(500); // Delay 250 ms for space between colorSound and transitionSound
-                transitionSound.Play();
-                RandomizerShufflePictureBoxes();
-                RefreshAndRepositionPictureBoxes();
-                await Task.Delay(500);
-            }
-            // isPlayerTurn
-            if (counter_levels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
-                counter_levels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
-                counter_levels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn)
-            {
-                Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
-
-                RandomizerShufflePictureBoxes();
-                RefreshAndRepositionPictureBoxes();
-            }
-        }
-
-        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
-        {
-            string newTile = RandomizerTiles();
-            Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
-            List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
-
-            bool checkReplaceInOrder = (counter_levels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                       (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counter_levels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
-
-            bool checkReplaceOnBoard = (counter_levels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                       (counter_levels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counter_levels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
-
-            bool replacementOccurred = false; // Flag to indicate if any replacement happened
-
-            if (checkReplaceInOrder || checkReplaceOnBoard)
-            {
-                // Make copy of correctOrder as copyCorrectOrder
-                List<string> copyCorrectOrder = new List<string>(correctOrder);
-
-                // Randomize tile to delete from copyCorrectOrder
-                int randomIndex = rnd.Next(copyCorrectOrder.Count);
-                string deleteTile = copyCorrectOrder[randomIndex];
-
-                Debug.WriteLine($"deleteTile: [{deleteTile}]");
-
-                if (checkReplaceInOrder && newTile != deleteTile && randomIndex != copyCorrectOrder.Count - 1)
-                {
-                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]\n");
-
-                    copyCorrectOrder[randomIndex] = newTile;
-
-                    // Update correctOrder with the new copyCorrectOrder
-                    correctOrder = copyCorrectOrder;
-                    replacementOccurred = true;
-                }
-                if (checkReplaceOnBoard)
-                {
-                    // Get the PictureBox associated with the deleteTile
-                    PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteTile];
-
-                    // Remove the old tile from the board
-                    pictureBoxDictionary.Remove(deleteTile);
-
-                    // Randomize new tile that's not in the remaining colors on the board
-                    string pickNewTile;
-                    do
-                    {
-                        pickNewTile = listOfAllTiles[rnd.Next(listOfAllTiles.Count)].Key;
-                        Debug.WriteLine($"pickNewTile: [{pickNewTile}]");
-                    } while (copyCorrectOrder.Contains(pickNewTile) || pictureBoxDictionary.ContainsKey(pickNewTile));
-
-                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replaced on board and in order [{deleteTile}] with [{pickNewTile}]");
-
-                    // Initialize the PictureBox with the new tile
-                    InitializePictureBox(pictureBoxToReplace, pickNewTile, dictOfAllTiles[pickNewTile]);
-
-                    // Add the new tile to the pictureBoxDictionary
-                    pictureBoxDictionary[pickNewTile] = pictureBoxToReplace;
-
-                    // Iter through copyCorrectOrder and replace all deleteTile with pickNewcolor at their index
-                    for (int indexItem = 0; indexItem < copyCorrectOrder.Count; indexItem++)
-                    {
-                        if (copyCorrectOrder[indexItem] == deleteTile)
-                        {
-                            copyCorrectOrder[indexItem] = pickNewTile;
-                        }
-                    }
-
-                    // Update correctOrder with the new copyCorrectOrder
-                    correctOrder = copyCorrectOrder;
-                    replacementOccurred = true;
-                }
-                Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
-                Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
-            }
-            return (pictureBoxDictionary, correctOrder, replacementOccurred);
-        }
-
-        // Replace and switch all tiles when level up
-        private void ReplaceAllTiles()
-        {
-            if (counter_levels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
-                counter_levels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
-                counter_levels >= 7 && levelUp == true && rnd.Next(100) <= 85)
-            {
-
-                Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
-
-                // Ensure that we have enough colors to assign
-                if (shuffledTiles.Count >= 3)
-                {
-                    // Retrieve the first 4 key-value pairs from shuffledTiles
-                    KeyValuePair<string, string> kvp1 = shuffledTiles.ElementAt(0);
-                    KeyValuePair<string, string> kvp2 = shuffledTiles.ElementAt(1);
-                    KeyValuePair<string, string> kvp3 = shuffledTiles.ElementAt(2);
-                    KeyValuePair<string, string> kvp4 = shuffledTiles.ElementAt(3);
-
-                    try
-                    {
-                        // Clear the dictionary and add the new tiles
-                        pictureBoxDictionary.Clear();
-
-                        InitializePictureBox(pictureBox1, kvp1.Key, kvp1.Value);
-                        InitializePictureBox(pictureBox2, kvp2.Key, kvp2.Value);
-                        InitializePictureBox(pictureBox3, kvp3.Key, kvp3.Value);
-                        InitializePictureBox(pictureBox4, kvp4.Key, kvp4.Value);
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        Debug.WriteLine($"An item with the same key has already been added: {ex.Message}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
-                }
-            }
-        }
-
-        // Replace 1 tile in running sequence and/or on board. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
-
-        private async void DisplayLabelMessage(bool iscomputerTurn)
-        {
-            /*
-             * Show labels with text in either computer's or Player's turn
-             * E.g. Computer's turn: "Click Here", "Start Here!", "Start With this One!" (45%, 55% or 65% chance depending on level)
-             * Player's turn: various messages based on different levels and conditions
-             */
-
-            int chance = counter_levels >= 6 ? 55 : 45;
-            bool showMessage = computer
-                ? counter_levels >= 2 && rnd.Next(100) <= chance && correctOrder.Count != correctOrder.Count - 1
-                : counter_levels >= 2 && rnd.Next(100) <= 65 && playerOrder.Count != correctOrder.Count;
-
-            if (showMessage)
-            {
-                List<Label> labels = new List<Label> { LabelMessage1, LabelMessage2, LabelMessage3, LabelMessage4 };
-                List<string> labelText;
-
-                if (iscomputerTurn)
-                {
-                    labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
-                }
-                else // is Player's turn
-                {
-                    labelText = new List<string>
-                                                {
-                                                 "Click Here", "This Is NOT\nThe Correct tile!", "The computer\nIs Lying!",
-                                                 "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Tile!",
-                                                 "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
-                                                };
-                }
-
-                // Randomize Label 1 - label 4
-                int pickLabelIndex = rnd.Next(labels.Count);
-                Label randomizedLabelClickHere = labels[pickLabelIndex];
-
-                // Randomize labelText
-                int pickLabelText = rnd.Next(labelText.Count);
-                string randomizedText = labelText[pickLabelText];
-
-                await Task.Delay(250);
-
-                // Initialize label
-                randomizedLabelClickHere.AutoSize = true;
-                randomizedLabelClickHere.Text = randomizedText;
-                randomizedLabelClickHere.Visible = true;
-                await Task.Delay(750);
-                randomizedLabelClickHere.Visible = false;
-            }
-        }
-
-        ////>>>> INITIALIZE HIGHLIGHTS, SOUND, TEXTBOXES AND GAME OVER <<<<////
-
-        private void ManageHighlight(PictureBox pictureBox, bool highlight)
-        {
-            if (pictureBox.InvokeRequired)
-            {
-                pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
-            }
-            else
-            {
-                if (highlight) // Higlight on
-                {
-                    pictureBox.BorderStyle = BorderStyle.None;
-                    pictureBox.Padding = new Padding(5);
-                    pictureBox.BackColor = Color.White;
-                }
-                else // Highlight off
-                {
-                    pictureBox.Padding = new Padding(0);
-                    pictureBox.BackColor = Color.Transparent;
-                }
-            }
-        }
-
-        private void PlaySound(string tile)
-        {
-            switch (tile)
-            {
-                case "Red":
-                    redSound.Play();
-                    break;
-                case "Blue":
-                    blueSound.Play();
-                    break;
-                case "Orange":
-                    orangeSound.Play();
-                    break;
-                case "Green":
-                    greenSound.Play();
-                    break;
-                case "CaribBlue":
-                    caribBlueSound.Play();
-                    break;
-                case "Grey":
-                    greySound.Play();
-                    break;
-                case "Indigo":
-                    indigoSound.Play();
-                    break;
-                case "Maroon":
-                    maroonSound.Play();
-                    break;
-                case "Olive":
-                    oliveSound.Play();
-                    break;
-                case "Pink":
-                    pinkSound.Play();
-                    break;
-            }
-        }
-
-        private void AlignTextButtonBoxesCenter()
-        {
-            // Align startBTN
-            startBTN.Visible = false;
-            startBTN.TextAlign = ContentAlignment.MiddleCenter;
-            startBTN.Visible = true;
-
-            // Align richTextBoxShowLevelNumber
-            richTextBoxShowLevelNumber.Visible = false;
-            richTextBoxShowLevelNumber.SelectAll();
-            richTextBoxShowLevelNumber.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowLevelNumber.DeselectAll();
-            richTextBoxShowLevelNumber.Visible = true;
-
-            // Align richTextBoxShowLevelName
-            richTextBoxShowLevelName.Visible = false;
-            richTextBoxShowLevelName.SelectAll();
-            richTextBoxShowLevelName.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowLevelName.DeselectAll();
-            richTextBoxShowLevelName.Visible = true;
-
-            // Align richTextBoxShowNumbersOfSequences
-            richTextBoxShowNumbersOfSequences.Visible = false;
-            richTextBoxShowNumbersOfSequences.SelectAll();
-            richTextBoxShowNumbersOfSequences.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowNumbersOfSequences.DeselectAll();
-            richTextBoxShowNumbersOfSequences.Visible = true;
-
-            // Align richTextBoxTurn
-            richTextBoxTurn.Visible = false;
-            richTextBoxTurn.SelectAll();
-            richTextBoxTurn.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxTurn.DeselectAll();
-            richTextBoxTurn.Visible = true;
-
-            // Align richTextBoxShowRounds
-            richTextBoxShowRounds.Visible = false;
-            richTextBoxShowRounds.SelectAll();
-            richTextBoxShowRounds.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBoxShowRounds.DeselectAll();
-            richTextBoxShowRounds.Visible = true;
-
-            // Align textBoxInputName
-            textBoxInputName.Visible = false;
-            textBoxInputName.PlaceholderText = "YourNameHere";
-
-        }
-
         // Update richtextbox ShowNumbersOfSequences
         private void UpdateSequence()
         {
@@ -1198,44 +1213,76 @@ namespace KeepYourFocus
                     break;
             }
         }
+        #endregion
 
-        // Click Event for buttonRetry at Game Over
-        private async void ButtonRetry_Click(object sender, EventArgs e)
+        #region Processing Game Over, Input playerName, sort and display Highscores
+        // Initialize setup when Game Over
+        private async void GameOver()
         {
-            // Any additional logic specific to retry
-            await Task.Delay(500);
+            // Set flags
+            computer = false;
+            startButton = true;
+            gameTime = false;
 
-            buttonRetry.Enabled = true;
-            buttonRetry.Visible = true;
+            pictureBox1.Enabled = false;
+            pictureBox2.Enabled = false;
+            pictureBox3.Enabled = false;
+            pictureBox4.Enabled = false;
 
-            //Set LinkLabels invisible
+            textBoxHighscore.Visible = true;
+
+            textBoxShowResults.Visible = true;
+            
+            textBoxInputName.Enabled = true;
+            textBoxInputName.Visible = true;
+            buttonEnter.Visible = true;
+            buttonEnter.Enabled = true;
+
             linkLabelGitHub.Visible = true;
             linkLabelGitHub.Enabled = true;
             linkLabelEmail.Visible = true;
             linkLabelEmail.Enabled = true;
 
-            InitialDictionaryOfTilesAtStart();
-            StartGame();
-        }
+            // Stop Stopwatch
+            InitializeGameStopwatch();
 
-        // 
+            wrongSound.Play();
+
+            // Save the score
+            await VerifyPlayerRank(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
+
+            correctOrder.Clear();
+            playerOrder.Clear();
+
+            counter_levels = 999;
+
+            UpdateLevelName();
+
+            InitialDictionaryOfTilesAtStart();
+
+            counter_rounds = 0;
+            counter_levels = 1;
+        }
+        
+        // Return playerName and set flags (rich)textboxes
         string ProcessInputName()
         {
-            string playerName = textBoxInputName.Text.Trim();
+            textBoxInputName.Clear();
+            string playerName = textBoxInputName.Text.ToUpper().Trim();
 
-            if (!string.IsNullOrWhiteSpace(playerName) && playerName != "YOURNAME" && playerName != "YOUR NAME")
+            if (!string.IsNullOrWhiteSpace(playerName))
             {
                 textBoxInputName.Enabled = false;
                 textBoxInputName.Visible = false;
 
+                //Refresh textbox Highscores
+                TextBoxHighscores();
 
                 // After valid input: disable textBoxInputName and buttonEnter, enable startBTN
                 textBoxInputName.Visible = false;
                 textBoxInputName.Enabled = false;
                 buttonEnter.Enabled = false;
                 buttonEnter.Visible = false;
-                textBoxHighscore.Visible = false;
-                textBoxHighscore.Visible = true;
 
                 startBTN.TextAlign = ContentAlignment.MiddleCenter;
                 startBTN.Text = "Click to Start";
@@ -1255,46 +1302,21 @@ namespace KeepYourFocus
                 // Continue without text in richTextBoxShowLevelName and richTextBoxShowRounds
                 textBoxInputName.Visible = false;
                 textBoxInputName.Enabled = false;
-                textBoxHighscore.Visible = false;
-                textBoxHighscore.Visible = true;
-
                 buttonEnter.Enabled = false;
                 buttonEnter.Visible = false;
+
+                //Refresh textbox Highscores
+                TextBoxHighscores();
 
                 startBTN.TextAlign = ContentAlignment.MiddleCenter;
                 startBTN.Text = "Click to Start";
                 startBTN.Enabled = true;
                 startButton = true;
-
                 // Fill richtextboxes
                 richTextBoxShowRounds.Text = $"Good Luck!";
                 return playerName;
             }
         }
-
-        // Initialize KeyDownENTER for input playerName
-        private void KeyDownEnter()
-        {
-            textBoxInputName.KeyDown += (sender, e) =>
-            {
-                if (e.KeyCode == Keys.Enter)
-                {
-                    e.Handled = true; // Prevents the Enter key from inserting a newline
-                    e.SuppressKeyPress = true; // Stops the "ding" sound
-                    string playerName = ProcessInputName();
-                    playerNameTcs.SetResult(playerName);
-                }
-            };
-        }
-
-
-        // Initialize Enter button for input playerName
-        private void ButtonEnter_Click(object sender, EventArgs e)
-        {
-            string playerName = ProcessInputName();
-            playerNameTcs.SetResult(playerName);
-        }
-
 
         // Get playerName via TextBoxInputName
         private TaskCompletionSource<string> playerNameTcs;
@@ -1302,6 +1324,9 @@ namespace KeepYourFocus
         private async Task<string> PlayerName()
         {
             playerNameTcs = new TaskCompletionSource<string>();
+
+            textBoxInputName.Clear();
+            string playerName = textBoxInputName.Text.ToUpper().Trim();
 
             // Display textbox for input
             textBoxInputName.PlaceholderText = "YourNameHere";
@@ -1314,10 +1339,10 @@ namespace KeepYourFocus
             textBoxInputName.Focus();
 
             // Set up the KeyDown event handler
-            KeyDownEnter();
+            InitializeKeyDownEnter();
 
             // Wait for the player to enter their name and return it
-            string playerName = await playerNameTcs.Task;
+            playerName = await playerNameTcs.Task;
             return playerName;
         }
 
@@ -1331,8 +1356,8 @@ namespace KeepYourFocus
             Debug.WriteLine($"topHighscores count: {topHighscores.Count}");
 
             // Set textboxHighscore properties for proper display
-            textBoxHighscore.Visible = true;
             textBoxHighscore.Clear(); // Clear any existing text
+            textBoxHighscore.Visible = true;
 
             // Use a fixed-width font for proper alignment
             textBoxHighscore.Font = new Font("Courier New", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -1360,114 +1385,10 @@ namespace KeepYourFocus
             }
         }
 
-        // When Game Over, saves score on new line in setters. Make copy in rootmap as Highscores.txt
-        private async Task SaveScore(int totalRounds, int levelReached, string levelName)
-        {
-            List<(string, int, int, string, string, string)> getHighScores = SortBestScores();
-            List<(int, int, string, string, string)> topHighscores = new List<(int, int, string, string, string)>();
-            
-            foreach (var item in getHighScores)
-            {
-                string isName = item.Item1;
-                int isRounds = item.Item2;
-                int isLevelReached = item.Item3;
-                string isLevelName = item.Item4;
-                string dateToday = item.Item5;
-                string gameTime = item.Item6;
-
-                topHighscores.Add((isRounds, isLevelReached, isLevelName, dateToday, gameTime));
-            }
-
-            string elapsedGameTime = GameStopwatch(); // Get elapsed game time
-            string rootPath = RootPath(); // Construct the file path using RootPath
-            DateTime isToday = DateTime.Today; // Get current date
-            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture); // Set format date
-
-            // Null check
-            if (string.IsNullOrEmpty(rootPath))
-            {
-                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            string file = Path.Combine(rootPath, "sounds", "setters.txt");
-
-            try
-            {
-                // Check if the new score qualifies for the top scores list
-                bool qualifiesForTopScores = topHighscores.Count < 8 || topHighscores.Any(score => score.Item1 < totalRounds || (score.Item1 == totalRounds && TimeSpan.Parse(score.Item5) > TimeSpan.Parse(elapsedGameTime)));
-
-                if (qualifiesForTopScores)
-                {
-                    // Sort and take the top scores
-                    topHighscores = topHighscores.OrderByDescending(x => x.Item1)
-                                                 .ThenBy(x => TimeSpan.Parse(x.Item5))
-                                                 .Take(8)
-                                                 .ToList();
-
-                    // Determine the rank of the current score
-                    int playerRank = topHighscores.FindIndex(score => score.Item1 == totalRounds && score.Item5 == elapsedGameTime) + 1;
-                    if (playerRank <= 8) // If in top Highscores; show total rounds and ask playerName
-                    {
-                        textBoxShowResults.Visible = true;
-                        textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
-
-                        // Get the player or default player name
-                        string playerName = await PlayerName();
-
-                        // Enter input by buttonEnter and Key.Enter
-                        textBoxInputName.Focus();
-
-                        // Insert playerName on index 0
-                        topHighscores.Insert(0, (totalRounds, levelReached, levelName.Trim(), isDate, elapsedGameTime));
-
-                        // Write the updated top scores back to the file
-                        using (StreamWriter saveScore = new StreamWriter(file, false))
-                        {
-                            foreach (var score in topHighscores)
-                            {
-                                //saveScore.WriteLine($"{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5},{score.Item6}");
-                                saveScore.WriteLine($"{playerName.Trim()},{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5}");
-                            }
-
-                            textBoxHighscore.Visible = false;
-                            textBoxHighscore.Visible = true;
-                        }
-                        
-                        Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {isDate}, {elapsedGameTime}");
-                    }
-                    else // If not in top Highscores; show only totalRounds
-                    {
-                        // Refresh and show textBoxHighscores and textBoxShowResults
-                        TextBoxHighscores();
-                        textBoxShowResults.Visible = true;
-                        textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
-                    }
-
-                    // Copy the file to another directory
-                    string copyToDir = Path.Combine(rootPath);
-                    Directory.CreateDirectory(copyToDir); // Ensure the directory exists
-                    string copyFile = Path.Combine(copyToDir, "higscores.txt");
-                    string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscores.txt");
-
-                    File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
-                    File.Copy(file, copyFile2, true); // Copy the file and overwrite if exists
-
-                    // Read the saved data
-                    ReadScoresFromFile();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"An error occurred while saving game data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-
         // Returns list with all data in setters.txt
         private List<(string, int, int, string, string, string)> ReadScoresFromFile()
         {
-            string file = Path.Combine(RootPath(), "sounds", "setters.txt");
+            string file = Path.Combine(InitializeRootPath(), "sounds", "setters.txt");
             List<(string, int, int, string, string, string)> scoresList = new List<(string, int, int, string, string, string)>();
 
             try
@@ -1502,7 +1423,6 @@ namespace KeepYourFocus
             return scoresList;
         }
 
-
         // Returns decreasing sorted list of higscores.txt
         private List<(string, int, int, string, string, string)> SortBestScores()
         {
@@ -1525,51 +1445,194 @@ namespace KeepYourFocus
             }
             return bestScores;
         }
+        #endregion
 
-        private async void GameOver()
+        #region Processing Score
+        private async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
         {
-            // Set flags
-            computer = false;
-            startButton = true;
-            gameTime = false;
+            var highScores = SortBestScores()
+                .Select(score => (score.Item1, score.Item2, score.Item3, score.Item4, score.Item5, score.Item6))
+                .ToList();
 
-            textBoxHighscore.Enabled = false;
-            pictureBox1.Enabled = false;
-            pictureBox2.Enabled = false;
-            pictureBox3.Enabled = false;
-            pictureBox4.Enabled = false;
-            textBoxShowResults.Visible = true;
+            string elapsedGameTime = InitializeGameStopwatch();
+            string currentDate = DateTime.Today.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
-            buttonRetry.Enabled = true;
-            buttonRetry.Visible = true;
+            if (QualifiesForTopScores(highScores, totalRounds, elapsedGameTime))
+            {
+                string placeholderText = string.Empty; // use placeholderText instead of create and adjust new list
+                highScores.Add((placeholderText, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime));
 
-            linkLabelGitHub.Visible = true;
-            linkLabelGitHub.Enabled = true;
-            linkLabelEmail.Visible = true;
-            linkLabelEmail.Enabled = true;
+                highScores = highScores
+                    .OrderByDescending(score => score.Item2)
+                    .ThenBy(score => TimeSpan.Parse(score.Item6))
+                    .Take(8)
+                    .ToList();
 
-            // Stop Stopwatch
-            GameStopwatch();
+                // Determine the rank of the current score
+                int playerRank = highScores.FindIndex(score => score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
 
+                IsHighscoreText(totalRounds, playerRank);
+
+                // Wait for valid input playerName
+                string playerName = await PlayerName();
+                // Update list highScores with playerName
+                highScores.Clear();
+                highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime));
+
+                SaveScoreToFile(highScores);
+                Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {currentDate}, {elapsedGameTime}");
+
+                // Set textboxHighscore properties for proper display
+                textBoxHighscore.Clear(); // Clear any existing text
+                TextBoxHighscores();
+
+                // De-activate and hide textBoxInputName and buttonEnter
+                textBoxInputName.Visible = false;
+                textBoxInputName.Enabled = false;
+                buttonEnter.Visible = false;
+                buttonEnter.Enabled = false;
+                // Activate and show buttonRetry
+                buttonRetry.Enabled = true;
+                buttonRetry.Visible = true;
+            }
+            else
+            {
+                // Set textboxHighscore properties for proper display
+                textBoxHighscore.Clear(); // Clear any existing text
+                TextBoxHighscores();
+
+                IsNotHighscoreText(totalRounds);
+
+                buttonRetry.Enabled = true;
+                buttonRetry.Visible = true;
+            }
             TextBoxHighscores();
-
-            // Save the score
-            await SaveScore(counter_rounds, counter_levels, richTextBoxShowLevelName.Text);
-
-            correctOrder.Clear();
-            playerOrder.Clear();
-
-            wrongSound.Play();
-
-            counter_levels = 999;
-
-            UpdateLevelName();
-
-            InitialDictionaryOfTilesAtStart();
-
-            counter_rounds = 1;
-            counter_levels = 1;
         }
 
+        private bool QualifiesForTopScores(List<(string, int, int, string, string, string)> highScores, int totalRounds, string elapsedGameTime)
+        {
+            return highScores.Count < 8 && counter_rounds > 0 || 
+                    highScores.Any(score => score.Item2 < totalRounds || 
+                    (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
+        }
+
+        private void IsHighscoreText(int totalRounds, int playerRank)
+        {
+            TextBoxHighscores();
+            textBoxShowResults.Visible = true;
+            textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
+        }
+
+        private void IsNotHighscoreText(int totalRounds)
+        {
+            TextBoxHighscores();
+            textBoxShowResults.Visible = true;
+            textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
+        }
+
+        private void SaveScoreToFile(List<(string, int, int, string, string, string)> highScores)
+        {
+            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
+            string file = Path.Combine(rootPath, "sounds", "setters.txt");
+            string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty; // Read the existing content of the file
+
+            using (StreamWriter saveScore = new StreamWriter(file, false))
+            {
+                foreach (var score in highScores)
+                {
+                    saveScore.WriteLine($"{score.Item1},{score.Item2},{score.Item3},{score.Item4},{score.Item5},{score.Item6}");
+                }
+
+                saveScore.Write(existingContent);
+                WriteToCopies();
+
+                string playerName = string.Empty;
+            }
+        }
+
+        public void WriteToCopies()
+        {
+            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
+
+            string file = Path.Combine(rootPath, "sounds", "setters.txt");
+
+            // Copy the file to another directory
+            string copyToDir = Path.Combine(rootPath);
+            Directory.CreateDirectory(copyToDir); // Ensure the directory exists
+            string copyFile = Path.Combine(copyToDir, "higscores.txt");
+            string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscores.txt");
+
+            File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
+            File.Copy(file, copyFile2, true); // Copy the file and overwrite if exists
+        }
+        #endregion
+
+        #region Revised_example_code
+
+        private async Task SaveScore_revised(int totalRounds, int levelReached, string levelName)
+        {
+            List<HighscoreItem> getHighScores = SortBestScores_revised();
+
+            string elapsedGameTime = InitializeGameStopwatch(); // Get elapsed game time
+            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
+            DateTime isToday = DateTime.Today; // Get current date
+            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture); // Set format date
+
+            // Null check
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string file = Path.Combine(rootPath, "sounds", "setters.txt");
+            HighscoreItem item = getHighScores[0];
+            Debug.WriteLine($" {item.PlayerName} ; {item.Round} ");
+            try
+            {
+                // TODO: fill in processing bits from non-revised function.
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+            }
+
+            throw new NotImplementedException();
+        }
+        private List<HighscoreItem> SortBestScores_revised()
+        {
+            List<(string, int, int, string, string, string)> bestScores = new List<(string, int, int, string, string, string)>();
+            List<HighscoreItem> bestScoresItems = new List<HighscoreItem>();
+            try
+            {
+                // Get scores from file
+                List<(string, int, int, string, string, string)> scoresList = ReadScoresFromFile();
+
+                // Sort by playerScore and then by gameTime
+                bestScores = scoresList.OrderByDescending(x => x.Item2)
+                                       .ThenBy(x => TimeSpan.Parse(x.Item6))
+                                       .Take(8)
+                                       .ToList();
+
+                foreach (var item in bestScores)
+                {
+                    string isName = item.Item1;
+                    int isRounds = item.Item2;
+                    int isLevelReached = item.Item3;
+                    string isLevelName = item.Item4;
+                    string dateToday = item.Item5;
+                    string gameTime = item.Item6;
+
+                    bestScoresItems.Add(new HighscoreItem() { Round = isRounds, LevelReached = isLevelReached, LevelName = isLevelName, DateToday = dateToday, GameTime = gameTime });
+                }
+
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"An error occurred while getting top scores: {e.Message}");
+            }
+            return bestScoresItems;
+        }
+        #endregion
     }
 }
