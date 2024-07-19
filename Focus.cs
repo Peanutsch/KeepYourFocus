@@ -400,8 +400,45 @@ namespace KeepYourFocus
             }
         }
 
-        // Initialize and return root path including directory \KeepYourFocus\
+
+
+        // REVISED METHOD FOR INSTALLATION IN localAPPData! Initialize and return root path including directory \KeepYourFocus\
         static string InitializeRootPath()
+        {
+            // Use the local application data path and the app name to construct the root path
+            string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
+
+            if (string.IsNullOrEmpty(localAppDataPath))
+            {
+                Debug.WriteLine("Error: Application path is not valid.");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the directory exists, create if it doesn't
+            try
+            {
+                Directory.CreateDirectory(localAppDataPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error: Unable to create application directory. {ex.Message}");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the path ends with a directory separator
+            if (!localAppDataPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                localAppDataPath += Path.DirectorySeparatorChar;
+            }
+
+            return localAppDataPath;
+        }
+
+
+
+
+        // Initialize and return root path including directory \KeepYourFocus\
+        static string OriginalInitializeRootPath()
         {
             string directoryPath = Environment.CurrentDirectory;
 

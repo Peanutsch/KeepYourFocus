@@ -18,6 +18,7 @@ Shuffle Pictureboxes before start player's turn with 55% chance; level 3 75% cha
 * You can find all the chaos at:
   https://github.com/Peanutsch/KeepYourFocus.git
 * Please feel free to review my code and give feedback!
+
                                   Michiel / Peanutsch
                                   peanutsch@duck.com
                           (preRookie wannabeeCodeDev)

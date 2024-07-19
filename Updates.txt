@@ -1,0 +1,13 @@
+==========
+v0.0.01
+* Reduced some delay time between highlight tiles, beeps and clicks when it's player's turn
+* Show top Highscores at start game and game over
+* Moved input player's name to Game Over screen
+* When game over:
+	- Display score and rank if score in top Highscores and score is not zero
+	- Display only score if score is not in top Highscores or score is zero
+* Ask player's name when score in top highscores
+* Player's name can be entered by Enter Key or the Enter Button
+* Update display Highscores after entering name
+* Some minor tweaks buttons and textboxes
+* Some minor backend code optimizationSetupFocus
