@@ -403,7 +403,7 @@ namespace KeepYourFocus
 
 
         // REVISED METHOD FOR INSTALLATION IN localAPPData! Initialize and return root path including directory \KeepYourFocus\
-        static string InitializeRootPath()
+        static string REVISEDInitializeRootPath() // InitializeRootPath()
         {
             // Use the local application data path and the app name to construct the root path
             string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
@@ -438,7 +438,7 @@ namespace KeepYourFocus
 
 
         // Initialize and return root path including directory \KeepYourFocus\
-        static string OriginalInitializeRootPath()
+        static string InitializeRootPath() //OriginalInitializeRootPath()
         {
             string directoryPath = Environment.CurrentDirectory;
 
@@ -1622,7 +1622,7 @@ namespace KeepYourFocus
             string copyToDir = Path.Combine(rootPath);
             Directory.CreateDirectory(copyToDir); // Ensure the directory exists
             string copyFile = Path.Combine(copyToDir, "higscores.txt");
-            string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscores.txt");
+            string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscoresBackUp.txt");
 
             File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
             Debug.WriteLine("Copied to file 1");
