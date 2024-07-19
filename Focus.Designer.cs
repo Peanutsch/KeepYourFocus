@@ -158,7 +158,7 @@ namespace KeepYourFocus
             richTextBoxShowLevelNumber.BorderStyle = BorderStyle.FixedSingle;
             richTextBoxShowLevelNumber.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             richTextBoxShowLevelNumber.ForeColor = SystemColors.WindowText;
-            richTextBoxShowLevelNumber.Location = new Point(242, 244);
+            richTextBoxShowLevelNumber.Location = new Point(241, 244);
             richTextBoxShowLevelNumber.Multiline = false;
             richTextBoxShowLevelNumber.Name = "richTextBoxShowLevelNumber";
             richTextBoxShowLevelNumber.ReadOnly = true;
@@ -286,9 +286,9 @@ namespace KeepYourFocus
             buttonEnter.Enabled = false;
             buttonEnter.FlatStyle = FlatStyle.Popup;
             buttonEnter.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            buttonEnter.Location = new Point(242, 376);
+            buttonEnter.Location = new Point(241, 376);
             buttonEnter.Name = "buttonEnter";
-            buttonEnter.Size = new Size(155, 38);
+            buttonEnter.Size = new Size(156, 38);
             buttonEnter.TabIndex = 20;
             buttonEnter.Text = "ENTER";
             buttonEnter.UseVisualStyleBackColor = false;
