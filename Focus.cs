@@ -440,7 +440,8 @@ namespace KeepYourFocus
         // Initialize and return root path including directory \KeepYourFocus\
         static string InitializeRootPath() // InitializeRootPath / OriginalInitializeRootPath()
         {
-            string directoryPath = Environment.CurrentDirectory;
+            // string directoryPath = Environment.CurrentDirectory;
+            string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
 
             if (string.IsNullOrEmpty(directoryPath))
             {
@@ -451,7 +452,7 @@ namespace KeepYourFocus
 
             string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar);
             int index = Array.IndexOf(directorySplitPath, "KeepYourFocus");
-            
+
             if (index != -1)
             {
                 string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath.Take(index + 1));
@@ -460,6 +461,8 @@ namespace KeepYourFocus
                 {
                     rootPath += Path.DirectorySeparatorChar;
                 }
+
+                Debug.WriteLine($"RootPath: {rootPath}");
                 return rootPath;
             }
             else
@@ -485,27 +488,55 @@ namespace KeepYourFocus
         // Click Event for linklabel GitHub
         private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            OpenLink(e.Link.LinkData.ToString());
+            if (e.Link.LinkData != null)
+            {
+                string url = e.Link.LinkData.ToString();
+                OpenLink(url);
+            }
+            else
+            {
+                Debug.WriteLine("Warning: LinkData is null.");
+                MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Click Event for LinkLabel Email
         private void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            OpenLink(e.Link.LinkData.ToString());
+            if (e.Link.LinkData != null)
+            {
+                string url = e.Link.LinkData.ToString();
+                OpenLink(url);
+            }
+            else
+            {
+                Debug.WriteLine("Warning: LinkData is null.");
+                MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Null Check for open links in default browser and email client
         private void OpenLink(string url)
         {
+            if (string.IsNullOrEmpty(url))
+            {
+                // Log een waarschuwing of toon een foutmelding als de URL null of leeg is
+                MessageBox.Show("Error: The URL is null or empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             try
             {
+                // Probeer de link te openen in de standaard browser
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Unable to open link. Error: " + ex.Message);
+                // Vang eventuele uitzonderingen op die optreden bij het openen van de link
+                MessageBox.Show("Unable to open link. Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         // Dictionary for start positions tiles
         private void InitialDictionaryOfTilesAtStart()
@@ -974,7 +1005,7 @@ namespace KeepYourFocus
                 await Task.Delay(50);
             }
             // Verify difficulty
-            ManageActions();
+            await ManageActions();
 
             await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
 
@@ -1004,7 +1035,7 @@ namespace KeepYourFocus
                 Debug.WriteLine($"Player: [{tile}]");
 
                 // Verify difficulty
-                ManageActions();
+                await ManageActions();
 
                 // Verify each item with correctOrder
                 for (int itemIndex = 0; itemIndex < playerOrder.Count; itemIndex++)
@@ -1058,7 +1089,7 @@ namespace KeepYourFocus
             await Task.Delay(250);
             correctSound.Play();
 
-            UpdateCounters();
+            await UpdateCounters();
             UpdateSequence();
             UpdateRound();
             UpdateLevelName();
@@ -1072,7 +1103,7 @@ namespace KeepYourFocus
         }
 
         // TESTING WITH 6 SEQUENCES PER LEVEL
-        private void UpdateCounters()
+        private async Task UpdateCounters()
         {
             isSetCounters = true;
 
@@ -1086,7 +1117,7 @@ namespace KeepYourFocus
                     counterLevels++;
                     counterRounds++;
 
-                    ManageActions();
+                    await ManageActions();
                     UpdateTurn();
 
                     levelUp = false;
@@ -1116,7 +1147,7 @@ namespace KeepYourFocus
         }
 
         // Verify turn actions
-        private void ManageActions()
+        private async Task ManageActions()
         {
             if (isComputerTurn)
             {
@@ -1129,12 +1160,12 @@ namespace KeepYourFocus
             {
                 Debug.WriteLine("ManageActions> isPlayerTurn = true");
                 // DisplayLabelMessage(false);
-                ShufflePictureBoxes();
+                await ShufflePictureBoxes();
             }
             if (isDisplaySequence)
             {
                 Debug.WriteLine("ManageActions> isDisplaySequence = true");
-                ShufflePictureBoxes();
+                await ShufflePictureBoxes();
                 ReplaceTileOnBoardAndInSequence();
             }
             if (isSetCounters)
