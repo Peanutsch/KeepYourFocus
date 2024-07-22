@@ -461,8 +461,6 @@ namespace KeepYourFocus
                 {
                     rootPath += Path.DirectorySeparatorChar;
                 }
-
-                Debug.WriteLine($"RootPath: {rootPath}");
                 return rootPath;
             }
             else
