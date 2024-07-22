@@ -403,7 +403,7 @@ namespace KeepYourFocus
 
 
         // REVISED METHOD FOR INSTALLATION IN localAPPData! Initialize and return root path including directory \KeepYourFocus\
-        static string REVISEDInitializeRootPath() // InitializeRootPath()
+        static string REVISEDInitializeRootPath() // InitializeRootPath() / REVISEDInitializeRootPath
         {
             // Use the local application data path and the app name to construct the root path
             string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
@@ -438,7 +438,7 @@ namespace KeepYourFocus
 
 
         // Initialize and return root path including directory \KeepYourFocus\
-        static string InitializeRootPath() //OriginalInitializeRootPath()
+        static string InitializeRootPath() // InitializeRootPath / OriginalInitializeRootPath()
         {
             string directoryPath = Environment.CurrentDirectory;
 

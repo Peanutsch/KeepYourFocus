@@ -101,7 +101,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="BackUp\" />
+    <Folder Include="BUp\" />
   </ItemGroup>
 
 </Project>
