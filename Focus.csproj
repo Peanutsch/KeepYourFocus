@@ -37,9 +37,6 @@
     <None Update="BackUp\higscores.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="BUp\higscoresBACKUP.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="higscores.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -107,10 +104,6 @@
     <None Update="Updates.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="BUp\" />
   </ItemGroup>
 
 </Project>

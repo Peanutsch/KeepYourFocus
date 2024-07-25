@@ -144,12 +144,13 @@ namespace KeepYourFocus
             MessageBox.Show(
                             "   Thank you for testing the heck out of my very first try-out\r\n" +
                             "   in C# coding!\r\n\r\n" +
-                            " * Simon Says-like game with some level based challenges\r\n" +
+                            " * This is a Simon Says-like game with some level based\r\n" +
+                            "   challenges\r\n" +
                             " * Each level has 6 sequences. After 6 succesful sequences:\r\n" +
                             " * Level++; Add 1 challenge; Clear correctOrder and\r\n" +
-                            " * playerOrder and start with new sequence = 1\r\n" +
+                            "   playerOrder and start with new sequence = 1\r\n" +
                             " * From Level >= 7: no Clear correctOrder; sequences++\r\n" +
-                            " * untill game over\r\n" +
+                            "   untill game over\r\n" +
                             " * More challenges, tiles and sounds in progress\r\n" +
                             " * Next update: file encryption!\r\n" +
                             " * You can find all the chaos at:\r\n" +
@@ -354,8 +355,7 @@ namespace KeepYourFocus
         // Initialize Keys.Enter for input playerName
         private void InitializeKeyEnter()
         {
-            textBoxInputName.KeyDown += (sender, e) =>
-            {
+            textBoxInputName.KeyDown += (sender, e) => {
                 if (e.KeyCode == Keys.Enter)
                 {
                     e.Handled = true; // Prevents the Enter key from inserting a newline
@@ -723,7 +723,7 @@ namespace KeepYourFocus
 
             return shuffledDictOfAllTiles;
         }
-        
+
         // Randomizer reposition tiles
         private void RefreshAndRepositionPictureBoxes()
         {
@@ -1351,7 +1351,7 @@ namespace KeepYourFocus
 
             if (string.IsNullOrWhiteSpace(playerName))
             {
-                playerName = "PEANUTSCH";
+                playerName = "ANONYMOUS";
                 Debug.WriteLine($"Input playerName is empty. Forced playerName is {playerName}\n");
             }
 
@@ -1647,14 +1647,17 @@ namespace KeepYourFocus
 
             string file = Path.Combine(rootPath, "sounds", "setters.txt");
 
-            // Copy the file to another directory
+            // Copy the file to highscores.txt
             string copyToDir = Path.Combine(rootPath);
             Directory.CreateDirectory(copyToDir); // Ensure the directory exists
             string copyFile = Path.Combine(copyToDir, "higscores.txt");
-            string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscoresBackUp.txt");
-
             File.Copy(file, copyFile, true); // Copy the file and overwrite if exists
             Debug.WriteLine("Copied to file 1");
+
+            // Copy the file to highscoresBackUp
+            string backupDir = Path.Combine(copyToDir, "BackUp");
+            Directory.CreateDirectory(backupDir); // Ensure the backup directory exists
+            string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscoresBackUp.txt");
             File.Copy(file, copyFile2, true); // Copy the file and overwrite if exists
             Debug.WriteLine("Copied to file 2");
 
