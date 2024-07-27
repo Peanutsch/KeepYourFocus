@@ -1,5 +1,7 @@
 Thank you for testing the heck out of my very first try-out in C# coding!
 
+* Please keep in mind you unpack the ZIP file in a map KeepYourFocus. I still havan't managed to make a 
+  working .msi file
 * A Simon Says-like game with some level based challenges
 * Each level has 6 sequences. After 6 succesful sequences:
 * Level++; Add 1 challenge; Clear correctOrder and playerOrder and start with new sequence = 1
