@@ -59,6 +59,7 @@ namespace KeepYourFocus
         bool isSetCounters = false;
         bool isDisplaySequence = false;
         bool isHardLevel = false;
+        bool actionTaken = false;
         #endregion
 
         private int counterSequences = 1;
@@ -918,6 +919,7 @@ namespace KeepYourFocus
                 RandomizerShufflePictureBoxes();
                 RefreshAndRepositionPictureBoxes();
             }
+            actionTaken = true;
         }
 
         // Randomizer for replacing tile on board and/or in sequence. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
@@ -1002,6 +1004,7 @@ namespace KeepYourFocus
                 Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
                 //Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
             }
+            actionTaken = true;
             return (pictureBoxDictionary, correctOrder, replacementOccurred);
         }
 
@@ -1011,7 +1014,7 @@ namespace KeepYourFocus
             if (counterLevels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
                 counterLevels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
                 counterLevels >= 7 && levelUp == true && rnd.Next(100) <= 85 ||
-                setSequences == int.MaxValue && rnd.Next(100) <= 85 && isDisplaySequence)
+                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
             {
 
                 Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
@@ -1051,6 +1054,7 @@ namespace KeepYourFocus
                     MessageBox.Show($"Not enough tiles in shuffledTiles to initialize picture boxes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+            actionTaken = true;
         }
 
         private async void DisplayLabelMessage(bool iscomputerTurn)
@@ -1296,36 +1300,42 @@ namespace KeepYourFocus
         private async Task ManageActions()
         {
             setSequences = GetSelectedSequences();
+            bool actionTaken = false;
 
-            if (isComputerTurn)
+            if (isComputerTurn && !actionTaken)
             {
                 // Debug.WriteLine("ManageActions> isComputerTurn = true");
                 // DisplayLabelMessage(true);
                 // ShufflePictureBoxes();
+                actionTaken = true;
 
             }
-            if (isPlayerTurn)
+            if (isPlayerTurn && !actionTaken)
             {
                 Debug.WriteLine("ManageActions> isPlayerTurn = true");
                 // DisplayLabelMessage(false);
                 await ShufflePictureBoxes();
+                actionTaken = true;
             }
-            if (isDisplaySequence)
+            if (isDisplaySequence && !actionTaken)
             {
                 Debug.WriteLine("ManageActions> isDisplaySequence = true");
                 await ShufflePictureBoxes();
                 ReplaceTileOnBoardAndInSequence();
+                actionTaken = true;
             }
-            if (isSetCounters)
+            if (isSetCounters && !actionTaken)
             {
                 ReplaceAllTiles();
+                actionTaken = true;
             }
-            if (setSequences == int.MaxValue)
+            if (setSequences == int.MaxValue && !actionTaken)
             {
                 isHardLevel = true;
                 await ShufflePictureBoxes();
                 ReplaceTileOnBoardAndInSequence();
                 ReplaceAllTiles();
+                actionTaken = true;
             }
         }
 
