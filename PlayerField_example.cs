@@ -49,9 +49,9 @@ namespace KeepYourFocus
 
         private Stopwatch gameStopwatch = new Stopwatch();
 
-        private int counter_sequences = 1;
-        private int counter_levels = 1;
-        private int counter_rounds = 1;
+        private int counterSequences = 1;
+        private int counterLevels = 1;
+        private int counterRounds = 1;
         #endregion
         */
     }

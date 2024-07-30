@@ -1,6 +1,8 @@
 Thank you for testing the heck out of my very first try-out in C# coding!
 
-* Simon Says-like game with some level based challenges
+* Please keep in mind you unpack the ZIP file in a map KeepYourFocus. I still havan't managed to make a 
+  working .msi file
+* A Simon Says-like game with some level based challenges
 * Each level has 6 sequences. After 6 succesful sequences:
 * Level++; Add 1 challenge; Clear correctOrder and playerOrder and start with new sequence = 1
 * From Level >= 7: no Clear correctOrder; sequences++ untill game over
@@ -18,6 +20,7 @@ Shuffle Pictureboxes before start player's turn with 55% chance; level 3 75% cha
 * You can find all the chaos at:
   https://github.com/Peanutsch/KeepYourFocus.git
 * Please feel free to review my code and give feedback!
+
                                   Michiel / Peanutsch
                                   peanutsch@duck.com
                           (preRookie wannabeeCodeDev)
