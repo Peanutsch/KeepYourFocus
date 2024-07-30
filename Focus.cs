@@ -58,11 +58,13 @@ namespace KeepYourFocus
         bool isPlayerTurn = false;
         bool isSetCounters = false;
         bool isDisplaySequence = false;
+        bool isHardLevel = false;
         #endregion
 
         private int counterSequences = 1;
         private int counterLevels = 1;
         private int counterRounds = 0;
+        private int setSequences = 6;
         #endregion
 
         public PlayerField()
@@ -123,7 +125,7 @@ namespace KeepYourFocus
             // LinkLabels GitHub and Email
             InitializeLinkLabels();
 
-            // Alihning richTextBoxes
+            // Align richTextBoxes
             AlignTextButtonBoxesCenter();
 
             // Display highscore at start
@@ -180,6 +182,7 @@ namespace KeepYourFocus
 
             //Set Flags
             textBoxHighscore.Visible = false;
+            checkedListBoxDifficulty.Visible = false;
 
             pictureBox1.Enabled = true;
             pictureBox2.Enabled = true;
@@ -355,7 +358,8 @@ namespace KeepYourFocus
         // Initialize Keys.Enter for input playerName
         private void InitializeKeyEnter()
         {
-            textBoxInputName.KeyDown += (sender, e) => {
+            textBoxInputName.KeyDown += (sender, e) =>
+            {
                 if (e.KeyCode == Keys.Enter)
                 {
                     e.Handled = true; // Prevents the Enter key from inserting a newline
@@ -400,7 +404,157 @@ namespace KeepYourFocus
             }
         }
 
+        #region ComboBox Choose our Level
+        // Set game level combobox dropdown list
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = (ComboBox)sender;
 
+            // Skip handling if the selected item is the placeholder
+            if (comboBox.SelectedIndex == 0)
+            {
+                return;
+            }
+
+            int setSequences;
+            switch (comboBox.SelectedIndex)
+            {
+                case 1:
+                    setSequences = 6; // Normal
+                    break;
+                case 2:
+                    setSequences = 4; // Easy
+                    break;
+                case 3:
+                    setSequences = 10; // Hard
+                    break;
+                case 4:
+                    setSequences = int.MaxValue; // Hell: Endless seq
+                    break;
+                default:
+                    setSequences = 6; // Default
+                    break;
+            }
+
+            // Do something with setSequences
+            Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
+        }
+
+        // Return Level and setSequences
+        private string ReturnLevelandSetSequences(out int setSequences)
+        {
+            if (checkedListBoxDifficulty.SelectedIndex == 0) // Placeholder index
+            {
+                setSequences = 0;
+                return "Please select a level.";
+            }
+
+            switch (checkedListBoxDifficulty.SelectedIndex)
+            {
+                case 1:
+                    setSequences = 6; // Default
+                    return "NORMAL";
+                case 2:
+                    setSequences = 4; // Easy
+                    return "EASY";
+                case 3:
+                    setSequences = 10; // Hard
+                    return "HARD";
+                case 4:
+                    setSequences = int.MaxValue; // Hell: Endless seq
+                    return "HELL";
+                default:
+                    setSequences = 6; // Default
+                    return "NORMAL";
+            }
+        }
+        #endregion
+
+        #region CheckListBox Choose your Level
+        // Set game level checkbox
+        private void checkedListBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int setSequences;
+
+            CheckedListBox checkedListBox = (CheckedListBox)sender;
+            if (checkedListBox.CheckedItems.Count > 0)
+            {
+                string selectedDifficulty = checkedListBox.CheckedItems[0].ToString();
+                switch (selectedDifficulty)
+                {
+                    case "Default: 6 seq per round":
+                        setSequences = 6;
+                        break;
+                    case "Easy: 4 seq per round":
+                        setSequences = 4;
+                        break;
+                    case "Hard: 10 seq per round":
+                        setSequences = 10;
+                        break;
+                    case "Hell: Endless seq":
+                        setSequences = int.MaxValue;
+                        break;
+                    default:
+                        setSequences = 6; // Default
+                        break;
+                }
+
+                // Do something with setSequences
+                Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
+            }
+        }
+
+        private void checkedListBoxDifficulty_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            CheckedListBox checkedListBox = (CheckedListBox)sender;
+
+            // Uncheck all items except the one that is being checked
+            if (e.NewValue == CheckState.Checked)
+            {
+                for (int i = 0; i < checkedListBox.Items.Count; i++)
+                {
+                    if (i != e.Index)
+                    {
+                        checkedListBox.SetItemChecked(i, false);
+                    }
+                }
+            }
+        }
+
+        private int GetSelectedSequences()
+        {
+            int setSequences;
+
+            if (checkedListBoxDifficulty.CheckedItems.Count > 0)
+            {
+                string selectedDifficulty = checkedListBoxDifficulty.CheckedItems[0].ToString();
+                switch (selectedDifficulty)
+                {
+                    case "Default: 6 seq per round":
+                        setSequences = 6;
+                        break;
+                    case "Easy: 4 seq per round":
+                        setSequences = 4;
+                        break;
+                    case "Hard: 10 seq per round":
+                        setSequences = 10;
+                        break;
+                    case "Hell: Endless seq":
+                        setSequences = int.MaxValue;
+                        break;
+                    default:
+                        setSequences = 6; // Default
+                        break;
+                }
+            }
+            else
+            {
+                setSequences = 6; // Default
+            }
+
+            return setSequences;
+        }
+        #endregion
 
         // REVISED METHOD FOR INSTALLATION IN localAPPData! Initialize and return root path including directory \KeepYourFocus\
         static string REVISEDInitializeRootPath() // InitializeRootPath() / REVISEDInitializeRootPath
@@ -433,8 +587,6 @@ namespace KeepYourFocus
 
             return localAppDataPath;
         }
-
-
 
 
         // Initialize and return root path including directory \KeepYourFocus\
@@ -742,9 +894,10 @@ namespace KeepYourFocus
         private async Task ShufflePictureBoxes()
         {
             // isDisplaySequence
-            if (counterLevels == 2 && rnd.Next(100) <= 100 && isDisplaySequence ||
+            if (counterLevels == 2 && rnd.Next(100) <= 55 && isDisplaySequence ||
                 counterLevels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
-                counterLevels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence)
+                counterLevels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence ||
+                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
             {
                 Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle after display sequence");
 
@@ -757,7 +910,8 @@ namespace KeepYourFocus
             // isPlayerTurn
             if (counterLevels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
                 counterLevels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
-                counterLevels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn)
+                counterLevels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn ||
+                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence && isDisplaySequence)
             {
                 Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
 
@@ -775,11 +929,13 @@ namespace KeepYourFocus
 
             bool checkReplaceInOrder = (counterLevels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                        (counterLevels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counterLevels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
+                                       (counterLevels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
+                                       (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
 
             bool checkReplaceOnBoard = (counterLevels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
                                        (counterLevels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counterLevels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85);
+                                       (counterLevels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
+                                       (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
 
             bool replacementOccurred = false; // Flag to indicate if any replacement happened
 
@@ -854,7 +1010,8 @@ namespace KeepYourFocus
         {
             if (counterLevels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
                 counterLevels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
-                counterLevels >= 7 && levelUp == true && rnd.Next(100) <= 85)
+                counterLevels >= 7 && levelUp == true && rnd.Next(100) <= 85 ||
+                setSequences == int.MaxValue && rnd.Next(100) <= 85 && isDisplaySequence)
             {
 
                 Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
@@ -1103,50 +1260,43 @@ namespace KeepYourFocus
         // TESTING WITH 6 SEQUENCES PER LEVEL
         private async Task UpdateCounters()
         {
+            setSequences = GetSelectedSequences();
             isSetCounters = true;
 
-            switch (counterSequences)
+            if (counterLevels < 8 && counterSequences == setSequences)
             {
-                case (6) when counterLevels < 8:
-                    levelUp = true;
-                    correctOrder.Clear();
-                    playerOrder.Clear();
-                    counterSequences = 1; // Reset sequence to 1
-                    counterLevels++;
-                    counterRounds++;
+                levelUp = true;
+                correctOrder.Clear();
+                playerOrder.Clear();
+                counterSequences = 1; // Reset sequence to 1
+                counterLevels++;
+                counterRounds++;
 
-                    await ManageActions();
-                    UpdateTurn();
+                await ManageActions();
+                UpdateTurn();
 
-                    levelUp = false;
-                    break;
-                default:
-                    if (counterLevels >= 8)
-                    {
-                        levelUp = true;
-
-                        counterSequences++;
-                        counterRounds++;
-                        UpdateTurn();
-
-                        isSetCounters = false;
-                    }
-                    else
-                    {
-                        counterSequences++;
-                        counterRounds++;
-                        UpdateTurn();
-
-                        isSetCounters = false;
-                    }
-                    break;
+                levelUp = false;
             }
+            else
+            {
+                if (counterLevels >= 8)
+                {
+                    levelUp = true;
+                }
+
+                counterSequences++;
+                counterRounds++;
+                UpdateTurn();
+            }
+
             isSetCounters = false;
         }
 
         // Verify turn actions
         private async Task ManageActions()
         {
+            setSequences = GetSelectedSequences();
+
             if (isComputerTurn)
             {
                 // Debug.WriteLine("ManageActions> isComputerTurn = true");
@@ -1168,6 +1318,13 @@ namespace KeepYourFocus
             }
             if (isSetCounters)
             {
+                ReplaceAllTiles();
+            }
+            if (setSequences == int.MaxValue)
+            {
+                isHardLevel = true;
+                await ShufflePictureBoxes();
+                ReplaceTileOnBoardAndInSequence();
                 ReplaceAllTiles();
             }
         }
@@ -1313,7 +1470,6 @@ namespace KeepYourFocus
             pictureBox4.Enabled = false;
 
             textBoxHighscore.Visible = true;
-
             textBoxShowResults.Visible = true;
 
             linkLabelGitHub.Visible = true;
@@ -1361,6 +1517,8 @@ namespace KeepYourFocus
             buttonEnter.Visible = false;
 
             TextBoxHighscores();
+
+            checkedListBoxDifficulty.Visible = true;
 
             startBTN.TextAlign = ContentAlignment.MiddleCenter;
             startBTN.Text = "Click to Start";
