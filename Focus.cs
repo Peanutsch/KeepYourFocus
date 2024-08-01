@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Media;
 using System.Runtime.CompilerServices;
@@ -475,36 +476,45 @@ namespace KeepYourFocus
         // Set game level checkbox
         private void checkedListBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
         {
-            int setSequences;
-
             CheckedListBox checkedListBox = (CheckedListBox)sender;
+
+            // Initialize setSequences with a default value
+            int setSequences = 6;
+
             if (checkedListBox.CheckedItems.Count > 0)
             {
-                string selectedDifficulty = checkedListBox.CheckedItems[0].ToString();
-                switch (selectedDifficulty)
+                // Process each selected item
+                foreach (string selectedDifficulty in checkedListBox.CheckedItems)
                 {
-                    case "Default: 6 seq per round":
-                        setSequences = 6;
-                        break;
-                    case "Easy: 4 seq per round":
-                        setSequences = 4;
-                        break;
-                    case "Hard: 10 seq per round":
-                        setSequences = 10;
-                        break;
-                    case "Hell: Endless seq":
-                        setSequences = int.MaxValue;
-                        break;
-                    default:
-                        setSequences = 6; // Default
-                        break;
+                    switch (selectedDifficulty)
+                    {
+                        case "Default: 6 seq/round":
+                            setSequences = 6;
+                            break;
+                        case "Easy: 4 seq/round":
+                            setSequences = 4;
+                            break;
+                        case "Hard: 10 seq/round":
+                            setSequences = 10;
+                            break;
+                        /*
+                        case "Hell: Endless seq":
+                            setSequences = int.MaxValue;
+                            break;
+                        */
+                        default:
+                            // Handle unexpected cases if needed
+                            setSequences = 6; // Default
+                            break;
+                    }
                 }
-
-                // Do something with setSequences
-                Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
             }
+            Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
         }
 
+
+
+        // Only 1 box can be checked
         private void checkedListBoxDifficulty_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             CheckedListBox checkedListBox = (CheckedListBox)sender;
@@ -524,33 +534,31 @@ namespace KeepYourFocus
 
         private int GetSelectedSequences()
         {
-            int setSequences;
+            int setSequences = 6;
 
             if (checkedListBoxDifficulty.CheckedItems.Count > 0)
             {
                 string selectedDifficulty = checkedListBoxDifficulty.CheckedItems[0].ToString();
                 switch (selectedDifficulty)
                 {
-                    case "Default: 6 seq per round":
+                    case "Default: 6 seq/round":
                         setSequences = 6;
                         break;
-                    case "Easy: 4 seq per round":
+                    case "Easy: 4 seq/round":
                         setSequences = 4;
                         break;
-                    case "Hard: 10 seq per round":
+                    case "Hard: 10 seq/round":
                         setSequences = 10;
                         break;
+                    /*
                     case "Hell: Endless seq":
                         setSequences = int.MaxValue;
                         break;
+                    */
                     default:
                         setSequences = 6; // Default
                         break;
                 }
-            }
-            else
-            {
-                setSequences = 6; // Default
             }
 
             return setSequences;
@@ -1300,8 +1308,6 @@ namespace KeepYourFocus
         private async Task ManageActions()
         {
             setSequences = GetSelectedSequences();
-            bool actionTaken = false;
-
             if (isComputerTurn && !actionTaken)
             {
                 // Debug.WriteLine("ManageActions> isComputerTurn = true");
@@ -1565,7 +1571,7 @@ namespace KeepYourFocus
         // Display Highscores in TextBoxHighscore
         private void TextBoxHighscores()
         {
-            List<(string, int, int, string, string, string)> topHighscores = SortBestScores();
+            List<(string, int, int, string, string, string, int)> topHighscores = SortBestScores();
 
             // Set textboxHighscore properties
             textBoxHighscore.Clear(); // Clear any existing text
@@ -1576,7 +1582,7 @@ namespace KeepYourFocus
 
             // Add the header
             textBoxHighscore.Text = "\r\n===HIGHSCORES===\r\n\r\n";
-            textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", "Rank", "Player", "Sequences", "Date"));
+            textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", "Rank", "Player", "Sequences", "Difficulty"));
 
             // Append the highscores in textbox
             int lineNumber = 1;
@@ -1588,17 +1594,23 @@ namespace KeepYourFocus
                 string levelName = score.Item4;
                 string isDate = score.Item5;
                 string elapsedGameTime = score.Item6;
+                int difficultyLevelValue = score.Item7;
 
-                textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", lineNumber, playerName, totalRounds, isDate));
+                // Safely get the difficulty description using the updated keys
+                string difficultyLevel = difficultyPriorities
+                    .FirstOrDefault(x => x.Value == difficultyLevelValue).Key ?? "Unknown";
+
+
+                textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", lineNumber, playerName, totalRounds, difficultyLevel));
                 lineNumber++;
             }
         }
 
         // Returns list with all data in setters.txt
-        private List<(string, int, int, string, string, string)> ReadScoresFromFile()
+        private List<(string, int, int, string, string, string, int)> ReadScoresFromFile()
         {
             string file = Path.Combine(InitializeRootPath(), "sounds", "setters.txt");
-            List<(string, int, int, string, string, string)> scoresList = new List<(string, int, int, string, string, string)>();
+            List<(string, int, int, string, string, string, int)> scoresList = new List<(string, int, int, string, string, string, int)>();
 
             try
             {
@@ -1609,15 +1621,15 @@ namespace KeepYourFocus
                     {
                         // Split the line into parts
                         string[] parts = line.Split(',');
-                        if (parts.Length >= 6)
+                        if (parts.Length >= 7)
                         {
-                            if (int.TryParse(parts[1], out int playerScore) && int.TryParse(parts[2], out int levelReached))
+                            if (int.TryParse(parts[1], out int playerScore) && int.TryParse(parts[2], out int levelReached) && int.TryParse(parts[6], out int difficultyLevel))
                             {
                                 string playerName = parts[0].Trim();
                                 string levelName = parts[3].Trim();
                                 string isDate = parts[4].Trim();
                                 string elapsedGameTime = parts[5].Trim();
-                                scoresList.Add((playerName, playerScore, levelReached, levelName, isDate, elapsedGameTime));
+                                scoresList.Add((playerName, playerScore, levelReached, levelName, isDate, elapsedGameTime, difficultyLevel));
                             }
                         }
                     }
@@ -1631,19 +1643,21 @@ namespace KeepYourFocus
             return scoresList;
         }
 
+
         // Returns decreasing sorted list of higscores.txt
-        private List<(string, int, int, string, string, string)> SortBestScores()
+        private List<(string, int, int, string, string, string, int)> SortBestScores()
         {
-            List<(string, int, int, string, string, string)> bestScores = new List<(string, int, int, string, string, string)>();
+            List<(string, int, int, string, string, string, int)> bestScores = new List<(string, int, int, string, string, string, int)>();
 
             try
             {
                 // Get scores from file
-                List<(string, int, int, string, string, string)> scoresList = ReadScoresFromFile();
+                List<(string, int, int, string, string, string, int)> scoresList = ReadScoresFromFile();
 
-                // Sort by playerScore and then by gameTime
+                // Sort by playerScore, then by gameTime, then by difficulty level
                 bestScores = scoresList.OrderByDescending(x => x.Item2)
                                        .ThenBy(x => TimeSpan.Parse(x.Item6))
+                                       .ThenBy(x => x.Item7)
                                        .Take(8)
                                        .ToList();
             }
@@ -1654,9 +1668,19 @@ namespace KeepYourFocus
             }
             return bestScores;
         }
+
         #endregion
 
-        #region Processing Score
+        #region Processing Score, Save Score
+
+        // Initialize difficulties from checkListBoxDifficulty
+        private Dictionary<string, int> difficultyPriorities = new Dictionary<string, int>
+                                                               {
+                                                                    { "Hard", 1 },
+                                                                    { "Default", 2 },
+                                                                    { "Easy", 3 }
+                                                               };
+
         // Initialize new task as private field
         private TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
 
@@ -1664,67 +1688,89 @@ namespace KeepYourFocus
         private async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
         {
             var highScores = SortBestScores()
-                .Select(score => (score.Item1, score.Item2, score.Item3, score.Item4, score.Item5, score.Item6))
+                .Select(score => (score.Item1, score.Item2, score.Item3, score.Item4, score.Item5, score.Item6, score.Item7))
                 .ToList();
 
             string elapsedGameTime = InitializeGameStopwatch();
             string currentDate = DateTime.Today.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
-            if (QualifiesForTopScores(highScores, totalRounds, elapsedGameTime))
+            // Ensure a checked item exists
+            if (this.checkedListBoxDifficulty.CheckedItems.Count > 0)
             {
-                string placeholderText = string.Empty; // use placeholderText instead of playerName and create and adjust new list
-                highScores.Add((placeholderText, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime));
+                string difficulty = this.checkedListBoxDifficulty.CheckedItems[0].ToString().Split(':')[0].Trim(); // Extract the difficulty key
+                if (difficultyPriorities.TryGetValue(difficulty, out int difficultyLevel))
+                {
+                    if (QualifiesForTopScores(highScores, totalRounds, elapsedGameTime, difficultyLevel))
+                    {
+                        string placeholderText = string.Empty; // Use placeholderText instead of playerName and create and adjust new list
+                        highScores.Add((placeholderText, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, difficultyLevel));
 
-                highScores = highScores
-                    .OrderByDescending(score => score.Item2)
-                    .ThenBy(score => TimeSpan.Parse(score.Item6))
-                    .Take(8)
-                    .ToList();
+                        highScores = highScores
+                            .OrderByDescending(score => score.Item2)
+                            .ThenBy(score => TimeSpan.Parse(score.Item6))
+                            .ThenBy(score => score.Item7)
+                            .Take(8)
+                            .ToList();
 
-                // Determine the rank of the current score as playerRank
-                int playerRank = highScores.FindIndex(score => score.Item2 == totalRounds && score.Item6 == elapsedGameTime) + 1;
+                        // Determine the rank of the current score as playerRank
+                        int playerRank = highScores.FindIndex(score => score.Item2 == totalRounds && score.Item6 == elapsedGameTime && score.Item7 == difficultyLevel) + 1;
 
-                IsHighscoreText(totalRounds, playerRank);
+                        IsHighscoreText(totalRounds, playerRank);
 
-                // Wait for valid input playerName
-                string playerName = await PlayerName();
-                // Discard placeholderText and update list highScores with playerName
-                highScores.Clear();
-                highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime));
+                        // Wait for valid input playerName
+                        string playerName = await PlayerName();
+                        // Discard placeholderText and update list highScores with playerName
+                        highScores.RemoveAll(score => score.Item1 == placeholderText);
+                        highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, difficultyLevel));
 
-                SaveScoreToFile(highScores);
-                Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {currentDate}, {elapsedGameTime}");
+                        SaveScoreToFile(highScores);
+                        Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {currentDate}, {elapsedGameTime}, {difficultyLevel}");
 
-                // De-activate and hide textBoxInputName and buttonEnter
-                textBoxInputName.Visible = false;
-                textBoxInputName.Enabled = false;
-                buttonEnter.Visible = false;
-                buttonEnter.Enabled = false;
-                // Activate and show buttonRetry
-                buttonRetry.Enabled = true;
-                buttonRetry.Visible = true;
+                        // De-activate and hide textBoxInputName and buttonEnter
+                        textBoxInputName.Visible = false;
+                        textBoxInputName.Enabled = false;
+                        buttonEnter.Visible = false;
+                        buttonEnter.Enabled = false;
+                        // Activate and show buttonRetry
+                        buttonRetry.Enabled = true;
+                        buttonRetry.Visible = true;
+                    }
+                    else
+                    {
+                        // Set textboxHighscore properties for proper display
+                        textBoxHighscore.Clear(); // Clear any existing text
+                        TextBoxHighscores();
+
+                        IsNotHighscoreText(totalRounds);
+
+                        buttonRetry.Enabled = true;
+                        buttonRetry.Visible = true;
+                    }
+                    TextBoxHighscores();
+                }
+                else
+                {
+                    // Handle the case where the difficulty level is not found in the dictionary
+                    MessageBox.Show("Selected difficulty level is not recognized.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             else
             {
-                // Set textboxHighscore properties for proper display
-                textBoxHighscore.Clear(); // Clear any existing text
-                TextBoxHighscores();
-
-                IsNotHighscoreText(totalRounds);
-
-                buttonRetry.Enabled = true;
-                buttonRetry.Visible = true;
+                // Handle the case where no difficulty is selected
+                MessageBox.Show("No difficulty level selected.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            TextBoxHighscores();
         }
+
 
         // Verify if score qualifies for top scores
-        private bool QualifiesForTopScores(List<(string, int, int, string, string, string)> highScores, int totalRounds, string elapsedGameTime)
+        private bool QualifiesForTopScores(List<(string, int, int, string, string, string, int)> highScores, int totalRounds, string elapsedGameTime, int difficultyLevel)
         {
-            return highScores.Count < 8 && counterRounds > 0 ||
-                    highScores.Any(score => score.Item2 < totalRounds ||
-                    (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)));
+            return highScores.Count < 8 ||
+                   highScores.Any(score => score.Item2 < totalRounds ||
+                   (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)) ||
+                   (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) == TimeSpan.Parse(elapsedGameTime) && score.Item7 > difficultyLevel));
         }
+
 
         // Setup textBoxShowResults if score in top scores
         private void IsHighscoreText(int totalRounds, int playerRank)
@@ -1741,6 +1787,7 @@ namespace KeepYourFocus
             textBoxShowResults.Visible = true;
             textBoxShowResults.Text = $"\r\nYour score:\r\n{totalRounds} sequences";
         }
+
 
         // Save score to file. Max save scores set at 15. If currentScore == 15, replace lowest score with new score
         private void SaveScoreToFile(List<(string, int, int, string, string, string)> highScores)
@@ -1806,6 +1853,102 @@ namespace KeepYourFocus
             }
             Debug.WriteLine("SaveScoreToFile ended");
         }
+
+        /*
+        // Save score to file. Max save scores set at 15. If currentScore == 15, replace lowest score with new score
+        private void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
+        {
+            Debug.WriteLine("SaveScoreToFile started");
+
+            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
+            string file = Path.Combine(rootPath, "sounds", "setters.txt");
+
+            // Read existing content from the file
+            List<(string, int, int, string, string, string, int)> currentScores = new List<(string, int, int, string, string, string, int)>();
+
+            if (File.Exists(file))
+            {
+                try
+                {
+                    string existingContent = File.ReadAllText(file);
+                    currentScores = existingContent
+                        .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(line => line.Split(','))
+                        .Select(parts => (parts[0].Trim(), int.Parse(parts[1].Trim()), int.Parse(parts[2].Trim()), parts[3].Trim(), parts[4].Trim(), parts[5].Trim(), int.Parse(parts[6].Trim())))
+                        .ToList();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"An error occurred while reading existing scores: {ex.Message}");
+                    MessageBox.Show($"An error occurred while reading existing scores: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            // Combine the existing scores with the new high scores
+            List<(string, int, int, string, string, string, int)> updatedScores;
+
+            if (currentScores.Count < 15)
+            {
+                // If there are fewer than 15 scores, just add the new scores
+                updatedScores = currentScores
+                    .Concat(highScores)
+                    .OrderByDescending(score => score.Item2)
+                    .ThenBy(score => TimeSpan.Parse(score.Item6))
+                    .Take(15)
+                    .ToList();
+            }
+            else
+            {
+                // Replace the lowest score if necessary
+                var allScores = currentScores.Concat(highScores).ToList();
+                var lowestScore = allScores
+                    .OrderBy(score => score.Item2)
+                    .ThenByDescending(score => TimeSpan.Parse(score.Item6))
+                    .First();
+
+                if (highScores.Any(newScore => newScore.Item2 > lowestScore.Item2 ||
+                                                (newScore.Item2 == lowestScore.Item2 && TimeSpan.Parse(newScore.Item6) < TimeSpan.Parse(lowestScore.Item6))))
+                {
+                    updatedScores = allScores
+                        .Where(score => score != lowestScore)
+                        .OrderByDescending(score => score.Item2)
+                        .ThenBy(score => TimeSpan.Parse(score.Item6))
+                        .Take(15)
+                        .ToList();
+                }
+                else
+                {
+                    // If no new scores are better than the lowest, retain current scores
+                    updatedScores = currentScores;
+                }
+            }
+
+            // Clear the file and write updated scores
+            try
+            {
+                using (StreamWriter saveScore = new StreamWriter(file, false))
+                {
+                    foreach (var element in updatedScores)
+                    {
+                        saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6},{element.Item7}");
+                    }
+                }
+                Debug.WriteLine("Scores saved successfully.");
+                WriteToCopies();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"An error occurred while saving scores: {ex.Message}");
+                MessageBox.Show($"An error occurred while saving scores: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            Debug.WriteLine("SaveScoreToFile ended");
+        }
+        */
+
+
+
+
 
         public void WriteToCopies()
         {
