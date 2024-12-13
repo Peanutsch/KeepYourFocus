@@ -1312,7 +1312,7 @@ namespace KeepYourFocus
             {
                 // Debug.WriteLine("ManageActions> isComputerTurn = true");
                 // DisplayLabelMessage(true);
-                // ShufflePictureBoxes();
+                ShufflePictureBoxes();
                 actionTaken = true;
 
             }
@@ -1790,7 +1790,7 @@ namespace KeepYourFocus
 
 
         // Save score to file. Max save scores set at 15. If currentScore == 15, replace lowest score with new score
-        private void SaveScoreToFile(List<(string, int, int, string, string, string)> highScores)
+        private void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
         {
             Debug.WriteLine("SaveScoreToFile started");
 
@@ -1798,36 +1798,39 @@ namespace KeepYourFocus
             string file = Path.Combine(rootPath, "sounds", "setters.txt");
             string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty; // Read the existing content of the file
 
-            List<(string, int, int, string, string, string)> currentScores = existingContent
+            List<(string, int, int, string, string, string, int)> currentScores = existingContent
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(line => line.Split(','))
-                .Select(parts => (parts[0], int.Parse(parts[1]), int.Parse(parts[2]), parts[3], parts[4], parts[5]))
+                .Select(parts => (parts[0], int.Parse(parts[1]), int.Parse(parts[2]), parts[3], parts[4], parts[5], int.Parse(parts[6])))
                 .ToList();
 
             if (currentScores.Count < 15)
             {
                 currentScores.AddRange(highScores);
                 currentScores = currentScores
-                    .OrderByDescending(score => score.Item2)
-                    .ThenBy(score => TimeSpan.Parse(score.Item6))
-                    .Take(15)
+                    .OrderByDescending(score => score.Item2) // Sort by totalRounds
+                    .ThenBy(score => TimeSpan.Parse(score.Item6)) // Sort by elapsedGameTime
+                    .ThenBy(score => score.Item7) // Sort by difficultyLevel
+                    .Take(15) // Keep top 15 scores
                     .ToList();
 
                 using (StreamWriter saveScore = new StreamWriter(file, false))
                 {
                     foreach (var element in currentScores)
                     {
-                        saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6}");
+                        saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6},{element.Item7}");
                     }
                 }
                 WriteToCopies();
             }
             else
-            {   // replace lowest score with new score
+            {
+                // Replace lowest score with new score if applicable
                 var allScores = currentScores.Concat(highScores).ToList();
                 var lowestScore = allScores
-                    .OrderBy(score => score.Item2)
-                    .ThenByDescending(score => TimeSpan.Parse(score.Item6))
+                    .OrderBy(score => score.Item2) // Sort by totalRounds ascending
+                    .ThenByDescending(score => TimeSpan.Parse(score.Item6)) // Sort by elapsedGameTime descending
+                    .ThenByDescending(score => score.Item7) // Sort by difficultyLevel descending
                     .First();
 
                 if (highScores.Any(newScore => newScore.Item2 > lowestScore.Item2))
@@ -1835,16 +1838,17 @@ namespace KeepYourFocus
                     var updatedScores = currentScores
                         .Where(score => score != lowestScore)
                         .Concat(highScores)
-                        .OrderByDescending(score => score.Item2)
-                        .ThenBy(score => TimeSpan.Parse(score.Item6))
-                        .Take(15)
+                        .OrderByDescending(score => score.Item2) // Sort by totalRounds
+                        .ThenBy(score => TimeSpan.Parse(score.Item6)) // Sort by elapsedGameTime
+                        .ThenBy(score => score.Item7) // Sort by difficultyLevel
+                        .Take(15) // Keep top 15 scores
                         .ToList();
 
                     using (StreamWriter saveScore = new StreamWriter(file, false))
                     {
                         foreach (var element in updatedScores)
                         {
-                            saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6}");
+                            saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6},{element.Item7}");
                         }
                         Debug.WriteLine("line replaced in save file");
                     }
@@ -1853,6 +1857,7 @@ namespace KeepYourFocus
             }
             Debug.WriteLine("SaveScoreToFile ended");
         }
+
 
         /*
         // Save score to file. Max save scores set at 15. If currentScore == 15, replace lowest score with new score
