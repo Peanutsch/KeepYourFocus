@@ -1842,7 +1842,15 @@ namespace KeepYourFocus
         private void SaveScoreToFile(List<(string, int, int, string, string, string)> highScores)
         {
             string rootPath = InitializeRootPath(); // Construct the file path using RootPath
-            string file = Path.Combine(rootPath, "sounds", "setters.txt");
+            string soundsDir = Path.Combine(rootPath, "sounds");
+
+            // Ensure the directory exists
+            if (!Directory.Exists(soundsDir))
+            {
+                Directory.CreateDirectory(soundsDir); // Create the 'sounds' directory if it doesn't exist
+            }
+
+            string file = Path.Combine(soundsDir, "setters.txt");
             string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty; // Read the existing content of the file
 
             List<(string, int, int, string, string, string)> currentScores = existingContent
@@ -1867,7 +1875,7 @@ namespace KeepYourFocus
                     {
                         saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6}");
                     }
-                    WriteToCopies(); // Save backup copies of the score file
+                    //WriteToCopies(); // Save backup copies of the score file
                 }
             }
             else
@@ -1897,11 +1905,12 @@ namespace KeepYourFocus
                             saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6}");
                         }
                         Debug.WriteLine("line replaced in save file");
-                        WriteToCopies(); // Save backup copies of the score file
+                        //WriteToCopies(); // Save backup copies of the score file
                     }
                 }
             }
         }
+
 
         /// <summary>
         /// Writes a copy of the score file to backup directories for redundancy.
