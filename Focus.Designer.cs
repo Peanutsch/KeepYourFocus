@@ -335,14 +335,13 @@ namespace KeepYourFocus
             this.checkedListBoxDifficulty.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             this.checkedListBoxDifficulty.ForeColor = Color.White;
             this.checkedListBoxDifficulty.FormattingEnabled = true;
-            this.checkedListBoxDifficulty.Items.AddRange(new object[] { "Default: 6 seq/round", "Easy: 4 seq/round", "Hard: 10 seq/round" });
+            this.checkedListBoxDifficulty.Items.AddRange(new object[] { "Default: 6 seq/round", "Easy: 3 seq/round", "Hard: 10 seq/round" });
             this.checkedListBoxDifficulty.Location = new Point(241, 223);
             this.checkedListBoxDifficulty.Name = "checkedListBoxDifficulty";
             this.checkedListBoxDifficulty.Size = new Size(156, 48);
             this.checkedListBoxDifficulty.TabIndex = 23;
             this.checkedListBoxDifficulty.SetItemCheckState(0, CheckState.Checked);
             this.checkedListBoxDifficulty.ItemCheck += this.checkedListBoxDifficulty_ItemCheck;
-            this.checkedListBoxDifficulty.SelectedIndexChanged += this.checkedListBoxDifficulty_SelectedIndexChanged;
             // 
             // PlayerField
             // 

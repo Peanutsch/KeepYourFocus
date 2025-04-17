@@ -406,114 +406,7 @@ namespace KeepYourFocus
             }
         }
 
-        #region ComboBox Choose our Level
-        // Set game level combobox dropdown list
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ComboBox comboBox = (ComboBox)sender;
-
-            // Skip handling if the selected item is the placeholder
-            if (comboBox.SelectedIndex == 0)
-            {
-                return;
-            }
-
-            int setSequences;
-            switch (comboBox.SelectedIndex)
-            {
-                case 1:
-                    setSequences = 6; // Normal
-                    break;
-                case 2:
-                    setSequences = 4; // Easy
-                    break;
-                case 3:
-                    setSequences = 10; // Hard
-                    break;
-                case 4:
-                    setSequences = int.MaxValue; // Hell: Endless seq
-                    break;
-                default:
-                    setSequences = 6; // Default
-                    break;
-            }
-
-            // Do something with setSequences
-            Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
-        }
-
-        // Return Level and setSequences
-        private string ReturnLevelandSetSequences(out int setSequences)
-        {
-            if (checkedListBoxDifficulty.SelectedIndex == 0) // Placeholder index
-            {
-                setSequences = 0;
-                return "Please select a level.";
-            }
-
-            switch (checkedListBoxDifficulty.SelectedIndex)
-            {
-                case 1:
-                    setSequences = 6; // Default
-                    return "NORMAL";
-                case 2:
-                    setSequences = 4; // Easy
-                    return "EASY";
-                case 3:
-                    setSequences = 10; // Hard
-                    return "HARD";
-                case 4:
-                    setSequences = int.MaxValue; // Hell: Endless seq
-                    return "HELL";
-                default:
-                    setSequences = 6; // Default
-                    return "NORMAL";
-            }
-        }
-        #endregion
-
         #region CheckListBox Choose your Level
-        // Set game level checkbox
-        private void checkedListBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            CheckedListBox checkedListBox = (CheckedListBox)sender;
-
-            // Initialize setSequences with a default value
-            int setSequences = 6;
-
-            if (checkedListBox.CheckedItems.Count > 0)
-            {
-                // Process each selected item
-                foreach (string selectedDifficulty in checkedListBox.CheckedItems)
-                {
-                    switch (selectedDifficulty)
-                    {
-                        case "Default: 6 seq/round":
-                            setSequences = 6;
-                            break;
-                        case "Easy: 4 seq/round":
-                            setSequences = 4;
-                            break;
-                        case "Hard: 10 seq/round":
-                            setSequences = 10;
-                            break;
-                        /*
-                        case "Hell: Endless seq":
-                            setSequences = int.MaxValue;
-                            break;
-                        */
-                        default:
-                            // Handle unexpected cases if needed
-                            setSequences = 6; // Default
-                            break;
-                    }
-                }
-            }
-            Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
-        }
-
-
-
         // Only 1 box can be checked
         private void checkedListBoxDifficulty_ItemCheck(object sender, ItemCheckEventArgs e)
         {
@@ -534,27 +427,19 @@ namespace KeepYourFocus
 
         private int GetSelectedSequences()
         {
-            int setSequences = 6;
-
-            if (checkedListBoxDifficulty.CheckedItems.Count > 0)
+            if (checkedListBoxDifficulty.CheckedItems.Count > 0 && checkedListBoxDifficulty.CheckedItems[0] is string selectedDifficulty)
             {
-                string selectedDifficulty = checkedListBoxDifficulty.CheckedItems[0].ToString();
                 switch (selectedDifficulty)
                 {
                     case "Default: 6 seq/round":
                         setSequences = 6;
                         break;
-                    case "Easy: 4 seq/round":
-                        setSequences = 4;
+                    case "Easy: 3 seq/round":
+                        setSequences = 3;
                         break;
                     case "Hard: 10 seq/round":
                         setSequences = 10;
                         break;
-                    /*
-                    case "Hell: Endless seq":
-                        setSequences = int.MaxValue;
-                        break;
-                    */
                     default:
                         setSequences = 6; // Default
                         break;
@@ -647,10 +532,10 @@ namespace KeepYourFocus
         // Click Event for linklabel GitHub
         private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (e.Link.LinkData != null)
+            if (e.Link!.LinkData != null)
             {
-                string url = e.Link.LinkData.ToString();
-                OpenLink(url);
+                string? url = e.Link.LinkData.ToString();
+                OpenLink(url!);
             }
             else
             {
@@ -662,10 +547,10 @@ namespace KeepYourFocus
         // Click Event for LinkLabel Email
         private void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (e.Link.LinkData != null)
+            if (e.Link!.LinkData != null)
             {
-                string url = e.Link.LinkData.ToString();
-                OpenLink(url);
+                string? url = e.Link.LinkData.ToString();
+                OpenLink(url!);
             }
             else
             {
@@ -902,218 +787,175 @@ namespace KeepYourFocus
         // Shuffle current tile setup after display sequence and/or after player's click
         private async Task ShufflePictureBoxes()
         {
-            // isDisplaySequence
-            if (counterLevels == 2 && rnd.Next(100) <= 55 && isDisplaySequence ||
-                counterLevels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
-                counterLevels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence ||
-                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
-            {
-                Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle after display sequence");
+            int rndChance = rnd.Next(100);
+            //Debug.WriteLine($"[DEBUG] counterLevels: {counterLevels}, rndChance: {rndChance}, isDisplaySequence: {isDisplaySequence}, isPlayerTurn: {isPlayerTurn}, isHardLevel: {isHardLevel}");
 
-                await Task.Delay(500); // Delay 250 ms for space between colorSound and transitionSound
-                transitionSound.Play();
-                RandomizerShufflePictureBoxes();
-                RefreshAndRepositionPictureBoxes();
-                await Task.Delay(500);
-            }
-            // isPlayerTurn
-            if (counterLevels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
-                counterLevels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
-                counterLevels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn ||
-                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence && isDisplaySequence)
+            switch (true)
             {
-                Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
+                // Case 1: Shuffle during display sequence
+                case true when isDisplaySequence && (
+                    (counterLevels == 2 && rndChance <= 55) ||
+                    (counterLevels >= 3 && rndChance <= 75) ||
+                    (counterLevels >= 5 && rndChance <= 85) ||
+                    (isHardLevel && rndChance <= 85)
+                ):
+                    Debug.WriteLine($"> Shuffle PictureBoxes Case 1: Shuffle after display sequence\n  (rndChance: {rndChance})");
 
-                RandomizerShufflePictureBoxes();
-                RefreshAndRepositionPictureBoxes();
+                    await Task.Delay(500);
+                    transitionSound.Play();
+                    RandomizerShufflePictureBoxes();
+                    RefreshAndRepositionPictureBoxes();
+                    await Task.Delay(500);
+                    break;
+
+                // Case 2: Shuffle after player clicks
+                case true when isPlayerTurn && (
+                    (counterLevels >= 3 && rndChance <= 55) ||
+                    (counterLevels >= 4 && rndChance <= 75) ||
+                    (counterLevels >= 6 && rndChance <= 85)
+                ):
+                    Debug.WriteLine($"> Shuffle PictureBoxes Case 2: Shuffle after player click\n  (rndChance: {rndChance})");
+
+                    RandomizerShufflePictureBoxes();
+                    RefreshAndRepositionPictureBoxes();
+                    break;
+
+                // Default: No shuffle
+                default:
+                    Debug.WriteLine($"> Shuffle PictureBoxes: No shuffle this time\n  (rndChance: {rndChance})");
+                    break;
             }
+
             actionTaken = true;
         }
+
 
         // Randomizer for replacing tile on board and/or in sequence. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
         private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
         {
+            int rndChance = rnd.Next(100);
             string newTile = RandomizerTiles();
-            Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
-            List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
-            bool checkReplaceInOrder = (counterLevels >= 5 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                       (counterLevels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counterLevels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                       (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
+            var dictOfAllTiles = DictOfAllTiles();
+            var listOfAllTiles = dictOfAllTiles.ToList();
 
-            bool checkReplaceOnBoard = (counterLevels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 55) ||
-                                       (counterLevels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counterLevels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                       (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
+            var copyCorrectOrder = new List<string>(correctOrder);
+            var replacementOccurred = false;
 
-            bool replacementOccurred = false; // Flag to indicate if any replacement happened
+            // Check of vervanging in correctOrder en/of op bord mag gebeuren
+            bool checkReplaceInOrder = (counterLevels >= 5 && correctOrder.Count > 2 && rndChance <= 55) ||
+                                       (counterLevels >= 6 && correctOrder.Count > 2 && rndChance <= 75) ||
+                                       (counterLevels >= 8 && correctOrder.Count > 2 && rndChance <= 85) ||
+                                       (isHardLevel && rndChance <= 85 && isDisplaySequence);
 
-            if (checkReplaceInOrder || checkReplaceOnBoard)
+            bool checkReplaceOnBoard = (counterLevels >= 6 && correctOrder.Count > 2 && rndChance <= 55) ||
+                                       (counterLevels >= 7 && correctOrder.Count > 2 && rndChance <= 75) ||
+                                       (counterLevels >= 9 && correctOrder.Count > 2 && rndChance <= 85) ||
+                                       (isHardLevel && rndChance <= 85 && isDisplaySequence);
+
+            if (!checkReplaceInOrder && !checkReplaceOnBoard)
+                return (pictureBoxDictionary, correctOrder, false);
+
+            Debug.WriteLine($"> ReplaceTileOnBoardAndInSequence\n rndChance:\n  {rndChance}");
+
+            int randomIndex = rnd.Next(copyCorrectOrder.Count);
+            string deleteTile = copyCorrectOrder[randomIndex];
+
+            Debug.WriteLine($"deleteTile: [{deleteTile}]");
+
+            if (checkReplaceInOrder && newTile != deleteTile && randomIndex != copyCorrectOrder.Count - 1)
             {
-                // Make copy of correctOrder as copyCorrectOrder
-                List<string> copyCorrectOrder = new List<string>(correctOrder);
+                Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
+                Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]\n");
 
-                // Randomize tile to delete from copyCorrectOrder
-                int randomIndex = rnd.Next(copyCorrectOrder.Count);
-                string deleteTile = copyCorrectOrder[randomIndex];
-
-                Debug.WriteLine($"deleteTile: [{deleteTile}]");
-
-                if (checkReplaceInOrder && newTile != deleteTile && randomIndex != copyCorrectOrder.Count - 1)
-                {
-                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]\n");
-
-                    copyCorrectOrder[randomIndex] = newTile;
-
-                    // Update correctOrder with the new copyCorrectOrder
-                    correctOrder = copyCorrectOrder;
-                    replacementOccurred = true;
-                }
-                if (checkReplaceOnBoard)
-                {
-                    // Get the PictureBox associated with the deleteTile
-                    PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteTile];
-
-                    // Remove the old tile from the board
-                    pictureBoxDictionary.Remove(deleteTile);
-
-                    // Randomize new tile that's not in the remaining colors on the board
-                    string pickNewTile;
-                    do
-                    {
-                        pickNewTile = listOfAllTiles[rnd.Next(listOfAllTiles.Count)].Key;
-                        Debug.WriteLine($"pickNewTile: [{pickNewTile}]");
-                    } while (copyCorrectOrder.Contains(pickNewTile) || pictureBoxDictionary.ContainsKey(pickNewTile));
-
-                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replaced on board and in order [{deleteTile}] with [{pickNewTile}]");
-
-                    // Initialize the PictureBox with the new tile
-                    InitializePictureBox(pictureBoxToReplace, pickNewTile, dictOfAllTiles[pickNewTile]);
-
-                    // Add the new tile to the pictureBoxDictionary
-                    pictureBoxDictionary[pickNewTile] = pictureBoxToReplace;
-
-                    // Iter through copyCorrectOrder and replace all deleteTile with pickNewcolor at their index
-                    for (int indexItem = 0; indexItem < copyCorrectOrder.Count; indexItem++)
-                    {
-                        if (copyCorrectOrder[indexItem] == deleteTile)
-                        {
-                            copyCorrectOrder[indexItem] = pickNewTile;
-                        }
-                    }
-
-                    // Update correctOrder with the new copyCorrectOrder
-                    correctOrder = copyCorrectOrder;
-                    replacementOccurred = true;
-                }
-                Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
-                //Debug.WriteLine("Updated pictureBoxDictionary = " + string.Join(", ", pictureBoxDictionary.Keys));
+                copyCorrectOrder[randomIndex] = newTile;
+                correctOrder = copyCorrectOrder;
+                replacementOccurred = true;
             }
+
+            if (checkReplaceOnBoard)
+            {
+                PictureBox pictureBoxToReplace = pictureBoxDictionary[deleteTile];
+                pictureBoxDictionary.Remove(deleteTile);
+
+                string pickNewTile;
+                do
+                {
+                    pickNewTile = listOfAllTiles[rnd.Next(listOfAllTiles.Count)].Key;
+                    Debug.WriteLine($"pickNewTile: [{pickNewTile}]");
+                }
+                while (copyCorrectOrder.Contains(pickNewTile) || pictureBoxDictionary.ContainsKey(pickNewTile));
+
+                Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
+                Debug.WriteLine($"Replaced on board and in order [{deleteTile}] with [{pickNewTile}]");
+
+                InitializePictureBox(pictureBoxToReplace, pickNewTile, dictOfAllTiles[pickNewTile]);
+                pictureBoxDictionary[pickNewTile] = pictureBoxToReplace;
+
+                for (int i = 0; i < copyCorrectOrder.Count; i++)
+                {
+                    if (copyCorrectOrder[i] == deleteTile)
+                        copyCorrectOrder[i] = pickNewTile;
+                }
+
+                correctOrder = copyCorrectOrder;
+                replacementOccurred = true;
+            }
+
+            Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
             actionTaken = true;
+
             return (pictureBoxDictionary, correctOrder, replacementOccurred);
         }
+
 
         // Replace and switch all tiles when level up
         private void ReplaceAllTiles()
         {
-            if (counterLevels >= 4 && levelUp == true && rnd.Next(100) <= 55 ||
-                counterLevels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
-                counterLevels >= 7 && levelUp == true && rnd.Next(100) <= 85 ||
-                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
+            int rndChance = rnd.Next(100);
+
+            bool shouldReplace = (counterLevels >= 4 && levelUp && rndChance <= 55) ||
+                                 (counterLevels >= 5 && levelUp && rndChance <= 75) ||
+                                 (counterLevels >= 7 && levelUp && rndChance <= 85) ||
+                                 (isHardLevel && isDisplaySequence && rndChance <= 85);
+
+            if (!shouldReplace)
+                return;
+
+            Debug.WriteLine($"> ReplaceAllTiles rndChance:\n  {rndChance}");
+
+            var shuffledTiles = ShuffleDictOfAllTiles();
+
+            if (shuffledTiles.Count < 4)
             {
-
-                Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
-
-                // Ensure that we have enough colors to assign
-                if (shuffledTiles.Count >= 3)
-                {
-                    // Retrieve the first 4 key-value pairs from shuffledTiles
-                    KeyValuePair<string, string> kvp1 = shuffledTiles.ElementAt(0);
-                    KeyValuePair<string, string> kvp2 = shuffledTiles.ElementAt(1);
-                    KeyValuePair<string, string> kvp3 = shuffledTiles.ElementAt(2);
-                    KeyValuePair<string, string> kvp4 = shuffledTiles.ElementAt(3);
-
-                    try
-                    {
-                        // Clear the dictionary and add the new tiles
-                        pictureBoxDictionary.Clear();
-                        InitializePictureBox(pictureBox1, kvp1.Key, kvp1.Value);
-                        InitializePictureBox(pictureBox2, kvp2.Key, kvp2.Value);
-                        InitializePictureBox(pictureBox3, kvp3.Key, kvp3.Value);
-                        InitializePictureBox(pictureBox4, kvp4.Key, kvp4.Value);
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        Debug.WriteLine($"An item with the same key has already been added: {ex.Message}");
-                        MessageBox.Show($"An item with the same key has already been added: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                        MessageBox.Show($"{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
-                    MessageBox.Show($"Not enough tiles in shuffledTiles to initialize picture boxes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
+                MessageBox.Show("Not enough tiles in shuffledTiles to initialize picture boxes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            try
+            {
+                pictureBoxDictionary.Clear();
+
+                var kvps = shuffledTiles.Take(4).ToArray();
+
+                InitializePictureBox(pictureBox1, kvps[0].Key, kvps[0].Value);
+                InitializePictureBox(pictureBox2, kvps[1].Key, kvps[1].Value);
+                InitializePictureBox(pictureBox3, kvps[2].Key, kvps[2].Value);
+                InitializePictureBox(pictureBox4, kvps[3].Key, kvps[3].Value);
+            }
+            catch (ArgumentException ex)
+            {
+                Debug.WriteLine($"Duplicate key error: {ex.Message}");
+                MessageBox.Show($"Duplicate key error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
             actionTaken = true;
-        }
-
-        private async void DisplayLabelMessage(bool iscomputerTurn)
-        {
-            /*
-             * Show labels with text in either computer's or Player's turn
-             * E.g. Computer's turn: "Click Here", "Start Here!", "Start With this One!" (45%, 55% or 65% chance depending on level)
-             * Player's turn: various messages based on different levels and conditions
-             */
-
-            int chance = counterLevels >= 6 ? 55 : 45;
-            bool showMessage = computer
-                ? counterLevels >= 2 && rnd.Next(100) <= chance && correctOrder.Count != correctOrder.Count - 1
-                : counterLevels >= 2 && rnd.Next(100) <= 65 && playerOrder.Count != correctOrder.Count;
-
-            if (showMessage)
-            {
-                List<Label> labels = new List<Label> { LabelMessage1, LabelMessage2, LabelMessage3, LabelMessage4 };
-                List<string> labelText;
-
-                if (iscomputerTurn)
-                {
-                    labelText = new List<string> { "Click Here", "Start Here!", "Start With\nthis One!", "This One!", "Over Here!" };
-                }
-                else // is Player's turn
-                {
-                    labelText = new List<string>
-                                                {
-                                                 "Click Here", "This Is NOT\nThe Correct tile!", "The computer\nIs Lying!",
-                                                 "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Tile!",
-                                                 "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
-                                                };
-                }
-
-                // Randomize Label 1 - label 4
-                int pickLabelIndex = rnd.Next(labels.Count);
-                Label randomizedLabelClickHere = labels[pickLabelIndex];
-
-                // Randomize labelText
-                int pickLabelText = rnd.Next(labelText.Count);
-                string randomizedText = labelText[pickLabelText];
-
-                await Task.Delay(250);
-
-                // Initialize label
-                randomizedLabelClickHere.AutoSize = true;
-                randomizedLabelClickHere.Text = randomizedText;
-                randomizedLabelClickHere.Visible = true;
-                await Task.Delay(750);
-                randomizedLabelClickHere.Visible = false;
-            }
         }
         #endregion
 
@@ -1123,124 +965,98 @@ namespace KeepYourFocus
             textBoxShowResults.Visible = false;
 
             isComputerTurn = true;
-
             computer = true;
-            correctOrder.Add(RandomizerTiles());
-            UpdateTurn(); // case computer's Turn
-            DisplaySequence();
 
-            isComputerTurn = false;
+            actionTaken = false;
+
+            correctOrder.Add(RandomizerTiles());
+            UpdateTurn(); // Case: computer's turn
+
+            DisplaySequence();
         }
+
 
         private async void DisplaySequence()
         {
-            Dictionary<string, PictureBox> updatedPictureBoxDictionary;
-            List<string> updatedCorrectOrder;
-            bool replacementOccurred;
+            isDisplaySequence = true;
 
-            // Verify if squares are replaced
-            (updatedPictureBoxDictionary, updatedCorrectOrder, replacementOccurred) = ReplaceTileOnBoardAndInSequence();
+            var (updatedPictureBoxDictionary, updatedCorrectOrder, replacementOccurred) = ReplaceTileOnBoardAndInSequence();
 
             if (replacementOccurred)
             {
-                // Use updated pictureBoxDictionary and correctOrder
                 pictureBoxDictionary = updatedPictureBoxDictionary;
                 correctOrder = updatedCorrectOrder;
             }
 
-            isDisplaySequence = true;
-            computer = true;
-
-            Debug.WriteLine($"\nDisplay Sequence: {counterSequences}");
+            Debug.WriteLine($"\nLevel: {counterLevels} Display Sequence: {counterSequences}");
             Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
 
             await Task.Delay(500);
 
             foreach (var tile in correctOrder)
             {
-                var box = pictureBoxDictionary[tile];
-                if (box == null)
-                    continue;
-
-                await Task.Delay(500); // Delay 500 ms before start highlights and beepSound
-
-                PlaySound(tile);
-
-                ManageHighlight(box, true);
-                await Task.Delay(150);
-                ManageHighlight(box, false);
-                await Task.Delay(50);
+                if (pictureBoxDictionary.TryGetValue(tile, out var box) && box != null)
+                {
+                    await Task.Delay(500);
+                    PlaySound(tile);
+                    ManageHighlight(box, true);
+                    await Task.Delay(150);
+                    ManageHighlight(box, false);
+                    await Task.Delay(50);
+                }
             }
-            // Verify difficulty
+
             await ManageActions();
+            await Task.Delay(500);
 
-            await Task.Delay(500); // Delay 500 ms before calling PlayersTurn()
-
+            isComputerTurn = false;
             computer = false;
             isDisplaySequence = false;
 
-            UpdateTurn(); // case Player's Turn
+            UpdateTurn(); // Case: player's turn
         }
 
         private async void PlayersTurn(object? sender, EventArgs e)
         {
-            isPlayerTurn = true;
-
-            // Block Player's clicks in computer's turn AND at start game before StartButton is clicked
-            if (startButton || computer)
+            if (startButton || computer || sender is not PictureBox clickedBox)
                 return;
 
-            if (sender is PictureBox clickedBox)
+            isPlayerTurn = true;
+            actionTaken = false;
+
+            string tile = clickedBox.Tag?.ToString() ?? "";
+
+            PlaySound(tile);
+            ManageHighlight(clickedBox, true);
+            playerOrder.Add(tile);
+
+            Debug.WriteLine($"Player: [{tile}]");
+
+            await ManageActions();
+
+            // Check if current tile is correct
+            int lastIndex = playerOrder.Count - 1;
+            if (playerOrder[lastIndex] != correctOrder[lastIndex])
             {
-                string tile = clickedBox.Tag?.ToString() ?? "";
-
-                PlaySound(tile);
-                ManageHighlight(clickedBox, true);
-
-                playerOrder.Add(tile);
-
-                Debug.WriteLine($"Player: [{tile}]");
-
-                // Verify difficulty
-                await ManageActions();
-
-                // Verify each item with correctOrder
-                for (int itemIndex = 0; itemIndex < playerOrder.Count; itemIndex++)
-                {
-                    if (playerOrder[itemIndex] != correctOrder[itemIndex])
-                    {
-                        await Task.Delay(100);
-                        ManageHighlight(clickedBox, false);
-                        await Task.Delay(250); // Delay to provide feedback before game over
-                        TextBoxHighscores();
-                        GameOver();
-
-                        isPlayerTurn = false;
-
-                        return;
-                    }
-                }
-                if (playerOrder.Count == correctOrder.Count)
-                {
-                    await Task.Delay(100);
-                    ManageHighlight(clickedBox, false);
-                    await Task.Delay(50);
-
-                    ManageCountersAndLevels();
-
-                    isPlayerTurn = false;
-                }
-                else
-                {
-                    await Task.Delay(100);
-                    ManageHighlight(clickedBox, false);
-                    await Task.Delay(50);
-
-                    isPlayerTurn = false;
-                }
+                await Task.Delay(100);
+                ManageHighlight(clickedBox, false);
+                await Task.Delay(250);
+                TextBoxHighscores();
+                GameOver();
+                isPlayerTurn = false;
+                return;
             }
+
+            await Task.Delay(100);
+            ManageHighlight(clickedBox, false);
+            await Task.Delay(50);
+
+            if (playerOrder.Count == correctOrder.Count)
+                ManageCountersAndLevels();
+
             isPlayerTurn = false;
         }
+
 
         private async void ManageCountersAndLevels()
         {
@@ -1269,7 +1085,6 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        // TESTING WITH 6 SEQUENCES PER LEVEL
         private async Task UpdateCounters()
         {
             setSequences = GetSelectedSequences();
@@ -1308,42 +1123,43 @@ namespace KeepYourFocus
         private async Task ManageActions()
         {
             setSequences = GetSelectedSequences();
-            if (isComputerTurn && !actionTaken)
-            {
-                // Debug.WriteLine("ManageActions> isComputerTurn = true");
-                // DisplayLabelMessage(true);
-                ShufflePictureBoxes();
-                actionTaken = true;
 
-            }
-            if (isPlayerTurn && !actionTaken)
+            if (actionTaken)
+                return;
+
+            switch (true)
             {
-                Debug.WriteLine("ManageActions> isPlayerTurn = true");
-                // DisplayLabelMessage(false);
-                await ShufflePictureBoxes();
-                actionTaken = true;
+                case true when isComputerTurn:
+                    Debug.WriteLine("ManageActions > isComputerTurn = true");
+                    await ShufflePictureBoxes();
+                    break;
+
+                case true when isPlayerTurn:
+                    Debug.WriteLine("ManageActions > isPlayerTurn = true");
+                    await ShufflePictureBoxes();
+                    break;
+
+                case true when isDisplaySequence:
+                    Debug.WriteLine("ManageActions > isDisplaySequence = true");
+                    await ShufflePictureBoxes();
+                    ReplaceTileOnBoardAndInSequence();
+                    break;
+
+                case true when isSetCounters:
+                    ReplaceAllTiles();
+                    break;
+
+                case true when setSequences == int.MaxValue:
+                    isHardLevel = true;
+                    await ShufflePictureBoxes();
+                    ReplaceTileOnBoardAndInSequence();
+                    ReplaceAllTiles();
+                    break;
             }
-            if (isDisplaySequence && !actionTaken)
-            {
-                Debug.WriteLine("ManageActions> isDisplaySequence = true");
-                await ShufflePictureBoxes();
-                ReplaceTileOnBoardAndInSequence();
-                actionTaken = true;
-            }
-            if (isSetCounters && !actionTaken)
-            {
-                ReplaceAllTiles();
-                actionTaken = true;
-            }
-            if (setSequences == int.MaxValue && !actionTaken)
-            {
-                isHardLevel = true;
-                await ShufflePictureBoxes();
-                ReplaceTileOnBoardAndInSequence();
-                ReplaceAllTiles();
-                actionTaken = true;
-            }
+
+            actionTaken = true;
         }
+
 
         // Update richtextbox ShowNumbersOfSequences
         private void UpdateSequence()
@@ -1695,9 +1511,8 @@ namespace KeepYourFocus
             string currentDate = DateTime.Today.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
             // Ensure a checked item exists
-            if (this.checkedListBoxDifficulty.CheckedItems.Count > 0)
+            if (this.checkedListBoxDifficulty.CheckedItems.Count > 0 && checkedListBoxDifficulty.CheckedItems[0] is string difficulty)
             {
-                string difficulty = this.checkedListBoxDifficulty.CheckedItems[0].ToString().Split(':')[0].Trim(); // Extract the difficulty key
                 if (difficultyPriorities.TryGetValue(difficulty, out int difficultyLevel))
                 {
                     if (QualifiesForTopScores(highScores, totalRounds, elapsedGameTime, difficultyLevel))
