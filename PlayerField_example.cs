@@ -6,7 +6,7 @@ using System.Media;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KeepYourFocus
+namespace Simon_Says
 {
 
     public partial class PlayerField_example : Form

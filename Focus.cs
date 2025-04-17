@@ -1,52 +1,21 @@
 using Microsoft.VisualBasic.Devices;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.Drawing;
-using System.Drawing.Text;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Media;
-using System.Runtime.CompilerServices;
 using System.Windows.Forms;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace KeepYourFocus
 {
     public partial class PlayerField : Form
-    #region ClassProperties
     {
-        private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
-        private List<string> correctOrder = new List<string>();
-        private List<string> playerOrder = new List<string>();
-        private List<string> previousTiles = new List<string>();
-
-        private readonly Random rnd = new Random();
-        private Stopwatch gameStopwatch = new Stopwatch();
-
-        #region GameSound_Properties
-        private readonly SoundPlayer redSound;
-        private readonly SoundPlayer blueSound;
-        private readonly SoundPlayer orangeSound;
-        private readonly SoundPlayer greenSound;
-        private readonly SoundPlayer caribBlueSound;
-        private readonly SoundPlayer greySound;
-        private readonly SoundPlayer indigoSound;
-        private readonly SoundPlayer maroonSound;
-        private readonly SoundPlayer oliveSound;
-        private readonly SoundPlayer pinkSound;
-
-        private readonly SoundPlayer transitionSound;
-        private readonly SoundPlayer buttonClickSound;
-        private readonly SoundPlayer wrongSound;
-        private readonly SoundPlayer correctSound;
-        private readonly SoundPlayer startupSound;
-        #endregion
+        // Lazy-loaded GameSounds object
+        private readonly GameSounds sounds = new GameSounds();
 
         #region GameVariables_Properties
         private bool computer = false;
@@ -55,67 +24,36 @@ namespace KeepYourFocus
         private bool levelUp = false;
         private bool gameTime = false;
 
-        bool isComputerTurn = false;
-        bool isPlayerTurn = false;
-        bool isSetCounters = false;
-        bool isDisplaySequence = false;
-        bool isHardLevel = false;
-        bool actionTaken = false;
+        private bool isComputerTurn = false;
+        private bool isPlayerTurn = false;
+        private bool isSetCounters = false;
+        private bool isDisplaySequence = false;
+        private bool isHardLevel = false;
+        private bool actionTaken = false;
         #endregion
 
+        #region GameCounters_Properties
         private int counterSequences = 1;
         private int counterLevels = 1;
         private int counterRounds = 0;
         private int setSequences = 6;
         #endregion
 
+        #region GameOrder_Properties
+        private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
+        private List<string> correctOrder = new List<string>();
+        private List<string> playerOrder = new List<string>();
+        #endregion
+
+        #region GameHelpers
+        private readonly Random rnd = new Random();
+        private Stopwatch gameStopwatch = new Stopwatch();
+        #endregion
+
         public PlayerField()
-        #region Initialize Components
         {
             InitializeComponent();
 
-            // Load soundfiles. For now 1 beep sound for all colors
-            string soundPathBeepALL = Path.Combine(InitializeRootPath(), @"sounds\beep.wav");
-
-            /* ***Pre-made soundPath for all colors*** *\
-            string soundPathBeepRed = Path.Combine(InitializeRootPath(), @"sounds\redSound.wav");
-            string soundPathBeepBlue = Path.Combine(InitializeRootPath(), @"sounds\blueSound.wav");
-            string soundPathBeepOrange = Path.Combine(InitializeRootPath(), @"sounds\orangeSound.wav");
-            string soundPathBeepGreen = Path.Combine(InitializeRootPath(), @"sounds\greenSound.wav");
-            string soundPathBeepCaribBlue = Path.Combine(InitializeRootPath(), @"sounds\caribBlueSound.wav");
-            string soundPathBeepGrey = Path.Combine(InitializeRootPath(), @"sounds\greySound.wav");
-            string soundPathBeepIndigo = Path.Combine(InitializeRootPath(), @"sounds\indigoSound.wav");
-            string soundPathBeepMaroon = Path.Combine(InitializeRootPath(), @"sounds\maroonSound.wav");
-            string soundPathBeepOlive = Path.Combine(InitializeRootPath(), @"sounds\oliveSound.wav");
-            string soundPathBeepPink = Path.Combine(InitializeRootPath(), @"sounds\pinkSound.wav");
-            */
-
-            string soundPathTransition = Path.Combine(InitializeRootPath(), @"sounds\transistion.wav");
-            string soundPathButtonClick = Path.Combine(InitializeRootPath(), @"sounds\buttonclick.wav");
-            string soundPathWrong = Path.Combine(InitializeRootPath(), @"sounds\wrong.wav");
-            string soundPathCorrect = Path.Combine(InitializeRootPath(), @"sounds\correct.wav");
-            string soundPathStartupSound = Path.Combine(InitializeRootPath(), @"sounds\startupSound.wav");
-
-            // Initiaize SoundPlayers
-            redSound = new SoundPlayer(soundPathBeepALL);        // redSound = new SoundPlayer(soundPathBeepRed); 
-            blueSound = new SoundPlayer(soundPathBeepALL);      // blueSound = new SoundPlayer(soundPathBeepBlue); 
-            orangeSound = new SoundPlayer(soundPathBeepALL);    // orangeSound = new SoundPlayer(soundPathBeepOrange); 
-            greenSound = new SoundPlayer(soundPathBeepALL);     // greenSound = new SoundPlayer(soundPathBeepGreen);
-            caribBlueSound = new SoundPlayer(soundPathBeepALL); // caribBlueSound = new SoundPlayer(soundPathBeepCaribBlue);
-            greySound = new SoundPlayer(soundPathBeepALL);      // greySound = new SoundPlayer(soundPathBeepGrey); 
-            indigoSound = new SoundPlayer(soundPathBeepALL);    // indigoSound = new SoundPlayer(soundPathBeepIndigo);
-            maroonSound = new SoundPlayer(soundPathBeepALL);    // maroonSound = new SoundPlayer(soundPathBeepMaroon);
-            oliveSound = new SoundPlayer(soundPathBeepALL);     // oliveSound = new SoundPlayer(soundPathBeepOlive);
-            pinkSound = new SoundPlayer(soundPathBeepALL);      // pinkSound = new SoundPlayer(soundPathBeepPink);
-
-            transitionSound = new SoundPlayer(soundPathTransition);
-            buttonClickSound = new SoundPlayer(soundPathButtonClick);
-            wrongSound = new SoundPlayer(soundPathWrong);
-            correctSound = new SoundPlayer(soundPathCorrect);
-            startupSound = new SoundPlayer(soundPathStartupSound);
-            #endregion
-
-            #region Startup Game
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
 
@@ -137,9 +75,8 @@ namespace KeepYourFocus
             InitialDictionaryOfTilesAtStart();
 
             // Play startup sound
-            startupSound.Play();
+            sounds.PlayStartup();
         }
-        #endregion
 
         #region Initialisations and Setups
         // Thank You + some info Spam MessageBox
@@ -170,7 +107,7 @@ namespace KeepYourFocus
         // Initialization to both startButton and retryButton to start or retry game
         private void InitializeStartGame()
         {
-            buttonClickSound.Play();
+            sounds.PlayButtonClick();
 
             gameTime = true;
             startButton = false;
@@ -238,34 +175,34 @@ namespace KeepYourFocus
             switch (tile)
             {
                 case "Red":
-                    redSound.Play();
+                    sounds.PlayRed();
                     break;
                 case "Blue":
-                    blueSound.Play();
+                    sounds.PlayBlue();
                     break;
                 case "Orange":
-                    orangeSound.Play();
+                    sounds.PlayOrange();
                     break;
                 case "Green":
-                    greenSound.Play();
+                    sounds.PlayGreen();
                     break;
                 case "CaribBlue":
-                    caribBlueSound.Play();
+                    sounds.PlayCaribBlue();
                     break;
                 case "Grey":
-                    greySound.Play();
+                    sounds.PlayGrey();
                     break;
                 case "Indigo":
-                    indigoSound.Play();
+                    sounds.PlayIndigo();
                     break;
                 case "Maroon":
-                    maroonSound.Play();
+                    sounds.PlayMaroon();
                     break;
                 case "Olive":
-                    oliveSound.Play();
+                    sounds.PlayOlive();
                     break;
                 case "Pink":
-                    pinkSound.Play();
+                    sounds.PlayPink();
                     break;
             }
         }
@@ -802,7 +739,7 @@ namespace KeepYourFocus
                     Debug.WriteLine($"> Shuffle PictureBoxes Case 1: Shuffle after display sequence\n  (rndChance: {rndChance})");
 
                     await Task.Delay(500);
-                    transitionSound.Play();
+                    sounds.PlayTransition();
                     RandomizerShufflePictureBoxes();
                     RefreshAndRepositionPictureBoxes();
                     await Task.Delay(500);
@@ -959,7 +896,7 @@ namespace KeepYourFocus
         }
         #endregion
 
-        #region Game Elements
+        #region Turns
         private void ComputersTurn()
         {
             textBoxShowResults.Visible = false;
@@ -1070,7 +1007,7 @@ namespace KeepYourFocus
 
             // Delay 250 ms between beepSound and correctSound
             await Task.Delay(250);
-            correctSound.Play();
+            sounds.PlayCorrect();
 
             await UpdateCounters();
             UpdateSequence();
@@ -1312,7 +1249,7 @@ namespace KeepYourFocus
             // Stop Stopwatch
             InitializeGameStopwatch();
 
-            wrongSound.Play();
+            sounds.PlayWrong();
 
             // Save score
             await VerifyPlayerRank(counterRounds, counterLevels, richTextBoxShowLevelName.Text);
@@ -1794,76 +1731,6 @@ namespace KeepYourFocus
 
             Debug.WriteLine("WriteToCopies ended");
         }
-        #endregion
-
-        #region Revised_example_code
-        /*
-        private async Task SaveScore_revised(int totalRounds, int levelReached, string levelName)
-        {
-            List<HighscoreItem> getHighScores = SortBestScores_revised();
-
-            string elapsedGameTime = InitializeGameStopwatch(); // Get elapsed game time
-            string rootPath = InitializeRootPath(); // Construct the file path using RootPath
-            DateTime isToday = DateTime.Today; // Get current date
-            string isDate = isToday.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture); // Set format date
-
-            // Null check
-            if (string.IsNullOrEmpty(rootPath))
-            {
-                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            string file = Path.Combine(rootPath, "sounds", "setters.txt");
-            HighscoreItem item = getHighScores[0];
-            Debug.WriteLine($" {item.PlayerName} ; {item.Round} ");
-            try
-            {
-                // TODO: fill in processing bits from non-revised function.
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.ToString());
-            }
-
-            throw new NotImplementedException();
-        }
-        
-        private List<HighscoreItem> SortBestScores_revised()
-        {
-            List<(string, int, int, string, string, string)> bestScores = new List<(string, int, int, string, string, string)>();
-            List<HighscoreItem> bestScoresItems = new List<HighscoreItem>();
-            try
-            {
-                // Get scores from file
-                List<(string, int, int, string, string, string)> scoresList = ReadScoresFromFile();
-
-                // Sort by playerScore and then by gameTime
-                bestScores = scoresList.OrderByDescending(x => x.Item2)
-                                       .ThenBy(x => TimeSpan.Parse(x.Item6))
-                                       .Take(8)
-                                       .ToList();
-
-                foreach (var item in bestScores)
-                {
-                    string isName = item.Item1;
-                    int isRounds = item.Item2;
-                    int isLevelReached = item.Item3;
-                    string isLevelName = item.Item4;
-                    string dateToday = item.Item5;
-                    string gameTime = item.Item6;
-
-                    bestScoresItems.Add(new HighscoreItem() { Round = isRounds, LevelReached = isLevelReached, LevelName = isLevelName, DateToday = dateToday, GameTime = gameTime });
-                }
-
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"An error occurred while getting top scores: {e.Message}");
-            }
-            return bestScoresItems;
-        }
-        */
         #endregion
     }
 }
