@@ -335,14 +335,13 @@ namespace KeepYourFocus
             this.checkedListBoxDifficulty.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             this.checkedListBoxDifficulty.ForeColor = Color.White;
             this.checkedListBoxDifficulty.FormattingEnabled = true;
-            this.checkedListBoxDifficulty.Items.AddRange(new object[] { "Default: 6 seq/round", "Easy: 4 seq/round", "Hard: 10 seq/round" });
+            this.checkedListBoxDifficulty.Items.AddRange(new object[] { "Default: 6 seq/round", "Easy: 3 seq/round", "Hard: 10 seq/round" });
             this.checkedListBoxDifficulty.Location = new Point(241, 223);
             this.checkedListBoxDifficulty.Name = "checkedListBoxDifficulty";
             this.checkedListBoxDifficulty.Size = new Size(156, 48);
             this.checkedListBoxDifficulty.TabIndex = 23;
             this.checkedListBoxDifficulty.SetItemCheckState(0, CheckState.Checked);
             this.checkedListBoxDifficulty.ItemCheck += this.checkedListBoxDifficulty_ItemCheck;
-            this.checkedListBoxDifficulty.SelectedIndexChanged += this.checkedListBoxDifficulty_SelectedIndexChanged;
             // 
             // PlayerField
             // 
@@ -392,29 +391,29 @@ namespace KeepYourFocus
             this.PerformLayout();
         }
 
-        private System.Windows.Forms.Button startBTN;
+        public System.Windows.Forms.Button startBTN;
 
-        private ReadOnlyRichTextBox richTextBoxShowNumbersOfSequences;
-        private ReadOnlyRichTextBox richTextBoxTurn;
-        private ReadOnlyRichTextBox richTextBoxShowRounds;
-        private ReadOnlyRichTextBox richTextBoxShowLevelName;
-        private ReadOnlyRichTextBox richTextBoxShowLevelNumber;
+        public ReadOnlyRichTextBox richTextBoxShowNumbersOfSequences;
+        public ReadOnlyRichTextBox richTextBoxTurn;
+        public ReadOnlyRichTextBox richTextBoxShowRounds;
+        public ReadOnlyRichTextBox richTextBoxShowLevelName;
+        public ReadOnlyRichTextBox richTextBoxShowLevelNumber;
 
-        private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.PictureBox pictureBox2;
-        private System.Windows.Forms.PictureBox pictureBox3;
-        private System.Windows.Forms.PictureBox pictureBox4;
-        private Label LabelMessage1;
-        private Label LabelMessage2;
-        private Label LabelMessage3;
-        private Label LabelMessage4;
-        private TextBox textBoxInputName;
-        private TextBox textBoxHighscore;
-        private LinkLabel linkLabelGitHub;
-        private LinkLabel linkLabelEmail;
-        private Button buttonEnter;
-        private TextBox textBoxShowResults;
-        private Button buttonRetry;
-        private CheckedListBox checkedListBoxDifficulty;
+        public System.Windows.Forms.PictureBox pictureBox1;
+        public System.Windows.Forms.PictureBox pictureBox2;
+        public System.Windows.Forms.PictureBox pictureBox3;
+        public System.Windows.Forms.PictureBox pictureBox4;
+        public Label LabelMessage1;
+        public Label LabelMessage2;
+        public Label LabelMessage3;
+        public Label LabelMessage4;
+        public TextBox textBoxInputName;
+        public TextBox textBoxHighscore;
+        public LinkLabel linkLabelGitHub;
+        public LinkLabel linkLabelEmail;
+        public Button buttonEnter;
+        public TextBox textBoxShowResults;
+        public Button buttonRetry;
+        public CheckedListBox checkedListBoxDifficulty;
     }
 }

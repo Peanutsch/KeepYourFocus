@@ -4,10 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KeepYourFocus.GameRelated
+namespace Simon_Says.GameRelated
 {
     public class HighscoreItem
     {
+        public HighscoreItem(string playerName, int round, int levelReached, string levelName, string dateToday, string gameTime)
+        {
+            this.PlayerName = playerName;
+            this.Round = round;
+            this.LevelReached = levelReached;
+            this.LevelName = levelName;
+            this.DateToday = dateToday;
+            this.GameTime = gameTime;
+        }
+
         public string PlayerName
         {
             get; set;
@@ -31,18 +41,6 @@ namespace KeepYourFocus.GameRelated
         public string GameTime
         {
             get; set;
-        }
-        public HighscoreItem()
-        {
-        }
-        public HighscoreItem(string playerName, int round, int levelReached, string levelName, string dateToday, string gameTime)
-        {
-            this.PlayerName = playerName;
-            this.Round = round;
-            this.LevelReached = levelReached;
-            this.LevelName = levelName;
-            this.DateToday = dateToday;
-            this.GameTime = gameTime;
         }
 
         public static HighscoreItem[] GetHighscores(string data_filepath)
