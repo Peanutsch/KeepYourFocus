@@ -32,9 +32,7 @@ namespace KeepYourFocus.GameRelated
         {
             get; set;
         }
-        public HighscoreItem()
-        {
-        }
+
         public HighscoreItem(string playerName, int round, int levelReached, string levelName, string dateToday, string gameTime)
         {
             this.PlayerName = playerName;
