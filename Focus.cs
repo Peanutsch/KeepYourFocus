@@ -19,7 +19,6 @@ using static System.Formats.Asn1.AsnWriter;
 namespace KeepYourFocus
 {
     public partial class Focus : Form
-    #region ClassProperties
     {
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
@@ -63,11 +62,13 @@ namespace KeepYourFocus
         bool actionTaken = false;
         #endregion
 
+        #region Counters
         private int counterSequences = 1;
         private int counterLevels = 1;
         private int counterRounds = 0;
         private int setSequences = 6;
-    #endregion
+        #endregion
+
         public Focus()
         #region Initialize Components
         {
@@ -405,7 +406,7 @@ namespace KeepYourFocus
             }
         }
 
-        #region ComboBox Choose our Level
+        #region ComboBox Choose your Level
         // Set game level combobox dropdown list
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -700,9 +701,10 @@ namespace KeepYourFocus
                 MessageBox.Show("Unable to open link. Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
+        #endregion
 
         // Dictionary for start positions tiles
+        #region Dictionaries
         private void InitialDictionaryOfTilesAtStart()
         {
             pictureBox1.Visible = false;
@@ -750,7 +752,9 @@ namespace KeepYourFocus
                                                         };
             return dictOfAllTiles;
         }
+        #endregion
 
+        #region Tile Management
         private void InitializePictureBox(PictureBox pictureBox, string tile, string imagePath)
         {
             try
@@ -1502,6 +1506,7 @@ namespace KeepYourFocus
                     break;
             }
         }
+        #endregion 
 
         #region Processing Game Over, Input playerName, sort and display Highscores
         // Initialize setup when Game Over
@@ -1984,9 +1989,6 @@ namespace KeepYourFocus
         }
         */
 
-
-
-
         public void WriteToCopies()
         {
             Debug.WriteLine("WriteToCopies started");
@@ -2013,5 +2015,4 @@ namespace KeepYourFocus
         }
         #endregion
     }
-    #endregion
 }
