@@ -13,7 +13,7 @@ namespace Simon_Says
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new PlayerField());
+            Application.Run(new Focus());
         }
     }
 }

@@ -18,7 +18,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace KeepYourFocus
 {
-    public partial class PlayerField : Form
+    public partial class Focus : Form
     #region ClassProperties
     {
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
@@ -68,7 +68,7 @@ namespace KeepYourFocus
         private int counterRounds = 0;
         private int setSequences = 6;
     #endregion
-        public PlayerField()
+        public Focus()
         #region Initialize Components
         {
             InitializeComponent();
