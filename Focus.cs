@@ -22,11 +22,12 @@ namespace KeepYourFocus
     {
         private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
         private List<string> correctOrder = new List<string>();
-        private List<string> playerOrder = new List<string>();
-        private List<string> previousTiles = new List<string>();
+
+        private readonly List<string> playerOrder = new List<string>();
+        private readonly List<string> previousTiles = new List<string>();
 
         private readonly Random rnd = new Random();
-        private Stopwatch gameStopwatch = new Stopwatch();
+        private readonly Stopwatch gameStopwatch = new Stopwatch();
 
         #region GameSound_Properties
         private readonly SoundPlayer redSound;
@@ -69,9 +70,10 @@ namespace KeepYourFocus
         private int setSequences = 6;
         #endregion
 
+        #region Constructor
         public Focus()
-        #region Initialize Components
         {
+            #region Initialize Components
             InitializeComponent();
 
             // Load soundfiles. For now 1 beep sound for all colors
@@ -138,12 +140,14 @@ namespace KeepYourFocus
 
             // Play startup sound
             startupSound.Play();
+            #endregion
         }
         #endregion
 
-        #region Initialisations and Setups
+        // Methods for Initializations: WelcomeMessageBox, StartGame, PictureBoxes, Stopwatch, RootPath, LinkLabels and Alignments
+        #region Initialisations
         // Thank You + some info Spam MessageBox
-        private void InitializeWelcomeMessageBox()
+        private static void InitializeWelcomeMessageBox()
         {
             MessageBox.Show(
                             "   Thank you for testing the heck out of my very first try-out\r\n" +
@@ -211,63 +215,138 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        private void ManageHighlight(PictureBox pictureBox, bool highlight)
+        private void InitializePictureBox(PictureBox pictureBox, string tile, string imagePath)
         {
-            if (pictureBox.InvokeRequired)
+            try
             {
-                pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
+                pictureBox.Image = Image.FromFile(imagePath);
+                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+                pictureBox.BackColor = Color.Transparent;
+                pictureBox.Cursor = Cursors.Hand;
+                pictureBox.Tag = tile;
+
+                pictureBox.Click -= PlayersTurn; // Remove any previous attachment
+
+                pictureBox.Click += PlayersTurn; // Attach event handler
+
+                // Update the dictionary with the new PictureBox
+                pictureBoxDictionary[tile] = pictureBox;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error initializing PictureBox for tile {tile}: {ex.Message}");
+                MessageBox.Show($"Error initializing PictureBox for tile {tile}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Stopwatch for recording gametime
+        private string InitializeGameStopwatch()
+        {
+            if (gameTime)
+            {
+                // Reset stopwatch before Start
+                gameStopwatch.Reset();
+                gameStopwatch.Start();
+                Debug.WriteLine("\n[Start Stopwatch]\n");
+                return "";
             }
             else
             {
-                if (highlight) // Higlight on
+                gameStopwatch.Stop();
+                Debug.WriteLine("\n[Stop Stopwatch]\n");
+
+                if (gameStopwatch.Elapsed.TotalMilliseconds > 0)
                 {
-                    pictureBox.BorderStyle = BorderStyle.None;
-                    pictureBox.Padding = new Padding(5);
-                    pictureBox.BackColor = Color.White;
+                    // Format the elapsed time minutes:seconds
+                    string elapsedGameTime = gameStopwatch.Elapsed.ToString(@"mm\:ss");
+                    Debug.WriteLine($"Elapsed time: {elapsedGameTime}");
+                    return elapsedGameTime;
                 }
-                else // Highlight off
+                else
                 {
-                    pictureBox.Padding = new Padding(0);
-                    pictureBox.BackColor = Color.Transparent;
+                    Debug.WriteLine("ElapsedTime is empty. No time recorded!");
+                    MessageBox.Show("ElapsedTime is empty.No time recorded!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return string.Empty;
                 }
             }
         }
 
-        private void PlaySound(string tile)
+        // Initialize and return root path including directory \KeepYourFocus\
+        static string InitializeRootPath() // InitializeRootPath / OriginalInitializeRootPath()
         {
-            switch (tile)
+            // string directoryPath = Environment.CurrentDirectory;
+            string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
+
+            if (string.IsNullOrEmpty(directoryPath))
             {
-                case "Red":
-                    redSound.Play();
-                    break;
-                case "Blue":
-                    blueSound.Play();
-                    break;
-                case "Orange":
-                    orangeSound.Play();
-                    break;
-                case "Green":
-                    greenSound.Play();
-                    break;
-                case "CaribBlue":
-                    caribBlueSound.Play();
-                    break;
-                case "Grey":
-                    greySound.Play();
-                    break;
-                case "Indigo":
-                    indigoSound.Play();
-                    break;
-                case "Maroon":
-                    maroonSound.Play();
-                    break;
-                case "Olive":
-                    oliveSound.Play();
-                    break;
-                case "Pink":
-                    pinkSound.Play();
-                    break;
+                Debug.WriteLine("Error: Unable to determine root path.");
+                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return string.Empty; // Return an empty string
             }
+
+            string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar);
+            int index = Array.IndexOf(directorySplitPath, "KeepYourFocus");
+
+            if (index != -1)
+            {
+                string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath.Take(index + 1));
+
+                if (!rootPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                {
+                    rootPath += Path.DirectorySeparatorChar;
+                }
+                return rootPath;
+            }
+            else
+            {
+                Debug.WriteLine("Error: 'KeepYourFocus' directory not found in path.");
+                MessageBox.Show("Error: 'KeepYourFocus' directory not found in path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return string.Empty; // Return an empty string
+            }
+        }
+
+        // REVISED METHOD FOR INSTALLATION IN localAPPData! Initialize and return root path including directory \KeepYourFocus\
+        static string REVISEDInitializeRootPath() // InitializeRootPath() / REVISEDInitializeRootPath
+        {
+            // Use the local application data path and the app name to construct the root path
+            string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
+
+            if (string.IsNullOrEmpty(localAppDataPath))
+            {
+                Debug.WriteLine("Error: Application path is not valid.");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the directory exists, create if it doesn't
+            try
+            {
+                Directory.CreateDirectory(localAppDataPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error: Unable to create application directory. {ex.Message}");
+                return string.Empty; // Return an empty string
+            }
+
+            // Ensure the path ends with a directory separator
+            if (!localAppDataPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                localAppDataPath += Path.DirectorySeparatorChar;
+            }
+
+            return localAppDataPath;
+        }
+
+        // Initialize Labels with links to github and email @duck.com
+        private void InitializeLinkLabels()
+        {
+            // Setup LinkLabels text
+            linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
+            linkLabelEmail.Text = "peanutsch@duck.com";
+
+            // Add link data
+            linkLabelGitHub.Links.Add(0, linkLabelGitHub.Text.Length, "https://github.com/Peanutsch/KeepYourFocus.git");
+            linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
         }
 
         private void AlignTextButtonBoxesCenter()
@@ -320,6 +399,41 @@ namespace KeepYourFocus
             textBoxShowResults.DeselectAll();
         }
 
+        private int GetSelectedSequences()
+        {
+            int setSequences = 6;
+
+            if (checkedListBoxDifficulty.CheckedItems.Count > 0)
+            {
+                string? selectedDifficulty = checkedListBoxDifficulty.CheckedItems[0]?.ToString();
+                switch (selectedDifficulty)
+                {
+                    case "Default: 6 seq/round":
+                        setSequences = 6;
+                        break;
+                    case "Easy: 4 seq/round":
+                        setSequences = 4;
+                        break;
+                    case "Hard: 10 seq/round":
+                        setSequences = 10;
+                        break;
+                    /*
+                    case "Hell: Endless seq":
+                        setSequences = int.MaxValue;
+                        break;
+                    */
+                    default:
+                        setSequences = 6; // Default
+                        break;
+                }
+            }
+
+            return setSequences;
+        }
+        #endregion
+
+        // Click Handlers for start, retry, enter buttons, linklabels and difficulty settings
+        #region Click Handlers
         // Click Event for Start Button at start
         private void InitializeButtonStart_Click(object sender, EventArgs e)
         {
@@ -374,39 +488,42 @@ namespace KeepYourFocus
             };
         }
 
-        // Stopwatch for recording gametime
-        private string InitializeGameStopwatch()
+        // Click Event for linklabel GitHub
+        private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs? e)
         {
-            if (gameTime)
+            // Guard against a null event args or missing Link
+            if (e?.Link?.LinkData != null)
             {
-                // Reset stopwatch before Start
-                gameStopwatch.Reset();
-                gameStopwatch.Start();
-                Debug.WriteLine("\n[Start Stopwatch]\n");
-                return "";
+                string? url = e.Link.LinkData.ToString();
+                if (!string.IsNullOrEmpty(url))
+                {
+                    OpenLink(url);
+                    return;
+                }
             }
-            else
-            {
-                gameStopwatch.Stop();
-                Debug.WriteLine("\n[Stop Stopwatch]\n");
 
-                if (gameStopwatch.Elapsed.TotalMilliseconds > 0)
-                {
-                    // Format the elapsed time minutes:seconds
-                    string elapsedGameTime = gameStopwatch.Elapsed.ToString(@"mm\:ss");
-                    Debug.WriteLine($"Elapsed time: {elapsedGameTime}");
-                    return elapsedGameTime;
-                }
-                else
-                {
-                    Debug.WriteLine("ElapsedTime is empty. No time recorded!");
-                    MessageBox.Show("ElapsedTime is empty.No time recorded!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return string.Empty;
-                }
-            }
+            Debug.WriteLine("Warning: LinkData is null or event args missing.");
+            MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        #region ComboBox Choose your Level
+        // Click Event for LinkLabel Email
+        private void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            // Guard against missing Link or LinkData
+            if (e?.Link?.LinkData != null)
+            {
+                string? url = e.Link.LinkData.ToString();
+                if (!string.IsNullOrEmpty(url))
+                {
+                    OpenLink(url);
+                    return;
+                }
+            }
+
+            Debug.WriteLine("Warning: LinkData is null or event args missing.");
+            MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         // Set game level combobox dropdown list
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -442,37 +559,6 @@ namespace KeepYourFocus
             Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
         }
 
-        // Return Level and setSequences
-        private string ReturnLevelandSetSequences(out int setSequences)
-        {
-            if (checkedListBoxDifficulty.SelectedIndex == 0) // Placeholder index
-            {
-                setSequences = 0;
-                return "Please select a level.";
-            }
-
-            switch (checkedListBoxDifficulty.SelectedIndex)
-            {
-                case 1:
-                    setSequences = 6; // Default
-                    return "NORMAL";
-                case 2:
-                    setSequences = 4; // Easy
-                    return "EASY";
-                case 3:
-                    setSequences = 10; // Hard
-                    return "HARD";
-                case 4:
-                    setSequences = int.MaxValue; // Hell: Endless seq
-                    return "HELL";
-                default:
-                    setSequences = 6; // Default
-                    return "NORMAL";
-            }
-        }
-        #endregion
-
-        #region CheckListBox Choose your Level
         // Set game level checkbox
         private void checkedListBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -512,8 +598,6 @@ namespace KeepYourFocus
             Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
         }
 
-
-
         // Only 1 box can be checked
         private void checkedListBoxDifficulty_ItemCheck(object sender, ItemCheckEventArgs e)
         {
@@ -532,156 +616,8 @@ namespace KeepYourFocus
             }
         }
 
-        private int GetSelectedSequences()
-        {
-            int setSequences = 6;
-
-            if (checkedListBoxDifficulty.CheckedItems.Count > 0)
-            {
-                string? selectedDifficulty = checkedListBoxDifficulty.CheckedItems[0].ToString();
-                switch (selectedDifficulty)
-                {
-                    case "Default: 6 seq/round":
-                        setSequences = 6;
-                        break;
-                    case "Easy: 4 seq/round":
-                        setSequences = 4;
-                        break;
-                    case "Hard: 10 seq/round":
-                        setSequences = 10;
-                        break;
-                    /*
-                    case "Hell: Endless seq":
-                        setSequences = int.MaxValue;
-                        break;
-                    */
-                    default:
-                        setSequences = 6; // Default
-                        break;
-                }
-            }
-
-            return setSequences;
-        }
-        #endregion
-
-        // REVISED METHOD FOR INSTALLATION IN localAPPData! Initialize and return root path including directory \KeepYourFocus\
-        static string REVISEDInitializeRootPath() // InitializeRootPath() / REVISEDInitializeRootPath
-        {
-            // Use the local application data path and the app name to construct the root path
-            string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");
-
-            if (string.IsNullOrEmpty(localAppDataPath))
-            {
-                Debug.WriteLine("Error: Application path is not valid.");
-                return string.Empty; // Return an empty string
-            }
-
-            // Ensure the directory exists, create if it doesn't
-            try
-            {
-                Directory.CreateDirectory(localAppDataPath);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: Unable to create application directory. {ex.Message}");
-                return string.Empty; // Return an empty string
-            }
-
-            // Ensure the path ends with a directory separator
-            if (!localAppDataPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            {
-                localAppDataPath += Path.DirectorySeparatorChar;
-            }
-
-            return localAppDataPath;
-        }
-
-
-        // Initialize and return root path including directory \KeepYourFocus\
-        static string InitializeRootPath() // InitializeRootPath / OriginalInitializeRootPath()
-        {
-            // string directoryPath = Environment.CurrentDirectory;
-            string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
-
-            if (string.IsNullOrEmpty(directoryPath))
-            {
-                Debug.WriteLine("Error: Unable to determine root path.");
-                MessageBox.Show("Error: Unable to determine root path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return string.Empty; // Return an empty string
-            }
-
-            string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar);
-            int index = Array.IndexOf(directorySplitPath, "KeepYourFocus");
-
-            if (index != -1)
-            {
-                string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath.Take(index + 1));
-
-                if (!rootPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                {
-                    rootPath += Path.DirectorySeparatorChar;
-                }
-                return rootPath;
-            }
-            else
-            {
-                Debug.WriteLine("Error: 'KeepYourFocus' directory not found in path.");
-                MessageBox.Show("Error: 'KeepYourFocus' directory not found in path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return string.Empty; // Return an empty string
-            }
-        }
-
-        // Initialize Labels with links to github and email @duck.com
-        private void InitializeLinkLabels()
-        {
-            // Setup LinkLabels text
-            linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
-            linkLabelEmail.Text = "peanutsch@duck.com";
-
-            // Add link data
-            linkLabelGitHub.Links.Add(0, linkLabelGitHub.Text.Length, "https://github.com/Peanutsch/KeepYourFocus.git");
-            linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
-        }
-
-        // Click Event for linklabel GitHub
-        private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs? e)
-        {
-            // Guard against a null event args or missing Link
-            if (e?.Link?.LinkData != null)
-            {
-                string? url = e.Link.LinkData.ToString();
-                if (!string.IsNullOrEmpty(url))
-                {
-                    OpenLink(url);
-                    return;
-                }
-            }
-
-            Debug.WriteLine("Warning: LinkData is null or event args missing.");
-            MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        // Click Event for LinkLabel Email
-        private void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            // Guard against missing Link or LinkData
-            if (e?.Link?.LinkData != null)
-            {
-                string? url = e.Link.LinkData.ToString();
-                if (!string.IsNullOrEmpty(url))
-                {
-                    OpenLink(url);
-                    return;
-                }
-            }
-
-            Debug.WriteLine("Warning: LinkData is null or event args missing.");
-            MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
         // Null Check for open links in default browser and email client
-        private void OpenLink(string url)
+        private static void OpenLink(string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -738,48 +674,84 @@ namespace KeepYourFocus
             string pinkTile = Path.Combine(InitializeRootPath(), "png", "pink_tile512.png");
 
             Dictionary<string, string> dictOfAllTiles = new Dictionary<string, string>()
-                                                        {
-                                                            {"Red", redTile},
-                                                            {"Blue", blueTile},
-                                                            {"Orange", orangeTile},
-                                                            {"Green", greenTile},
-                                                            {"CaribBlue", caribBlueTile},
-                                                            {"Grey", greyTile},
-                                                            {"Indigo", indigoTile},
-                                                            {"Maroon", maroonTile },
-                                                            {"Olive", oliveTile},
-                                                            {"Pink", pinkTile}
-                                                        };
+                                                            {
+                                                                {"Red", redTile},
+                                                                {"Blue", blueTile},
+                                                                {"Orange", orangeTile},
+                                                                {"Green", greenTile},
+                                                                {"CaribBlue", caribBlueTile},
+                                                                {"Grey", greyTile},
+                                                                {"Indigo", indigoTile},
+                                                                {"Maroon", maroonTile },
+                                                                {"Olive", oliveTile},
+                                                                {"Pink", pinkTile}
+                                                            };
             return dictOfAllTiles;
         }
         #endregion
 
-        #region Tile Management
-        private void InitializePictureBox(PictureBox pictureBox, string tile, string imagePath)
+        // Methods for managing highlights, sounds, randomizer shuffle and tiles, fixed positions of pictureboxes
+        #region Management
+        private void ManageHighlight(PictureBox pictureBox, bool highlight)
         {
-            try
+            if (pictureBox.InvokeRequired)
             {
-                pictureBox.Image = Image.FromFile(imagePath);
-                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
-                pictureBox.BackColor = Color.Transparent;
-                pictureBox.Cursor = Cursors.Hand;
-                pictureBox.Tag = tile;
-
-                pictureBox.Click -= PlayersTurn; // Remove any previous attachment
-
-                pictureBox.Click += PlayersTurn; // Attach event handler
-
-                // Update the dictionary with the new PictureBox
-                pictureBoxDictionary[tile] = pictureBox;
+                pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
             }
-            catch (Exception ex)
+            else
             {
-                Debug.WriteLine($"Error initializing PictureBox for tile {tile}: {ex.Message}");
-                MessageBox.Show($"Error initializing PictureBox for tile {tile}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (highlight) // Higlight on
+                {
+                    pictureBox.BorderStyle = BorderStyle.None;
+                    pictureBox.Padding = new Padding(5);
+                    pictureBox.BackColor = Color.White;
+                }
+                else // Highlight off
+                {
+                    pictureBox.Padding = new Padding(0);
+                    pictureBox.BackColor = Color.Transparent;
+                }
             }
         }
 
-        private void RandomizerShufflePictureBoxes()
+        private void ManageSound(string tile)
+        {
+            switch (tile)
+            {
+                case "Red":
+                    redSound.Play();
+                    break;
+                case "Blue":
+                    blueSound.Play();
+                    break;
+                case "Orange":
+                    orangeSound.Play();
+                    break;
+                case "Green":
+                    greenSound.Play();
+                    break;
+                case "CaribBlue":
+                    caribBlueSound.Play();
+                    break;
+                case "Grey":
+                    greySound.Play();
+                    break;
+                case "Indigo":
+                    indigoSound.Play();
+                    break;
+                case "Maroon":
+                    maroonSound.Play();
+                    break;
+                case "Olive":
+                    oliveSound.Play();
+                    break;
+                case "Pink":
+                    pinkSound.Play();
+                    break;
+            }
+        }
+
+        private void ManageRandomizerShufflePictureBoxes()
         {
             // Shuffle the keys of the dictionary
             List<string> keys = pictureBoxDictionary.Keys.ToList();
@@ -796,13 +768,13 @@ namespace KeepYourFocus
             foreach (string key in keys)
             {
                 PictureBox pictureBox = pictureBoxDictionary[key];
-                pictureBox.Location = SetFixedPositionPictureBoxes(index);
+                pictureBox.Location = ManageFixedPositionPictureBoxes(index);
                 index++;
             }
         }
 
         // Randomize tiles. No more then 2 of the same tiles in a row (is the idea)
-        private string RandomizerTiles()
+        private string ManageRandomizerTiles()
         {
             // Verify if the dictionary is not empty
             if (pictureBoxDictionary.Count == 0)
@@ -851,7 +823,7 @@ namespace KeepYourFocus
         }
 
         // Define fixed positions for PictureBoxes
-        private static Point SetFixedPositionPictureBoxes(int index)
+        private static Point ManageFixedPositionPictureBoxes(int index)
         {
             // Define fixed positions based on the index
             switch (index)
@@ -870,6 +842,7 @@ namespace KeepYourFocus
         }
         #endregion
 
+        // Methods for managing difficulties, randomizer shuffle and tiles, fixed positions of pictureboxes
         #region Difficulties
         // Returns shuffled dictionary of all tiles (Fisher-Yates shuffle algoritme / Knuth shuffle)
         private Dictionary<string, string> ShuffleDictOfAllTiles()
@@ -905,7 +878,7 @@ namespace KeepYourFocus
             // Iterate through the shuffled PictureBoxes and assign fixed positions
             for (int itemIndex = 0; itemIndex < shuffledPictureBoxes.Count; itemIndex++)
             {
-                shuffledPictureBoxes[itemIndex].Location = SetFixedPositionPictureBoxes(itemIndex);
+                shuffledPictureBoxes[itemIndex].Location = ManageFixedPositionPictureBoxes(itemIndex);
                 shuffledPictureBoxes[itemIndex].Visible = true;
             }
         }
@@ -926,7 +899,7 @@ namespace KeepYourFocus
 
                 await Task.Delay(500); // Delay 250 ms for space between colorSound and transitionSound
                 transitionSound.Play();
-                RandomizerShufflePictureBoxes();
+                ManageRandomizerShufflePictureBoxes();
                 RefreshAndRepositionPictureBoxes();
                 await Task.Delay(500);
             }
@@ -939,7 +912,7 @@ namespace KeepYourFocus
             {
                 Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
 
-                RandomizerShufflePictureBoxes();
+                ManageRandomizerShufflePictureBoxes();
                 RefreshAndRepositionPictureBoxes();
             }
             actionTaken = true;
@@ -950,7 +923,7 @@ namespace KeepYourFocus
         {
             Debug.WriteLine("Replace tile on board and/or in sequence...");
 
-            string newTile = RandomizerTiles();
+            string newTile = ManageRandomizerTiles();
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
             List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
@@ -1120,11 +1093,11 @@ namespace KeepYourFocus
                 else // is Player's turn
                 {
                     labelText = new List<string>
-                                                {
-                                                 "Click Here", "This Is NOT\nThe Correct tile!", "The computer\nIs Lying!",
-                                                 "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Tile!",
-                                                 "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
-                                                };
+                                                    {
+                                                     "Click Here", "This Is NOT\nThe Correct tile!", "The computer\nIs Lying!",
+                                                     "This Is\nThe One!", "Just Kidding!\nClick This One!", "This Is NOT\nThe Right Tile!",
+                                                     "This Is\nThe Next\nOne!", "Now This One!", "This One!", "Over Here!"
+                                                    };
                 }
 
                 // Randomize Label 1 - label 4
@@ -1148,7 +1121,8 @@ namespace KeepYourFocus
 
         #endregion
 
-        #region Game Elements
+        // Methods for managing game flow: computer's turn, player's turn, display sequence, manage counters and levels, and verify actions
+        #region Game Handlers
         private void ComputersTurn()
         {
             textBoxShowResults.Visible = false;
@@ -1156,7 +1130,7 @@ namespace KeepYourFocus
             isComputerTurn = true;
 
             computer = true;
-            correctOrder.Add(RandomizerTiles());
+            correctOrder.Add(ManageRandomizerTiles());
             UpdateTurn(); // case computer's Turn
             DisplaySequence();
 
@@ -1197,7 +1171,7 @@ namespace KeepYourFocus
 
                 await Task.Delay(500); // Delay 500 ms before start highlights and beepSound
 
-                PlaySound(tile);
+                ManageSound(tile);
 
                 ManageHighlight(box, true);
                 await Task.Delay(150);
@@ -1230,7 +1204,7 @@ namespace KeepYourFocus
             {
                 string tile = clickedBox.Tag?.ToString() ?? "";
 
-                PlaySound(tile);
+                ManageSound(tile);
                 ManageHighlight(clickedBox, true);
 
                 playerOrder.Add(tile);
@@ -1506,9 +1480,10 @@ namespace KeepYourFocus
                     break;
             }
         }
-        #endregion 
+        #endregion
 
-        #region Processing Game Over, Input playerName, sort and display Highscores
+        // Methods for managing game over, processing player name, displaying highscores, and reading scores from file
+        #region Processing Game Over
         // Initialize setup when Game Over
         private async void GameOver()
         {
@@ -1708,15 +1683,16 @@ namespace KeepYourFocus
 
         #endregion
 
-        #region Processing Score, Save Score
+        // Methods for managing score verification, saving scores to file, and displaying results based on player's rank
+        #region Processing Score
 
         // Initialize difficulties from checkListBoxDifficulty
         private Dictionary<string, int> difficultyPriorities = new Dictionary<string, int>
-                                                               {
-                                                                    { "Hard", 1 },
-                                                                    { "Default", 2 },
-                                                                    { "Easy", 3 }
-                                                               };
+                                                                   {
+                                                                        { "Hard", 1 },
+                                                                        { "Default", 2 },
+                                                                        { "Easy", 3 }
+                                                                   };
 
         // Initialize new task as private field
         private TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
@@ -1734,8 +1710,8 @@ namespace KeepYourFocus
             // Ensure a checked item exists
             if (this.checkedListBoxDifficulty.CheckedItems.Count > 0)
             {
-                string? difficulty = this.checkedListBoxDifficulty.CheckedItems[0].ToString().Split(':')[0].Trim(); // Extract the difficulty key
-                if (difficultyPriorities.TryGetValue(difficulty, out int difficultyLevel))
+                string? difficulty = this.checkedListBoxDifficulty.CheckedItems[0]?.ToString()?.Split(':')[0].Trim(); // Extract the difficulty key
+                if (difficultyPriorities.TryGetValue(difficulty!, out int difficultyLevel))
                 {
                     if (QualifiesForTopScores(highScores, totalRounds, elapsedGameTime, difficultyLevel))
                     {
