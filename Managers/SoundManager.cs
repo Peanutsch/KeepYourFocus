@@ -10,17 +10,8 @@ namespace Simon_Says.Managers
     /// </summary>
     public class SoundManager
     {
-        // Tile-specific sound players (one per tile color)
-        private readonly SoundPlayer redSound;
-        private readonly SoundPlayer blueSound;
-        private readonly SoundPlayer orangeSound;
-        private readonly SoundPlayer greenSound;
-        private readonly SoundPlayer caribBlueSound;
-        private readonly SoundPlayer greySound;
-        private readonly SoundPlayer indigoSound;
-        private readonly SoundPlayer maroonSound;
-        private readonly SoundPlayer oliveSound;
-        private readonly SoundPlayer pinkSound;
+        // Single sound player for all tile beep sounds (all use the same file)
+        private readonly SoundPlayer tileBeepSound;
 
         // Game event sound players
         private readonly SoundPlayer transitionSound;
@@ -36,51 +27,23 @@ namespace Simon_Says.Managers
         public SoundManager()
         {
             string rootPath = PathHelper.GetRootPath();
-            string soundPathBeepALL = Path.Combine(rootPath, @"sounds\beep.wav");
 
-            string soundPathTransition = Path.Combine(rootPath, @"sounds\transistion.wav");
-            string soundPathButtonClick = Path.Combine(rootPath, @"sounds\buttonclick.wav");
-            string soundPathWrong = Path.Combine(rootPath, @"sounds\wrong.wav");
-            string soundPathCorrect = Path.Combine(rootPath, @"sounds\correct.wav");
-            string soundPathStartupSound = Path.Combine(rootPath, @"sounds\startupSound.wav");
-
-            redSound = new SoundPlayer(soundPathBeepALL);
-            blueSound = new SoundPlayer(soundPathBeepALL);
-            orangeSound = new SoundPlayer(soundPathBeepALL);
-            greenSound = new SoundPlayer(soundPathBeepALL);
-            caribBlueSound = new SoundPlayer(soundPathBeepALL);
-            greySound = new SoundPlayer(soundPathBeepALL);
-            indigoSound = new SoundPlayer(soundPathBeepALL);
-            maroonSound = new SoundPlayer(soundPathBeepALL);
-            oliveSound = new SoundPlayer(soundPathBeepALL);
-            pinkSound = new SoundPlayer(soundPathBeepALL);
-
-            transitionSound = new SoundPlayer(soundPathTransition);
-            buttonClickSound = new SoundPlayer(soundPathButtonClick);
-            wrongSound = new SoundPlayer(soundPathWrong);
-            correctSound = new SoundPlayer(soundPathCorrect);
-            startupSound = new SoundPlayer(soundPathStartupSound);
+            tileBeepSound = new SoundPlayer(Path.Combine(rootPath, @"sounds\beep.wav"));
+            transitionSound = new SoundPlayer(Path.Combine(rootPath, @"sounds\transistion.wav"));
+            buttonClickSound = new SoundPlayer(Path.Combine(rootPath, @"sounds\buttonclick.wav"));
+            wrongSound = new SoundPlayer(Path.Combine(rootPath, @"sounds\wrong.wav"));
+            correctSound = new SoundPlayer(Path.Combine(rootPath, @"sounds\correct.wav"));
+            startupSound = new SoundPlayer(Path.Combine(rootPath, @"sounds\startupSound.wav"));
         }
 
         /// <summary>
         /// Plays the sound effect associated with the specified tile color.
+        /// All tiles currently use the same beep sound.
         /// </summary>
         /// <param name="tile">The tile color name (e.g. "Red", "Blue").</param>
         public void PlayTileSound(string tile)
         {
-            switch (tile)
-            {
-                case "Red": redSound.Play(); break;
-                case "Blue": blueSound.Play(); break;
-                case "Orange": orangeSound.Play(); break;
-                case "Green": greenSound.Play(); break;
-                case "CaribBlue": caribBlueSound.Play(); break;
-                case "Grey": greySound.Play(); break;
-                case "Indigo": indigoSound.Play(); break;
-                case "Maroon": maroonSound.Play(); break;
-                case "Olive": oliveSound.Play(); break;
-                case "Pink": pinkSound.Play(); break;
-            }
+            tileBeepSound.Play();
         }
 
         /// <summary>Plays the tile-shuffle transition sound.</summary>

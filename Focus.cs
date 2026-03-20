@@ -86,6 +86,9 @@ namespace KeepYourFocus
             // Use initial dictionary for start setup
             tileManager.InitialDictionaryOfTilesAtStart(PictureBoxes, PlayersTurn);
 
+            // Register KeyDown handler once (prevents handler stacking)
+            textBoxInputName.KeyDown += TextBoxInputName_KeyDown;
+
             // Play startup sound
             soundManager.PlayStartup();
         }
@@ -339,29 +342,27 @@ namespace KeepYourFocus
         public void InitializeButtonEnter_Click(object sender, EventArgs e)
         {
             string playerName = ProcessInputName();
-            playerNameTcs.TrySetResult(ProcessInputName());
+            playerNameTcs.TrySetResult(playerName);
             textBoxShowResults.DeselectAll();
             Debug.WriteLine("playerName entered by buttonEnter");
         }
 
         /// <summary>
-        /// Registers a KeyDown handler on the name input text box so pressing Enter
+        /// Handles KeyDown on the name input text box so pressing Enter
         /// submits the player's name (same as clicking the Enter button).
+        /// Registered once in the constructor to prevent handler stacking.
         /// </summary>
-        public void InitializeKeyEnter()
+        private void TextBoxInputName_KeyDown(object? sender, KeyEventArgs e)
         {
-            textBoxInputName.KeyDown += (sender, e) =>
+            if (e.KeyCode == Keys.Enter)
             {
-                if (e.KeyCode == Keys.Enter)
-                {
-                    e.Handled = true;
-                    e.SuppressKeyPress = true;
-                    string playerName = ProcessInputName();
-                    playerNameTcs.TrySetResult(ProcessInputName());
-                    textBoxShowResults.DeselectAll();
-                    Debug.WriteLine("playerName entered by Keys.Enter");
-                }
-            };
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                string playerName = ProcessInputName();
+                playerNameTcs.TrySetResult(playerName);
+                textBoxShowResults.DeselectAll();
+                Debug.WriteLine("playerName entered by Keys.Enter");
+            }
         }
 
         /// <summary>
@@ -909,7 +910,6 @@ namespace KeepYourFocus
                     }
                 case (true, false, _):
                     richTextBoxTurn.BackColor = Color.Salmon;
-                    richTextBoxTurn.Text = $"computer's Turn";
                     richTextBoxTurn.Text = $"Running\n::\nSequence";
                     break;
                 case (false, false, _):
@@ -1107,8 +1107,6 @@ namespace KeepYourFocus
             buttonEnter.Enabled = true;
 
             textBoxInputName.Focus();
-
-            InitializeKeyEnter();
 
             string playerName = await playerNameTcs.Task;
 

@@ -115,14 +115,9 @@ namespace Simon_Says.Managers
         {
             string rootPath = PathHelper.GetRootPath();
             string file = Path.Combine(rootPath, "sounds", "setters.txt");
-            string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty;
 
-            // Parse existing scores from the CSV file
-            List<(string, int, int, string, string, string, int)> currentScores = existingContent
-                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(line => line.Split(','))
-                .Select(parts => (parts[0], int.Parse(parts[1]), int.Parse(parts[2]), parts[3], parts[4], parts[5], int.Parse(parts[6])))
-                .ToList();
+            // Reuse existing parsing logic instead of duplicating it
+            List<(string, int, int, string, string, string, int)> currentScores = ReadScoresFromFile();
 
             // Merge and keep the top 15 scores if under capacity
             if (currentScores.Count < 15)

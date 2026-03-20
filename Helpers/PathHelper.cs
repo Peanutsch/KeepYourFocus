@@ -7,13 +7,18 @@ namespace Simon_Says.Helpers
     /// </summary>
     public static class PathHelper
     {
+        private static string? _cachedRootPath;
+
         /// <summary>
         /// Resolves the root path of the KeepYourFocus project by searching for the
         /// "KeepYourFocus" directory segment in the application base directory.
+        /// The result is cached after the first call.
         /// </summary>
         /// <returns>The absolute root path ending with a directory separator, or <see cref="string.Empty"/> on failure.</returns>
         public static string GetRootPath()
         {
+            if (_cachedRootPath != null)
+                return _cachedRootPath;
             string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
 
             if (string.IsNullOrEmpty(directoryPath))
@@ -36,6 +41,7 @@ namespace Simon_Says.Helpers
                 {
                     rootPath += Path.DirectorySeparatorChar;
                 }
+                _cachedRootPath = rootPath;
                 return rootPath;
             }
             else

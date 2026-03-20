@@ -17,6 +17,7 @@ namespace Simon_Says.Managers
         /// <summary>The DPI-scaled positions captured at startup for each PictureBox slot.</summary>
         private readonly Point[] pictureBoxFixedPositions;
         private readonly Random rnd = new();
+        private static Dictionary<string, string>? _cachedAllTiles;
 
         /// <summary>
         /// Captures the runtime-scaled size and positions from the initial PictureBox layout.
@@ -41,6 +42,8 @@ namespace Simon_Says.Managers
         {
             try
             {
+                // Dispose the previous image to prevent GDI+ handle leaks
+                pictureBox.Image?.Dispose();
                 pictureBox.Image = Image.FromFile(imagePath);
                 pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                 pictureBox.BackColor = Color.Transparent;
@@ -96,8 +99,11 @@ namespace Simon_Says.Managers
         /// <returns>A dictionary with tile color names as keys and absolute image paths as values.</returns>
         public static Dictionary<string, string> DictOfAllTiles()
         {
+            if (_cachedAllTiles != null)
+                return _cachedAllTiles;
+
             string rootPath = PathHelper.GetRootPath();
-            return new Dictionary<string, string>
+            _cachedAllTiles = new Dictionary<string, string>
             {
                 { "Red", Path.Combine(rootPath, "png", "red_tile512.png") },
                 { "Blue", Path.Combine(rootPath, "png", "blue_tile512.png") },
@@ -110,6 +116,7 @@ namespace Simon_Says.Managers
                 { "Olive", Path.Combine(rootPath, "png", "olive_tile512.png") },
                 { "Pink", Path.Combine(rootPath, "png", "pink_tile512.png") }
             };
+            return _cachedAllTiles;
         }
 
         /// <summary>
@@ -235,7 +242,7 @@ namespace Simon_Says.Managers
                 string temp = shuffledTiles[randomIndex];
                 shuffledTiles[randomIndex] = shuffledTiles[numberOfItems];
                 shuffledTiles[numberOfItems] = temp;
-            }
+        }
 
             // Prevent three identical consecutive tiles by swapping with the next different tile
             for (int itemIndex = 2; itemIndex < shuffledTiles.Count; itemIndex++)
@@ -256,7 +263,7 @@ namespace Simon_Says.Managers
             }
 
             return shuffledTiles[0];
-        }
+            }
 
         /// <summary>
         /// Returns the DPI-scaled fixed position for the given slot index.
