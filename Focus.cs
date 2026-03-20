@@ -20,40 +20,40 @@ namespace KeepYourFocus
 {
     public partial class Focus : Form
     {
-        private Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
-        private List<string> correctOrder = new List<string>();
+        public Dictionary<string, PictureBox> pictureBoxDictionary = new Dictionary<string, PictureBox>();
+        public List<string> correctOrder = new List<string>();
 
-        private readonly List<string> playerOrder = new List<string>();
-        private readonly List<string> previousTiles = new List<string>();
+        public readonly List<string> playerOrder = new List<string>();
+        public readonly List<string> previousTiles = new List<string>();
 
-        private readonly Random rnd = new Random();
-        private readonly Stopwatch gameStopwatch = new Stopwatch();
+        public readonly Random rnd = new Random();
+        public readonly Stopwatch gameStopwatch = new Stopwatch();
 
-        #region GameSound_Properties
-        private readonly SoundPlayer redSound;
-        private readonly SoundPlayer blueSound;
-        private readonly SoundPlayer orangeSound;
-        private readonly SoundPlayer greenSound;
-        private readonly SoundPlayer caribBlueSound;
-        private readonly SoundPlayer greySound;
-        private readonly SoundPlayer indigoSound;
-        private readonly SoundPlayer maroonSound;
-        private readonly SoundPlayer oliveSound;
-        private readonly SoundPlayer pinkSound;
+        #region === GameSound_Properties === 
+        public readonly SoundPlayer redSound;
+        public readonly SoundPlayer blueSound;
+        public readonly SoundPlayer orangeSound;
+        public readonly SoundPlayer greenSound;
+        public readonly SoundPlayer caribBlueSound;
+        public readonly SoundPlayer greySound;
+        public readonly SoundPlayer indigoSound;
+        public readonly SoundPlayer maroonSound;
+        public readonly SoundPlayer oliveSound;
+        public readonly SoundPlayer pinkSound;
 
-        private readonly SoundPlayer transitionSound;
-        private readonly SoundPlayer buttonClickSound;
-        private readonly SoundPlayer wrongSound;
-        private readonly SoundPlayer correctSound;
-        private readonly SoundPlayer startupSound;
+        public readonly SoundPlayer transitionSound;
+        public readonly SoundPlayer buttonClickSound;
+        public readonly SoundPlayer wrongSound;
+        public readonly SoundPlayer correctSound;
+        public readonly SoundPlayer startupSound;
         #endregion
 
-        #region GameVariables_Properties
-        private bool computer = false;
-        private bool startButton = true;
-        private bool nextRound = false;
-        private bool levelUp = false;
-        private bool gameTime = false;
+        #region === GameVariables_Properties === 
+        public bool computer = false;
+        public bool startButton = true;
+        public bool nextRound = false;
+        public bool levelUp = false;
+        public bool gameTime = false;
 
         bool isComputerTurn = false;
         bool isPlayerTurn = false;
@@ -63,18 +63,32 @@ namespace KeepYourFocus
         bool actionTaken = false;
         #endregion
 
-        #region Counters
-        private int counterSequences = 1;
-        private int counterLevels = 1;
-        private int counterRounds = 0;
-        private int setSequences = 6;
+        #region === Counters === 
+        public int counterSequences = 1;
+        public int counterLevels = 1;
+        public int counterRounds = 0;
+        public int setSequences = 6;
         #endregion
 
-        #region Constructor
+        // Scaled PictureBox size and positions (captured after InitializeComponent applies DPI scaling)
+        private Size pictureBoxFixedSize;
+        private Point[] pictureBoxFixedPositions;
+
+        #region === Constructor === 
         public Focus()
         {
-            #region Initialize Components
+            #region === Initialize Components === 
             InitializeComponent();
+
+            // Capture the actual scaled PictureBox size and positions (after DPI/font scaling)
+            pictureBoxFixedSize = pictureBox1.Size;
+            pictureBoxFixedPositions = new Point[]
+            {
+                pictureBox1.Location,
+                pictureBox2.Location,
+                pictureBox3.Location,
+                pictureBox4.Location
+            };
 
             // Load soundfiles. For now 1 beep sound for all colors
             string soundPathBeepALL = Path.Combine(InitializeRootPath(), @"sounds\beep.wav");
@@ -117,7 +131,7 @@ namespace KeepYourFocus
             startupSound = new SoundPlayer(soundPathStartupSound);
             #endregion
 
-            #region Startup Game
+            #region === Startup Game === 
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
 
@@ -145,9 +159,9 @@ namespace KeepYourFocus
         #endregion
 
         // Methods for Initializations: WelcomeMessageBox, StartGame, PictureBoxes, Stopwatch, RootPath, LinkLabels and Alignments
-        #region Initialisations
+        #region === Initialisations === 
         // Thank You + some info Spam MessageBox
-        private static void InitializeWelcomeMessageBox()
+        public static void InitializeWelcomeMessageBox()
         {
             MessageBox.Show(
                             "   Thank you for testing the heck out of my very first try-out\r\n" +
@@ -172,7 +186,7 @@ namespace KeepYourFocus
         }
 
         // Initialization to both startButton and retryButton to start or retry game
-        private void InitializeStartGame()
+        public void InitializeStartGame()
         {
             buttonClickSound.Play();
 
@@ -215,13 +229,15 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        private void InitializePictureBox(PictureBox pictureBox, string tile, string imagePath)
+        public void InitializePictureBox(PictureBox pictureBox, string tile, string imagePath)
         {
             try
             {
                 pictureBox.Image = Image.FromFile(imagePath);
                 pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                 pictureBox.BackColor = Color.Transparent;
+                pictureBox.Padding = new Padding(0);
+                pictureBox.Size = pictureBoxFixedSize;
                 pictureBox.Cursor = Cursors.Hand;
                 pictureBox.Tag = tile;
 
@@ -240,7 +256,7 @@ namespace KeepYourFocus
         }
 
         // Stopwatch for recording gametime
-        private string InitializeGameStopwatch()
+        public string InitializeGameStopwatch()
         {
             if (gameTime)
             {
@@ -338,7 +354,7 @@ namespace KeepYourFocus
         }
 
         // Initialize Labels with links to github and email @duck.com
-        private void InitializeLinkLabels()
+        public void InitializeLinkLabels()
         {
             // Setup LinkLabels text
             linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
@@ -349,7 +365,7 @@ namespace KeepYourFocus
             linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
         }
 
-        private void AlignTextButtonBoxesCenter()
+        public void AlignTextButtonBoxesCenter()
         {
             // Align startBTN
             startBTN.Visible = false;
@@ -399,7 +415,7 @@ namespace KeepYourFocus
             textBoxShowResults.DeselectAll();
         }
 
-        private int GetSelectedSequences()
+        public int GetSelectedSequences()
         {
             int setSequences = 6;
 
@@ -433,9 +449,9 @@ namespace KeepYourFocus
         #endregion
 
         // Click Handlers for start, retry, enter buttons, linklabels and difficulty settings
-        #region Click Handlers
+        #region === Click and Key Handlers === 
         // Click Event for Start Button at start
-        private void InitializeButtonStart_Click(object sender, EventArgs e)
+        public void InitializeButtonStart_Click(object sender, EventArgs e)
         {
             if (!startButton)
                 return;
@@ -444,7 +460,7 @@ namespace KeepYourFocus
         }
 
         // Click Event for buttonRetry at Game Over
-        private async void InitializeButtonRetry_Click(object sender, EventArgs e)
+        public async void InitializeButtonRetry_Click(object sender, EventArgs e)
         {
             // Any additional logic specific to retry
             await Task.Delay(500);
@@ -463,7 +479,7 @@ namespace KeepYourFocus
         }
 
         // Initialize Enter button for input playerName
-        private void InitializeButtonEnter_Click(object sender, EventArgs e)
+        public void InitializeButtonEnter_Click(object sender, EventArgs e)
         {
             string playerName = ProcessInputName();
             playerNameTcs.TrySetResult(ProcessInputName()); // TrySetResult() -> Mark Task as completed (Task will be set completed in PlayerName()
@@ -472,7 +488,7 @@ namespace KeepYourFocus
         }
 
         // Initialize Keys.Enter for input playerName
-        private void InitializeKeyEnter()
+        public void InitializeKeyEnter()
         {
             textBoxInputName.KeyDown += (sender, e) =>
             {
@@ -489,7 +505,7 @@ namespace KeepYourFocus
         }
 
         // Click Event for linklabel GitHub
-        private void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs? e)
+        public void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs? e)
         {
             // Guard against a null event args or missing Link
             if (e?.Link?.LinkData != null)
@@ -507,7 +523,7 @@ namespace KeepYourFocus
         }
 
         // Click Event for LinkLabel Email
-        private void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        public void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             // Guard against missing Link or LinkData
             if (e?.Link?.LinkData != null)
@@ -525,7 +541,7 @@ namespace KeepYourFocus
         }
 
         // Set game level combobox dropdown list
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        public void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBox = (ComboBox)sender;
 
@@ -560,7 +576,7 @@ namespace KeepYourFocus
         }
 
         // Set game level checkbox
-        private void checkedListBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
+        public void checkedListBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
         {
             CheckedListBox checkedListBox = (CheckedListBox)sender;
 
@@ -599,7 +615,7 @@ namespace KeepYourFocus
         }
 
         // Only 1 box can be checked
-        private void checkedListBoxDifficulty_ItemCheck(object sender, ItemCheckEventArgs e)
+        public void checkedListBoxDifficulty_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             CheckedListBox checkedListBox = (CheckedListBox)sender;
 
@@ -617,7 +633,7 @@ namespace KeepYourFocus
         }
 
         // Null Check for open links in default browser and email client
-        private static void OpenLink(string url)
+        public static void OpenLink(string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -640,8 +656,8 @@ namespace KeepYourFocus
         #endregion
 
         // Dictionary for start positions tiles
-        #region Dictionaries
-        private void InitialDictionaryOfTilesAtStart()
+        #region === Dictionaries === 
+        public void InitialDictionaryOfTilesAtStart()
         {
             pictureBox1.Visible = false;
             pictureBox2.Visible = false;
@@ -691,8 +707,8 @@ namespace KeepYourFocus
         #endregion
 
         // Methods for managing highlights, sounds, randomizer shuffle and tiles, fixed positions of pictureboxes
-        #region Management
-        private void ManageHighlight(PictureBox pictureBox, bool highlight)
+        #region === Management === 
+        public void ManageHighlight(PictureBox pictureBox, bool highlight)
         {
             if (pictureBox.InvokeRequired)
             {
@@ -710,11 +726,12 @@ namespace KeepYourFocus
                 {
                     pictureBox.Padding = new Padding(0);
                     pictureBox.BackColor = Color.Transparent;
+                    pictureBox.Size = pictureBoxFixedSize;
                 }
             }
         }
 
-        private void ManageSound(string tile)
+        public void ManageSound(string tile)
         {
             switch (tile)
             {
@@ -751,7 +768,7 @@ namespace KeepYourFocus
             }
         }
 
-        private void ManageRandomizerShufflePictureBoxes()
+        public void ManageRandomizerShufflePictureBoxes()
         {
             // Shuffle the keys of the dictionary
             List<string> keys = pictureBoxDictionary.Keys.ToList();
@@ -769,12 +786,15 @@ namespace KeepYourFocus
             {
                 PictureBox pictureBox = pictureBoxDictionary[key];
                 pictureBox.Location = ManageFixedPositionPictureBoxes(index);
+                pictureBox.Size = pictureBoxFixedSize;
+                pictureBox.Padding = new Padding(0);
+                pictureBox.BackColor = Color.Transparent;
                 index++;
             }
         }
 
         // Randomize tiles. No more then 2 of the same tiles in a row (is the idea)
-        private string ManageRandomizerTiles()
+        public string ManageRandomizerTiles()
         {
             // Verify if the dictionary is not empty
             if (pictureBoxDictionary.Count == 0)
@@ -822,30 +842,21 @@ namespace KeepYourFocus
             return newTile;
         }
 
-        // Define fixed positions for PictureBoxes
-        private static Point ManageFixedPositionPictureBoxes(int index)
+        // Define fixed positions for PictureBoxes (uses scaled positions captured at startup)
+        public Point ManageFixedPositionPictureBoxes(int index)
         {
-            // Define fixed positions based on the index
-            switch (index)
+            if (index >= 0 && index < pictureBoxFixedPositions.Length)
             {
-                case 0:
-                    return new Point(13, 12);
-                case 1:
-                    return new Point(321, 12);
-                case 2:
-                    return new Point(13, 316);
-                case 3:
-                    return new Point(321, 316);
-                default:
-                    return Point.Empty; // Default position if index is out of range
+                return pictureBoxFixedPositions[index];
             }
+            return Point.Empty; // Default position if index is out of range
         }
         #endregion
 
         // Methods for managing difficulties, randomizer shuffle and tiles, fixed positions of pictureboxes
-        #region Difficulties
+        #region === Difficulties === 
         // Returns shuffled dictionary of all tiles (Fisher-Yates shuffle algoritme / Knuth shuffle)
-        private Dictionary<string, string> ShuffleDictOfAllTiles()
+        public Dictionary<string, string> ShuffleDictOfAllTiles()
         {
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
 
@@ -868,9 +879,9 @@ namespace KeepYourFocus
         }
 
         // Randomizer reposition tiles
-        private void RefreshAndRepositionPictureBoxes()
+        public void RefreshAndRepositionPictureBoxes()
         {
-            Debug.WriteLine("Repositioning PictureBoxes...");
+            Debug.WriteLine("[RefreshAndRepositionPictureBoxes] Repositioning PictureBoxes...");
 
             // Get the shuffled PictureBoxes
             var shuffledPictureBoxes = pictureBoxDictionary.Values.OrderBy(x => rnd.Next()).ToList();
@@ -879,16 +890,19 @@ namespace KeepYourFocus
             for (int itemIndex = 0; itemIndex < shuffledPictureBoxes.Count; itemIndex++)
             {
                 shuffledPictureBoxes[itemIndex].Location = ManageFixedPositionPictureBoxes(itemIndex);
+                shuffledPictureBoxes[itemIndex].Size = pictureBoxFixedSize;
+                shuffledPictureBoxes[itemIndex].Padding = new Padding(0);
+                shuffledPictureBoxes[itemIndex].BackColor = Color.Transparent;
                 shuffledPictureBoxes[itemIndex].Visible = true;
             }
         }
 
         // Shuffle current tile setup after display sequence and/or after player's click
-        private async Task ShufflePictureBoxes()
+        public async Task ShufflePictureBoxes()
         {
-            Debug.WriteLine("Shuffle PictureBoxes");
+            //Debug.WriteLine("Shuffle PictureBoxes");
 
-            // isDisplaySequence
+            // ===> isDisplaySequence
             //if (counterLevels == 2 && rnd.Next(100) <= 55 && isDisplaySequence ||
             if (counterLevels == 1 && rnd.Next(100) <= 100 && isDisplaySequence ||
                 counterLevels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
@@ -903,7 +917,7 @@ namespace KeepYourFocus
                 RefreshAndRepositionPictureBoxes();
                 await Task.Delay(500);
             }
-            // isPlayerTurn
+            // ===> isPlayerTurn
             //if (counterLevels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
             if (counterLevels >= 1 && rnd.Next(100) <= 100 && isPlayerTurn ||
                 counterLevels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
@@ -919,7 +933,7 @@ namespace KeepYourFocus
         }
 
         // Randomizer for replacing tile on board and/or in sequence. Returns (Dict pictureBoxDictionary, List correctOrder, bool replacementOccurred)
-        private (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
+        public (Dictionary<string, PictureBox>, List<string>, bool) ReplaceTileOnBoardAndInSequence()
         {
             Debug.WriteLine("Replace tile on board and/or in sequence...");
 
@@ -1016,7 +1030,7 @@ namespace KeepYourFocus
         }
 
         // Replace and switch all tiles when level up
-        private void ReplaceAllTiles()
+        public void ReplaceAllTiles()
         {
             Debug.WriteLine("Replace and switch all tiles when level up...");
 
@@ -1068,7 +1082,7 @@ namespace KeepYourFocus
             // Verwijderd: actionTaken = true;
         }
 
-        private async void DisplayLabelMessage(bool iscomputerTurn)
+        public async void DisplayLabelMessage(bool iscomputerTurn)
         {
             /*
              * Show labels with text in either computer's or Player's turn
@@ -1122,8 +1136,8 @@ namespace KeepYourFocus
         #endregion
 
         // Methods for managing game flow: computer's turn, player's turn, display sequence, manage counters and levels, and verify actions
-        #region Game Handlers
-        private void ComputersTurn()
+        #region === Game Flow Handlers === 
+        public void ComputersTurn()
         {
             textBoxShowResults.Visible = false;
 
@@ -1137,7 +1151,7 @@ namespace KeepYourFocus
             isComputerTurn = false;
         }
 
-        private async void DisplaySequence()
+        public async void DisplaySequence()
         {
             // Reset actionTaken for the new display sequence so ManageActions can run its checks
             actionTaken = false;
@@ -1189,7 +1203,7 @@ namespace KeepYourFocus
             UpdateTurn(); // case Player's Turn
         }
 
-        private async void PlayersTurn(object? sender, EventArgs e)
+        public async void PlayersTurn(object? sender, EventArgs e)
         {
             // Reset actionTaken for player's turn so ManageActions can perform actions related to the player
             actionTaken = false;
@@ -1252,7 +1266,7 @@ namespace KeepYourFocus
             isPlayerTurn = false;
         }
 
-        private async void ManageCountersAndLevels()
+        public async void ManageCountersAndLevels()
         {
             if (playerOrder.Count < correctOrder.Count)
                 return;
@@ -1279,7 +1293,7 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        private async Task UpdateCounters()
+        public async Task UpdateCounters()
         {
             setSequences = GetSelectedSequences();
             isSetCounters = true;
@@ -1314,7 +1328,7 @@ namespace KeepYourFocus
         }
 
         // Verify turn actions
-        private async Task ManageActions()
+        public async Task ManageActions()
         {
             Debug.WriteLine("[RUNNING ManageActions()]");
 
@@ -1357,14 +1371,14 @@ namespace KeepYourFocus
         }
 
         // Update richtextbox ShowNumbersOfSequences
-        private void UpdateSequence()
+        public void UpdateSequence()
         {
             richTextBoxShowNumbersOfSequences.BackColor = Color.Yellow;
             richTextBoxShowNumbersOfSequences.Text = $"{new string(' ', 3)}Sequence of {counterSequences}";
         }
 
         // Update richtextbox Turn
-        private async void UpdateTurn()
+        public async void UpdateTurn()
         {
             switch (computer, startButton, nextRound)
             {
@@ -1408,14 +1422,14 @@ namespace KeepYourFocus
         }
 
         // Update richtextbox ShowRounds
-        private void UpdateRound()
+        public void UpdateRound()
         {
             richTextBoxShowRounds.BackColor = Color.LightSkyBlue;
             richTextBoxShowRounds.Text = $"{new string(' ', 4)}Completed: {counterRounds}";
         }
 
         // Update richtextbox ShowLevel
-        private void UpdateLevelName()
+        public void UpdateLevelName()
         {
             switch (counterLevels)
             {
@@ -1483,9 +1497,9 @@ namespace KeepYourFocus
         #endregion
 
         // Methods for managing game over, processing player name, displaying highscores, and reading scores from file
-        #region Processing Game Over
+        #region === Processing Game Over === 
         // Initialize setup when Game Over
-        private async void GameOver()
+        public async void GameOver()
         {
             // Set flags
             computer = false;
@@ -1528,7 +1542,7 @@ namespace KeepYourFocus
         }
 
         // Return playerName and set flags (rich)textboxes
-        private string ProcessInputName()
+        public string ProcessInputName()
         {
             Debug.WriteLine("\nProcessInputName() start");
             string playerName = textBoxInputName.Text.ToUpper().Trim();
@@ -1560,7 +1574,7 @@ namespace KeepYourFocus
         }
 
         // Get playerName via TextBoxInputName
-        private async Task<string> PlayerName()
+        public async Task<string> PlayerName()
         {
             playerNameTcs = new TaskCompletionSource<string>();
 
@@ -1581,7 +1595,7 @@ namespace KeepYourFocus
         }
 
         // Display Highscores in TextBoxHighscore
-        private void TextBoxHighscores()
+        public void TextBoxHighscores()
         {
             List<(string, int, int, string, string, string, int)> topHighscores = SortBestScores();
 
@@ -1619,7 +1633,7 @@ namespace KeepYourFocus
         }
 
         // Returns list with all data in setters.txt
-        private List<(string, int, int, string, string, string, int)> ReadScoresFromFile()
+        public List<(string, int, int, string, string, string, int)> ReadScoresFromFile()
         {
             string file = Path.Combine(InitializeRootPath(), "sounds", "setters.txt");
             List<(string, int, int, string, string, string, int)> scoresList = new List<(string, int, int, string, string, string, int)>();
@@ -1657,7 +1671,7 @@ namespace KeepYourFocus
 
 
         // Returns decreasing sorted list of higscores.txt
-        private List<(string, int, int, string, string, string, int)> SortBestScores()
+        public List<(string, int, int, string, string, string, int)> SortBestScores()
         {
             List<(string, int, int, string, string, string, int)> bestScores = new List<(string, int, int, string, string, string, int)>();
 
@@ -1684,21 +1698,21 @@ namespace KeepYourFocus
         #endregion
 
         // Methods for managing score verification, saving scores to file, and displaying results based on player's rank
-        #region Processing Score
+        #region === Processing Score === 
 
         // Initialize difficulties from checkListBoxDifficulty
-        private Dictionary<string, int> difficultyPriorities = new Dictionary<string, int>
+        public readonly Dictionary<string, int> difficultyPriorities = new Dictionary<string, int>
                                                                    {
                                                                         { "Hard", 1 },
                                                                         { "Default", 2 },
                                                                         { "Easy", 3 }
                                                                    };
 
-        // Initialize new task as private field
-        private TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
+        // Initialize new task as public field
+        public TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
 
         // If score in top scores, verify player's rank and save score
-        private async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
+        public async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
         {
             var highScores = SortBestScores()
                 .Select(score => (score.Item1, score.Item2, score.Item3, score.Item4, score.Item5, score.Item6, score.Item7))
@@ -1776,7 +1790,7 @@ namespace KeepYourFocus
 
 
         // Verify if score qualifies for top scores
-        private bool QualifiesForTopScores(List<(string, int, int, string, string, string, int)> highScores, int totalRounds, string elapsedGameTime, int difficultyLevel)
+        public static bool QualifiesForTopScores(List<(string, int, int, string, string, string, int)> highScores, int totalRounds, string elapsedGameTime, int difficultyLevel)
         {
             return highScores.Count < 8 ||
                    highScores.Any(score => score.Item2 < totalRounds ||
@@ -1786,7 +1800,7 @@ namespace KeepYourFocus
 
 
         // Setup textBoxShowResults if score in top scores
-        private void IsHighscoreText(int totalRounds, int playerRank)
+        public void IsHighscoreText(int totalRounds, int playerRank)
         {
             TextBoxHighscores();
             textBoxShowResults.Visible = true;
@@ -1794,7 +1808,7 @@ namespace KeepYourFocus
         }
 
         // Setup textBoxShowResults if score NOT in top scores
-        private void IsNotHighscoreText(int totalRounds)
+        public void IsNotHighscoreText(int totalRounds)
         {
             TextBoxHighscores();
             textBoxShowResults.Visible = true;
@@ -1803,7 +1817,7 @@ namespace KeepYourFocus
 
 
         // Save score to file. Max save scores set at 15. If currentScore == 15, replace lowest score with new score
-        private void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
+        public void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
         {
             Debug.WriteLine("SaveScoreToFile started");
 
@@ -1875,7 +1889,7 @@ namespace KeepYourFocus
 
         /*
         // Save score to file. Max save scores set at 15. If currentScore == 15, replace lowest score with new score
-        private void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
+        public void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
         {
             Debug.WriteLine("SaveScoreToFile started");
 
@@ -1965,7 +1979,7 @@ namespace KeepYourFocus
         }
         */
 
-        public void WriteToCopies()
+        public static void WriteToCopies()
         {
             Debug.WriteLine("WriteToCopies started");
 
