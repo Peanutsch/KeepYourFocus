@@ -704,6 +704,7 @@ namespace KeepYourFocus
                 // Verify each item with correctOrder
                 for (int itemIndex = 0; itemIndex < playerOrder.Count; itemIndex++)
                 {
+                    // If any item doesn't match, trigger game over
                     if (playerOrder[itemIndex] != correctOrder[itemIndex])
                     {
                         await Task.Delay(100);
@@ -719,6 +720,7 @@ namespace KeepYourFocus
                 }
                 if (playerOrder.Count == correctOrder.Count)
                 {
+                    // Player completed the sequence correctly, prepare for next round
                     await Task.Delay(100);
                     tileManager.ManageHighlight(clickedBox, false);
                     await Task.Delay(50);
@@ -729,6 +731,7 @@ namespace KeepYourFocus
                 }
                 else
                 {
+                    // Player is correct so far but hasn't completed the sequence, just unhighlight the tile
                     await Task.Delay(100);
                     tileManager.ManageHighlight(clickedBox, false);
                     await Task.Delay(50);
@@ -1031,13 +1034,19 @@ namespace KeepYourFocus
             // Save score
             await VerifyPlayerRank(counterRounds, counterLevels, richTextBoxShowLevelName.Text);
 
+            // Reset UI to start screen
             correctOrder.Clear();
+
+            // Clear player sequence and reset counters to initial state for new game
             playerOrder.Clear();
 
+            // Set level to 999 to trigger game over display, then reset to 1 for new game
             counterLevels = 999;
 
+            // Update UI to show game over state
             UpdateLevelName();
 
+            // Delay before resetting to start screen
             tileManager.InitialDictionaryOfTilesAtStart(PictureBoxes, PlayersTurn);
 
             // Reset counters rounds and levels

@@ -71,6 +71,9 @@ namespace Simon_Says.Managers
         {
             string rootPath = PathHelper.GetRootPath();
 
+            // Clear stale entries from previous games (e.g. replaced tiles like "CaribBlue", "Olive")
+            PictureBoxDictionary.Clear();
+
             foreach (var pb in pictureBoxes)
                 pb.Visible = false;
 
@@ -79,8 +82,12 @@ namespace Simon_Says.Managers
             InitializePictureBox(pictureBoxes[2], "Orange", Path.Combine(rootPath, @"png\orange_tile512.png"), clickHandler);
             InitializePictureBox(pictureBoxes[3], "Green", Path.Combine(rootPath, @"png\green_tile512.png"), clickHandler);
 
-            foreach (var pb in pictureBoxes)
-                pb.Visible = true;
+            // Reset each PictureBox to its original fixed position (undoes any shuffle)
+            for (int i = 0; i < pictureBoxes.Length; i++)
+            {
+                pictureBoxes[i].Location = GetFixedPosition(i);
+                pictureBoxes[i].Visible = true;
+            }
         }
 
         /// <summary>
