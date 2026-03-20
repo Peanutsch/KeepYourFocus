@@ -1,9 +1,18 @@
+using KeepYourFocus;
 using System.Diagnostics;
 
-namespace KeepYourFocus
+namespace Simon_Says.Managers
 {
+    /// <summary>
+    /// Handles score persistence: reading, sorting, qualifying, saving, and backing up
+    /// high-score data stored in a CSV file (temp).
+    /// </summary>
     public class ScoreManager
     {
+        /// <summary>
+        /// Maps difficulty names to their priority values.
+        /// Used for sorting and comparing scores across difficulty levels.
+        /// </summary>
         public static readonly Dictionary<string, int> DifficultyPriorities = new()
         {
             { "Hard", 1 },
@@ -11,6 +20,11 @@ namespace KeepYourFocus
             { "Easy", 3 }
         };
 
+        /// <summary>
+        /// Reads all score entries from the CSV score file (sounds/setters.txt).
+        /// Each line contains: playerName, score, levelReached, levelName, date, elapsedTime, difficultyLevel.
+        /// </summary>
+        /// <returns>A list of score tuples parsed from the file.</returns>
         public static List<(string, int, int, string, string, string, int)> ReadScoresFromFile()
         {
             string file = Path.Combine(PathHelper.GetRootPath(), "sounds", "setters.txt");
@@ -24,6 +38,7 @@ namespace KeepYourFocus
                     while ((line = getHighscore.ReadLine()) != null)
                     {
                         string[] parts = line.Split(',');
+                        // Validate that the line has all 7 expected fields
                         if (parts.Length >= 7)
                         {
                             if (int.TryParse(parts[1], out int playerScore) && int.TryParse(parts[2], out int levelReached) && int.TryParse(parts[6], out int difficultyLevel))
@@ -46,6 +61,11 @@ namespace KeepYourFocus
             return scoresList;
         }
 
+        /// <summary>
+        /// Reads all scores from file and returns the top 8, sorted by highest score,
+        /// then fastest time, then hardest difficulty.
+        /// </summary>
+        /// <returns>A sorted list of the top 8 high scores.</returns>
         public List<(string, int, int, string, string, string, int)> SortBestScores()
         {
             List<(string, int, int, string, string, string, int)> bestScores = new List<(string, int, int, string, string, string, int)>();
@@ -68,6 +88,15 @@ namespace KeepYourFocus
             return bestScores;
         }
 
+        /// <summary>
+        /// Determines whether a new score qualifies for the top 8 leaderboard
+        /// by comparing rounds, elapsed time, and difficulty level.
+        /// </summary>
+        /// <param name="highScores">The current leaderboard entries.</param>
+        /// <param name="totalRounds">The player's completed rounds.</param>
+        /// <param name="elapsedGameTime">The player's elapsed game time (mm:ss format).</param>
+        /// <param name="difficultyLevel">The player's difficulty priority value.</param>
+        /// <returns>True if the score qualifies for the top 8.</returns>
         public static bool QualifiesForTopScores(List<(string, int, int, string, string, string, int)> highScores, int totalRounds, string elapsedGameTime, int difficultyLevel)
         {
             return highScores.Count < 8 ||
@@ -76,6 +105,12 @@ namespace KeepYourFocus
                    (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) == TimeSpan.Parse(elapsedGameTime) && score.Item7 > difficultyLevel));
         }
 
+        /// <summary>
+        /// Persists the updated high-score list to the CSV file.
+        /// Manages a maximum of 15 stored entries, replacing the lowest score when full.
+        /// Triggers a backup copy after each save.
+        /// </summary>
+        /// <param name="highScores">The new high-score entries to merge and save.</param>
         public static void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
         {
             Debug.WriteLine("SaveScoreToFile started");
@@ -84,12 +119,14 @@ namespace KeepYourFocus
             string file = Path.Combine(rootPath, "sounds", "setters.txt");
             string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty;
 
+            // Parse existing scores from the CSV file
             List<(string, int, int, string, string, string, int)> currentScores = existingContent
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(line => line.Split(','))
                 .Select(parts => (parts[0], int.Parse(parts[1]), int.Parse(parts[2]), parts[3], parts[4], parts[5], int.Parse(parts[6])))
                 .ToList();
 
+            // Merge and keep the top 15 scores if under capacity
             if (currentScores.Count < 15)
             {
                 currentScores.AddRange(highScores);
@@ -111,6 +148,7 @@ namespace KeepYourFocus
             }
             else
             {
+                // At capacity: find the lowest score and replace it if the new score is better
                 var allScores = currentScores.Concat(highScores).ToList();
                 var lowestScore = allScores
                     .OrderBy(score => score.Item2)
@@ -144,6 +182,10 @@ namespace KeepYourFocus
             Debug.WriteLine("SaveScoreToFile ended");
         }
 
+        /// <summary>
+        /// Creates backup copies of the score file to the project root (higscores.txt)
+        /// and a BackUp subdirectory (higscoresBackUp.txt).
+        /// </summary>
         public static void WriteToCopies()
         {
             Debug.WriteLine("WriteToCopies started");

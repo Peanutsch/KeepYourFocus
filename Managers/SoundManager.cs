@@ -1,9 +1,16 @@
+using KeepYourFocus;
 using System.Media;
 
-namespace KeepYourFocus
+namespace Simon_Says.Managers
 {
+    /// <summary>
+    /// Manages loading and playback of all game sound effects.
+    /// Each tile color has its own <see cref="SoundPlayer"/> instance,
+    /// along with dedicated players for UI and game-state sounds.
+    /// </summary>
     public class SoundManager
     {
+        // Tile-specific sound players (one per tile color)
         private readonly SoundPlayer redSound;
         private readonly SoundPlayer blueSound;
         private readonly SoundPlayer orangeSound;
@@ -15,12 +22,17 @@ namespace KeepYourFocus
         private readonly SoundPlayer oliveSound;
         private readonly SoundPlayer pinkSound;
 
+        // Game event sound players
         private readonly SoundPlayer transitionSound;
         private readonly SoundPlayer buttonClickSound;
         private readonly SoundPlayer wrongSound;
         private readonly SoundPlayer correctSound;
         private readonly SoundPlayer startupSound;
 
+        /// <summary>
+        /// Initializes all <see cref="SoundPlayer"/> instances by resolving
+        /// sound file paths relative to the project root.
+        /// </summary>
         public SoundManager()
         {
             string rootPath = PathHelper.GetRootPath();
@@ -50,6 +62,10 @@ namespace KeepYourFocus
             startupSound = new SoundPlayer(soundPathStartupSound);
         }
 
+        /// <summary>
+        /// Plays the sound effect associated with the specified tile color.
+        /// </summary>
+        /// <param name="tile">The tile color name (e.g. "Red", "Blue").</param>
         public void PlayTileSound(string tile)
         {
             switch (tile)
@@ -67,10 +83,15 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>Plays the tile-shuffle transition sound.</summary>
         public void PlayTransition() => transitionSound.Play();
+        /// <summary>Plays the UI button click sound.</summary>
         public void PlayButtonClick() => buttonClickSound.Play();
+        /// <summary>Plays the wrong-answer sound.</summary>
         public void PlayWrong() => wrongSound.Play();
+        /// <summary>Plays the correct-answer sound.</summary>
         public void PlayCorrect() => correctSound.Play();
+        /// <summary>Plays the application startup sound.</summary>
         public void PlayStartup() => startupSound.Play();
     }
 }

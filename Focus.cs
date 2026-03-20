@@ -1,52 +1,64 @@
+using Simon_Says.Managers;
 using System.Diagnostics;
 using System.Globalization;
 
 namespace KeepYourFocus
 {
+    /// <summary>
+    /// Main form and game orchestrator for the KeepYourFocus Simon Says-style memory game.
+    /// Coordinates game flow between the computer's sequence display and the player's input,
+    /// delegating tile, sound, and score management to dedicated manager classes.
+    /// </summary>
     public partial class Focus : Form
     {
-        // Managers
+        #region === Manager instances ===
         private readonly SoundManager soundManager;
         private readonly TileManager tileManager;
         private readonly ScoreManager scoreManager;
+        #endregion
 
-        // Game state
+        #region === Game state: ordered sequences for computer and player ===
         public List<string> correctOrder = new List<string>();
         public readonly List<string> playerOrder = new List<string>();
         public readonly List<string> previousTiles = new List<string>();
 
         public readonly Random rnd = new Random();
         public readonly Stopwatch gameStopwatch = new Stopwatch();
+        #endregion 
 
         #region === GameVariables_Properties === 
-        public bool computer = false;
-        public bool startButton = true;
-        public bool nextRound = false;
-        public bool levelUp = false;
-        public bool gameTime = false;
+        public bool computer = false;       // True when the computer is playing (blocks player input)
+        public bool startButton = true;     // True when the start button can be clicked
+        public bool nextRound = false;      // True during the transition to the next round
+        public bool levelUp = false;        // True when a level-up is in progress
+        public bool gameTime = false;       // True while the game stopwatch should be running
 
-        bool isComputerTurn = false;
-        bool isPlayerTurn = false;
-        bool isSetCounters = false;
-        bool isDisplaySequence = false;
-        bool isHardLevel = false;
-        bool actionTaken = false;
+        bool isComputerTurn = false;        // Flag for computer's turn phase
+        bool isPlayerTurn = false;          // Flag for player's turn phase
+        bool isSetCounters = false;         // Flag for counter-update phase
+        bool isDisplaySequence = false;     // Flag for sequence-display phase
+        bool isHardLevel = false;           // Flag for hard difficulty mode
+        bool actionTaken = false;           // Prevents duplicate difficulty actions per turn
         #endregion
 
         #region === Counters === 
-        public int counterSequences = 1;
-        public int counterLevels = 1;
-        public int counterRounds = 0;
-        public int setSequences = 6;
+        public int counterSequences = 1;    // Current sequence number within the round
+        public int counterLevels = 1;       // Current difficulty level (1-based)
+        public int counterRounds = 0;       // Total completed rounds (lifetime)
+        public int setSequences = 6;        // Number of sequences per round (set by difficulty)
         #endregion
 
-        // Task for player name input
+        /// <summary>Async completion source for awaiting the player's name input after game over.</summary>
         public TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
 
-        // PictureBox array helper
+        /// <summary>Convenience property returning all four game PictureBoxes as an array.</summary>
         private PictureBox[] PictureBoxes => new[] { pictureBox1, pictureBox2, pictureBox3, pictureBox4 };
 
         #region === Constructor === 
+        /// <summary>
+        /// Initializes the form, creates manager instances, sets up the UI layout,
+        /// displays the welcome message, and plays the startup sound.
+        /// </summary>
         public Focus()
         {
             InitializeComponent();
@@ -81,6 +93,9 @@ namespace KeepYourFocus
 
         // Methods for Initializations: WelcomeMessageBox, StartGame, Stopwatch, LinkLabels and Alignments
         #region === Initialisations === 
+        /// <summary>
+        /// Displays the welcome message box with game instructions and contact information.
+        /// </summary>
         public static void InitializeWelcomeMessageBox()
         {
             MessageBox.Show(
@@ -105,6 +120,10 @@ namespace KeepYourFocus
                             );
         }
 
+        /// <summary>
+        /// Resets the game state, hides non-game UI elements, enables tile interaction,
+        /// starts the stopwatch, and begins the first computer turn.
+        /// </summary>
         public void InitializeStartGame()
         {
             soundManager.PlayButtonClick();
@@ -148,7 +167,11 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
-        // Stopwatch for recording gametime
+        /// <summary>
+        /// Starts or stops the game stopwatch based on the <see cref="gameTime"/> flag.
+        /// When stopping, returns the elapsed time formatted as mm:ss.
+        /// </summary>
+        /// <returns>The formatted elapsed time when stopping, or an empty string when starting.</returns>
         public string InitializeGameStopwatch()
         {
             if (gameTime)
@@ -178,6 +201,9 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Configures the GitHub and email link labels with their URLs and mailto links.
+        /// </summary>
         public void InitializeLinkLabels()
         {
             linkLabelGitHub.Text = "https://github.com/Peanutsch/KeepYourFocus.git";
@@ -187,6 +213,10 @@ namespace KeepYourFocus
             linkLabelEmail.Links.Add(0, linkLabelEmail.Text.Length, "mailto:peanutsch@duck.com");
         }
 
+        /// <summary>
+        /// Centers text alignment on all RichTextBox and Button controls,
+        /// and hides the name input field at startup.
+        /// </summary>
         public void AlignTextButtonBoxesCenter()
         {
             // Align startBTN
@@ -237,6 +267,11 @@ namespace KeepYourFocus
             textBoxShowResults.DeselectAll();
         }
 
+        /// <summary>
+        /// Reads the selected difficulty from the CheckedListBox and returns
+        /// the corresponding number of sequences per round.
+        /// </summary>
+        /// <returns>The number of sequences per round (4, 6, or 10). Defaults to 6.</returns>
         public int GetSelectedSequences()
         {
             int setSequences = 6;
@@ -267,6 +302,9 @@ namespace KeepYourFocus
 
         // Click Handlers for start, retry, enter buttons, linklabels and difficulty settings
         #region === Click and Key Handlers === 
+        /// <summary>
+        /// Handles the Start button click. Starts a new game if the start button is active.
+        /// </summary>
         public void InitializeButtonStart_Click(object sender, EventArgs e)
         {
             if (!startButton)
@@ -275,6 +313,10 @@ namespace KeepYourFocus
             InitializeStartGame();
         }
 
+        /// <summary>
+        /// Handles the Retry button click. Resets the board tiles and starts a new game
+        /// after a short delay.
+        /// </summary>
         public async void InitializeButtonRetry_Click(object sender, EventArgs e)
         {
             await Task.Delay(500);
@@ -291,6 +333,9 @@ namespace KeepYourFocus
             InitializeStartGame();
         }
 
+        /// <summary>
+        /// Handles the Enter button click to submit the player's name after game over.
+        /// </summary>
         public void InitializeButtonEnter_Click(object sender, EventArgs e)
         {
             string playerName = ProcessInputName();
@@ -299,6 +344,10 @@ namespace KeepYourFocus
             Debug.WriteLine("playerName entered by buttonEnter");
         }
 
+        /// <summary>
+        /// Registers a KeyDown handler on the name input text box so pressing Enter
+        /// submits the player's name (same as clicking the Enter button).
+        /// </summary>
         public void InitializeKeyEnter()
         {
             textBoxInputName.KeyDown += (sender, e) =>
@@ -315,6 +364,9 @@ namespace KeepYourFocus
             };
         }
 
+        /// <summary>
+        /// Opens the GitHub repository URL when the GitHub link label is clicked.
+        /// </summary>
         public void LinkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs? e)
         {
             if (e?.Link?.LinkData != null)
@@ -331,6 +383,9 @@ namespace KeepYourFocus
             MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
+        /// <summary>
+        /// Opens the default email client when the email link label is clicked.
+        /// </summary>
         public void LinkLabelEmail_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (e?.Link?.LinkData != null)
@@ -347,6 +402,10 @@ namespace KeepYourFocus
             MessageBox.Show("Error: Link data is missing.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
+        /// <summary>
+        /// Handles difficulty selection changes from the combo box control.
+        /// Maps each index to a sequences-per-round value.
+        /// </summary>
         public void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBox = (ComboBox)sender;
@@ -379,6 +438,10 @@ namespace KeepYourFocus
             Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
         }
 
+        /// <summary>
+        /// Handles difficulty selection changes from the checked list box.
+        /// Reads the checked item text to determine sequences per round.
+        /// </summary>
         public void checkedListBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
         {
             CheckedListBox checkedListBox = (CheckedListBox)sender;
@@ -409,6 +472,10 @@ namespace KeepYourFocus
             Debug.WriteLine($"Selected difficulty sequences per round: {setSequences}");
         }
 
+        /// <summary>
+        /// Ensures only one difficulty option can be checked at a time
+        /// by unchecking all other items when a new item is checked.
+        /// </summary>
         public void checkedListBoxDifficulty_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             CheckedListBox checkedListBox = (CheckedListBox)sender;
@@ -425,6 +492,10 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Opens the specified URL in the system's default browser or email client.
+        /// </summary>
+        /// <param name="url">The URL or mailto link to open.</param>
         public static void OpenLink(string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -446,9 +517,14 @@ namespace KeepYourFocus
 
         // Methods for managing difficulties and shuffling
         #region === Difficulties === 
+        /// <summary>
+        /// Shuffles the on-screen positions of tile PictureBoxes as a difficulty challenge.
+        /// Applies different shuffle rules depending on whether it is the computer's display
+        /// phase or the player's turn, with level-based probability.
+        /// </summary>
         public async Task ShufflePictureBoxes()
         {
-            // ===> isDisplaySequence
+            // Case 1: Shuffle during sequence display (with transition sound and delay)
             if (counterLevels == 1 && rnd.Next(100) <= 100 && isDisplaySequence ||
                 counterLevels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
                 counterLevels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence ||
@@ -462,7 +538,7 @@ namespace KeepYourFocus
                 tileManager.RefreshAndRepositionPictureBoxes();
                 await Task.Delay(500);
             }
-            // ===> isPlayerTurn
+            // Case 2: Shuffle during player's turn (instant, no sound)
             if (counterLevels >= 1 && rnd.Next(100) <= 100 && isPlayerTurn ||
                 counterLevels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
                 counterLevels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn ||
@@ -476,6 +552,12 @@ namespace KeepYourFocus
             actionTaken = true;
         }
 
+        /// <summary>
+        /// Displays a random misleading or encouraging label message near the tiles
+        /// as a distraction challenge. The message content differs between the computer's
+        /// turn and the player's turn, with level-based probability.
+        /// </summary>
+        /// <param name="iscomputerTurn">True for computer-turn messages, false for player-turn messages.</param>
         public async void DisplayLabelMessage(bool iscomputerTurn)
         {
             int chance = counterLevels >= 6 ? 55 : 45;
@@ -521,6 +603,10 @@ namespace KeepYourFocus
 
         // Methods for managing game flow: computer's turn, player's turn, display sequence, manage counters and levels, and verify actions
         #region === Game Flow Handlers === 
+        /// <summary>
+        /// Initiates the computer's turn: adds a random tile to the correct sequence
+        /// and triggers the display of the full sequence.
+        /// </summary>
         public void ComputersTurn()
         {
             textBoxShowResults.Visible = false;
@@ -535,11 +621,16 @@ namespace KeepYourFocus
             isComputerTurn = false;
         }
 
+        /// <summary>
+        /// Visually plays back the correct sequence by highlighting each tile in order,
+        /// with sound effects and timing delays. Checks for tile replacements and
+        /// applies difficulty actions after the sequence is shown.
+        /// </summary>
         public async void DisplaySequence()
         {
             actionTaken = false;
 
-            // Verify if squares are replaced
+            // Check if any tiles should be replaced on the board before displaying
             var (updatedCorrectOrder, replacementOccurred) = tileManager.ReplaceTileOnBoardAndInSequence(
                 correctOrder, counterLevels, isHardLevel, isDisplaySequence, PlayersTurn);
 
@@ -581,6 +672,11 @@ namespace KeepYourFocus
             UpdateTurn();
         }
 
+        /// <summary>
+        /// Handles the player's tile click. Validates each click against the correct
+        /// sequence in order. Triggers game over on mismatch, or advances the round
+        /// when the full sequence is matched.
+        /// </summary>
         public async void PlayersTurn(object? sender, EventArgs e)
         {
             actionTaken = false;
@@ -643,6 +739,10 @@ namespace KeepYourFocus
             isPlayerTurn = false;
         }
 
+        /// <summary>
+        /// Advances counters and levels after the player completes a correct sequence.
+        /// Plays the correct sound, updates UI, and starts the next computer turn.
+        /// </summary>
         public async void ManageCountersAndLevels()
         {
             if (playerOrder.Count < correctOrder.Count)
@@ -670,11 +770,17 @@ namespace KeepYourFocus
             ComputersTurn();
         }
 
+        /// <summary>
+        /// Updates sequence, level, and round counters. Triggers a level-up when the
+        /// sequence limit is reached (below level 8), including clearing the sequence
+        /// and applying difficulty actions.
+        /// </summary>
         public async Task UpdateCounters()
         {
             setSequences = GetSelectedSequences();
             isSetCounters = true;
 
+            // Level-up: reset sequence counter and advance to next level
             if (counterLevels < 8 && counterSequences == setSequences)
             {
                 levelUp = true;
@@ -691,6 +797,7 @@ namespace KeepYourFocus
             }
             else
             {
+                // Level 8+: continuous play (HELLMODE), keep incrementing
                 if (counterLevels >= 8)
                 {
                     levelUp = true;
@@ -704,34 +811,44 @@ namespace KeepYourFocus
             isSetCounters = false;
         }
 
-        // Verify turn actions
+        /// <summary>
+        /// Dispatches difficulty-based actions (shuffling, tile replacement) depending on
+        /// the current game phase. Ensures each phase only triggers one action per turn
+        /// via the <see cref="actionTaken"/> flag.
+        /// </summary>
         public async Task ManageActions()
         {
             Debug.WriteLine("[RUNNING ManageActions()]");
 
             setSequences = GetSelectedSequences();
+
+            // Shuffle during computer's turn
             if (isComputerTurn && !actionTaken)
             {
                 await ShufflePictureBoxes();
                 actionTaken = true;
             }
+            // Shuffle during player's turn
             if (isPlayerTurn && !actionTaken)
             {
                 Debug.WriteLine("ManageActions> isPlayerTurn = true");
                 await ShufflePictureBoxes();
                 actionTaken = true;
             }
+            // Shuffle during sequence display
             if (isDisplaySequence && !actionTaken)
             {
                 Debug.WriteLine("ManageActions> isDisplaySequence = true");
                 await ShufflePictureBoxes();
                 actionTaken = true;
             }
+            // Replace all tiles on level-up
             if (isSetCounters && !actionTaken)
             {
                 tileManager.ReplaceAllTiles(PictureBoxes, counterLevels, levelUp, isHardLevel, isDisplaySequence, PlayersTurn);
                 actionTaken = true;
             }
+            // Hard mode: apply all difficulty challenges simultaneously
             if (setSequences == int.MaxValue && !actionTaken)
             {
                 isHardLevel = true;
@@ -745,12 +862,20 @@ namespace KeepYourFocus
 
         // UI update methods
         #region === UI Updates ===
+        /// <summary>
+        /// Updates the sequence counter display with the current sequence number.
+        /// </summary>
         public void UpdateSequence()
         {
             richTextBoxShowNumbersOfSequences.BackColor = Color.Yellow;
             richTextBoxShowNumbersOfSequences.Text = $"{new string(' ', 3)}Sequence of {counterSequences}";
         }
 
+        /// <summary>
+        /// Updates the turn indicator display based on the current game state.
+        /// Shows "CORRECT" / "Level Up" / "Next Sequence" on round completion,
+        /// "Running Sequence" during computer's turn, or "Player's Turn" otherwise.
+        /// </summary>
         public async void UpdateTurn()
         {
             switch (computer, startButton, nextRound)
@@ -791,12 +916,20 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Updates the completed rounds counter display.
+        /// </summary>
         public void UpdateRound()
         {
             richTextBoxShowRounds.BackColor = Color.LightSkyBlue;
             richTextBoxShowRounds.Text = $"{new string(' ', 4)}Completed: {counterRounds}";
         }
 
+        /// <summary>
+        /// Updates the level number, name, and color scheme based on the current level.
+        /// Level names range from "EasyPeasy" (1) through "HELLMODE" (7+),
+        /// with level 999 indicating game over.
+        /// </summary>
         public void UpdateLevelName()
         {
             switch (counterLevels)
@@ -866,6 +999,11 @@ namespace KeepYourFocus
 
         // Methods for managing game over, processing player name, displaying highscores
         #region === Processing Game Over === 
+        /// <summary>
+        /// Handles the game-over state: disables tiles, stops the stopwatch,
+        /// plays the wrong sound, saves the score, resets counters,
+        /// and restores the start-screen layout.
+        /// </summary>
         public async void GameOver()
         {
             computer = false;
@@ -907,6 +1045,12 @@ namespace KeepYourFocus
             counterLevels = 1;
         }
 
+        /// <summary>
+        /// Reads and validates the player's name from the input text box.
+        /// Defaults to "ANONYMOUS" if the input is empty. Restores the start-screen
+        /// UI elements after name submission.
+        /// </summary>
+        /// <returns>The sanitized, uppercased player name.</returns>
         public string ProcessInputName()
         {
             Debug.WriteLine("\nProcessInputName() start");
@@ -937,6 +1081,11 @@ namespace KeepYourFocus
             return playerName;
         }
 
+        /// <summary>
+        /// Displays the name input UI and asynchronously waits for the player
+        /// to submit their name via the Enter button or Enter key.
+        /// </summary>
+        /// <returns>The player's submitted name.</returns>
         public async Task<string> PlayerName()
         {
             playerNameTcs = new TaskCompletionSource<string>();
@@ -957,6 +1106,10 @@ namespace KeepYourFocus
             return playerName;
         }
 
+        /// <summary>
+        /// Populates the highscore text box with a formatted leaderboard table
+        /// showing rank, player name, completed sequences, and difficulty level.
+        /// </summary>
         public void TextBoxHighscores()
         {
             List<(string, int, int, string, string, string, int)> topHighscores = scoreManager.SortBestScores();
@@ -987,6 +1140,14 @@ namespace KeepYourFocus
 
         // Methods for managing score verification, saving scores to file, and displaying results based on player's rank
         #region === Processing Score === 
+        /// <summary>
+        /// Determines whether the player's score qualifies for the top 8 leaderboard.
+        /// If qualified, prompts for the player's name and saves the score.
+        /// If not, displays the score without saving.
+        /// </summary>
+        /// <param name="totalRounds">Total completed rounds this game.</param>
+        /// <param name="levelReached">The highest level reached.</param>
+        /// <param name="levelName">The display name of the highest level reached.</param>
         public async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
         {
             var highScores = scoreManager.SortBestScores()
@@ -998,11 +1159,13 @@ namespace KeepYourFocus
 
             if (this.checkedListBoxDifficulty.CheckedItems.Count > 0)
             {
+                // Extract difficulty name (before the colon) and look up its priority value
                 string? difficulty = this.checkedListBoxDifficulty.CheckedItems[0]?.ToString()?.Split(':')[0].Trim();
                 if (ScoreManager.DifficultyPriorities.TryGetValue(difficulty!, out int difficultyLevel))
                 {
                     if (ScoreManager.QualifiesForTopScores(highScores, totalRounds, elapsedGameTime, difficultyLevel))
                     {
+                        // Temporarily add a placeholder entry to determine the player's rank
                         string placeholderText = string.Empty;
                         highScores.Add((placeholderText, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, difficultyLevel));
 
@@ -1013,10 +1176,12 @@ namespace KeepYourFocus
                             .Take(8)
                             .ToList();
 
+                        // Calculate the player's rank position in the sorted leaderboard
                         int playerRank = highScores.FindIndex(score => score.Item2 == totalRounds && score.Item6 == elapsedGameTime && score.Item7 == difficultyLevel) + 1;
 
                         IsHighscoreText(totalRounds, playerRank);
 
+                        // Replace placeholder with actual player name and persist
                         string playerName = await PlayerName();
                         highScores.RemoveAll(score => score.Item1 == placeholderText);
                         highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, difficultyLevel));
@@ -1054,6 +1219,11 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Displays the player's score and rank when they qualify for the leaderboard.
+        /// </summary>
+        /// <param name="totalRounds">Total completed rounds.</param>
+        /// <param name="playerRank">The player's rank position on the leaderboard.</param>
         public void IsHighscoreText(int totalRounds, int playerRank)
         {
             TextBoxHighscores();
@@ -1061,6 +1231,10 @@ namespace KeepYourFocus
             textBoxShowResults.Text = $"Your score:\r\n{totalRounds} sequences\r\nYour rank:\r\n#{playerRank}";
         }
 
+        /// <summary>
+        /// Displays the player's score when they do not qualify for the leaderboard.
+        /// </summary>
+        /// <param name="totalRounds">Total completed rounds.</param>
         public void IsNotHighscoreText(int totalRounds)
         {
             TextBoxHighscores();

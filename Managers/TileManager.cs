@@ -1,21 +1,42 @@
+using KeepYourFocus;
 using System.Diagnostics;
 
-namespace KeepYourFocus
+namespace Simon_Says.Managers
 {
+    /// <summary>
+    /// Manages tile (PictureBox) initialization, layout, shuffling, highlighting,
+    /// and replacement logic for the game board.
+    /// </summary>
     public class TileManager
     {
+        /// <summary>Maps tile color names to their corresponding PictureBox controls on the board.</summary>
         public Dictionary<string, PictureBox> PictureBoxDictionary { get; set; } = new();
 
+        /// <summary>The DPI-scaled size captured at startup to keep PictureBoxes consistent.</summary>
         private readonly Size pictureBoxFixedSize;
+        /// <summary>The DPI-scaled positions captured at startup for each PictureBox slot.</summary>
         private readonly Point[] pictureBoxFixedPositions;
         private readonly Random rnd = new();
 
+        /// <summary>
+        /// Captures the runtime-scaled size and positions from the initial PictureBox layout.
+        /// </summary>
+        /// <param name="pictureBoxes">The four PictureBox controls from the form.</param>
         public TileManager(PictureBox[] pictureBoxes)
         {
+            // Capture the DPI-scaled size from the first PictureBox
             pictureBoxFixedSize = pictureBoxes[0].Size;
+            // Store each PictureBox's initial position for consistent repositioning
             pictureBoxFixedPositions = pictureBoxes.Select(pb => pb.Location).ToArray();
         }
 
+        /// <summary>
+        /// Configures a single PictureBox with a tile image, tag, event handler, and consistent sizing.
+        /// </summary>
+        /// <param name="pictureBox">The PictureBox control to configure.</param>
+        /// <param name="tile">The tile color name used as dictionary key and Tag.</param>
+        /// <param name="imagePath">Absolute path to the tile image file.</param>
+        /// <param name="clickHandler">The click event handler (PlayersTurn) to attach.</param>
         public void InitializePictureBox(PictureBox pictureBox, string tile, string imagePath, EventHandler clickHandler)
         {
             try
@@ -40,6 +61,12 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Sets up the initial four-tile board layout (Red, Blue, Orange, Green)
+        /// by initializing each PictureBox and registering it in the dictionary.
+        /// </summary>
+        /// <param name="pictureBoxes">The four PictureBox controls from the form.</param>
+        /// <param name="clickHandler">The click event handler to attach to each tile.</param>
         public void InitialDictionaryOfTilesAtStart(PictureBox[] pictureBoxes, EventHandler clickHandler)
         {
             string rootPath = PathHelper.GetRootPath();
@@ -56,6 +83,10 @@ namespace KeepYourFocus
                 pb.Visible = true;
         }
 
+        /// <summary>
+        /// Returns a dictionary of all 10 available tile colors mapped to their image file paths.
+        /// </summary>
+        /// <returns>A dictionary with tile color names as keys and absolute image paths as values.</returns>
         public static Dictionary<string, string> DictOfAllTiles()
         {
             string rootPath = PathHelper.GetRootPath();
@@ -74,6 +105,10 @@ namespace KeepYourFocus
             };
         }
 
+        /// <summary>
+        /// Returns a shuffled copy of all available tiles using the Fisher-Yates algorithm.
+        /// </summary>
+        /// <returns>A randomly ordered dictionary of tile names and image paths.</returns>
         public Dictionary<string, string> ShuffleDictOfAllTiles()
         {
             List<KeyValuePair<string, string>> listOfAllTiles = DictOfAllTiles().ToList();
@@ -89,6 +124,13 @@ namespace KeepYourFocus
             return listOfAllTiles.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
+        /// <summary>
+        /// Toggles the visual highlight on a PictureBox. When highlighted, a white border
+        /// padding is applied; when unhighlighted, padding and size are reset to defaults.
+        /// Thread-safe via <see cref="Control.Invoke"/>.
+        /// </summary>
+        /// <param name="pictureBox">The PictureBox to highlight or unhighlight.</param>
+        /// <param name="highlight">True to apply highlight, false to remove it.</param>
         public void ManageHighlight(PictureBox pictureBox, bool highlight)
         {
             if (pictureBox.InvokeRequired)
@@ -112,11 +154,16 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Randomly shuffles the on-screen positions of the current board tiles
+        /// using the Fisher-Yates algorithm, resetting padding and size.
+        /// </summary>
         public void ShufflePositions()
         {
             List<string> keys = PictureBoxDictionary.Keys.ToList();
             int lastIndex = keys.Count - 1;
 
+            // Fisher-Yates shuffle on tile keys
             for (int currentIndex = lastIndex; currentIndex > 0; currentIndex--)
             {
                 int randomIndex = rnd.Next(0, currentIndex + 1);
@@ -135,6 +182,10 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Randomizes the visual order of PictureBoxes and repositions them
+        /// to the fixed layout positions, resetting size, padding, and visibility.
+        /// </summary>
         public void RefreshAndRepositionPictureBoxes()
         {
             Debug.WriteLine("[RefreshAndRepositionPictureBoxes] Repositioning PictureBoxes...");
@@ -151,6 +202,12 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Selects a random tile from the current board by shuffling the dictionary keys
+        /// and preventing three identical tiles in a row.
+        /// </summary>
+        /// <returns>The color name of the randomly selected tile.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when no tiles are on the board.</exception>
         public string ManageRandomizerTiles()
         {
             if (PictureBoxDictionary.Count == 0)
@@ -160,6 +217,7 @@ namespace KeepYourFocus
                 throw new InvalidOperationException("PictureBoxDictionary is empty. Verify filepaths of tiles");
             }
 
+            // Fisher-Yates shuffle on current board tile keys
             List<string> shuffledTiles = PictureBoxDictionary.Keys.ToList();
             int numberOfItems = shuffledTiles.Count;
             while (numberOfItems > 1)
@@ -171,6 +229,7 @@ namespace KeepYourFocus
                 shuffledTiles[numberOfItems] = temp;
             }
 
+            // Prevent three identical consecutive tiles by swapping with the next different tile
             for (int itemIndex = 2; itemIndex < shuffledTiles.Count; itemIndex++)
             {
                 if (shuffledTiles[itemIndex] == shuffledTiles[itemIndex - 1] && shuffledTiles[itemIndex] == shuffledTiles[itemIndex - 2])
@@ -191,6 +250,11 @@ namespace KeepYourFocus
             return shuffledTiles[0];
         }
 
+        /// <summary>
+        /// Returns the DPI-scaled fixed position for the given slot index.
+        /// </summary>
+        /// <param name="index">Zero-based slot index (0–3).</param>
+        /// <returns>The fixed position point, or <see cref="Point.Empty"/> if the index is out of range.</returns>
         public Point GetFixedPosition(int index)
         {
             if (index >= 0 && index < pictureBoxFixedPositions.Length)
@@ -200,6 +264,16 @@ namespace KeepYourFocus
             return Point.Empty;
         }
 
+        /// <summary>
+        /// Randomly replaces a tile in the correct sequence and/or on the board as a
+        /// difficulty challenge. The probability increases with level progression.
+        /// </summary>
+        /// <param name="correctOrder">The current correct tile sequence.</param>
+        /// <param name="counterLevels">The current difficulty level.</param>
+        /// <param name="isHardLevel">Whether the hard difficulty mode is active.</param>
+        /// <param name="isDisplaySequence">Whether the sequence is currently being displayed.</param>
+        /// <param name="clickHandler">The click event handler for newly created PictureBoxes.</param>
+        /// <returns>A tuple containing the (possibly updated) correct order and whether a replacement occurred.</returns>
         public (List<string> correctOrder, bool replacementOccurred) ReplaceTileOnBoardAndInSequence(
             List<string> correctOrder, int counterLevels, bool isHardLevel, bool isDisplaySequence, EventHandler clickHandler)
         {
@@ -209,6 +283,7 @@ namespace KeepYourFocus
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
             List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
 
+            // Determine replacement probability based on current level
             bool checkReplaceInOrder = (counterLevels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100) ||
                                        (counterLevels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
                                        (counterLevels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
@@ -278,6 +353,16 @@ namespace KeepYourFocus
             return (correctOrder, replacementOccurred);
         }
 
+        /// <summary>
+        /// Replaces all four board tiles with a new random set from the full tile pool.
+        /// Triggered on level-up or in hard mode, with probability based on level.
+        /// </summary>
+        /// <param name="pictureBoxes">The four PictureBox controls to reinitialize.</param>
+        /// <param name="counterLevels">The current difficulty level.</param>
+        /// <param name="levelUp">Whether a level-up just occurred.</param>
+        /// <param name="isHardLevel">Whether the hard difficulty mode is active.</param>
+        /// <param name="isDisplaySequence">Whether the sequence is currently being displayed.</param>
+        /// <param name="clickHandler">The click event handler for the new PictureBoxes.</param>
         public void ReplaceAllTiles(PictureBox[] pictureBoxes, int counterLevels, bool levelUp, bool isHardLevel, bool isDisplaySequence, EventHandler clickHandler)
         {
             Debug.WriteLine("Replace and switch all tiles when level up...");

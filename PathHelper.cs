@@ -2,8 +2,16 @@ using System.Diagnostics;
 
 namespace KeepYourFocus
 {
+    /// <summary>
+    /// Static utility class for resolving application file paths.
+    /// </summary>
     public static class PathHelper
     {
+        /// <summary>
+        /// Resolves the root path of the KeepYourFocus project by searching for the
+        /// "KeepYourFocus" directory segment in the application base directory.
+        /// </summary>
+        /// <returns>The absolute root path ending with a directory separator, or <see cref="string.Empty"/> on failure.</returns>
         public static string GetRootPath()
         {
             string directoryPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -15,11 +23,13 @@ namespace KeepYourFocus
                 return string.Empty;
             }
 
+            // Split the base directory into segments and locate the project folder
             string[] directorySplitPath = directoryPath.Split(Path.DirectorySeparatorChar);
             int index = Array.IndexOf(directorySplitPath, "KeepYourFocus");
 
             if (index != -1)
             {
+                // Reconstruct the path up to and including the project folder
                 string rootPath = string.Join(Path.DirectorySeparatorChar.ToString(), directorySplitPath.Take(index + 1));
 
                 if (!rootPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
@@ -36,6 +46,10 @@ namespace KeepYourFocus
             }
         }
 
+        /// <summary>
+        /// Returns the path to the application's LocalAppData directory, creating it if it does not exist.
+        /// </summary>
+        /// <returns>The absolute LocalAppData path ending with a directory separator, or <see cref="string.Empty"/> on failure.</returns>
         public static string GetLocalAppDataPath()
         {
             string localAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeepYourFocus");

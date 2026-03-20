@@ -1,18 +1,12 @@
-﻿/*
- * Added component to hide caret in richtextboxes
- */
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace KeepYourFocus
 {
+    /// <summary>
+    /// A read-only RichTextBox that hides the caret (text cursor) by calling
+    /// the Win32 HideCaret API after every window message, ensuring the caret
+    /// never becomes visible in display-only text fields.
+    /// </summary>
     public partial class ReadOnlyRichTextBox : RichTextBox
     {
         [DllImport("user32.dll")]
