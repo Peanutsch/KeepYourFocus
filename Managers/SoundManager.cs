@@ -1,4 +1,4 @@
-using KeepYourFocus;
+using Simon_Says.Helpers;
 using System.Media;
 
 namespace Simon_Says.Managers

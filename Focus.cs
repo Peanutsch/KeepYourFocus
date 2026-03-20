@@ -631,7 +631,7 @@ namespace KeepYourFocus
             actionTaken = false;
 
             // Check if any tiles should be replaced on the board before displaying
-            var (updatedCorrectOrder, replacementOccurred) = tileManager.ReplaceTileOnBoardAndInSequence(
+            (List<string> updatedCorrectOrder, bool replacementOccurred) = tileManager.ReplaceTileOnBoardAndInSequence(
                 correctOrder, counterLevels, isHardLevel, isDisplaySequence, PlayersTurn);
 
             if (replacementOccurred)
@@ -647,9 +647,9 @@ namespace KeepYourFocus
 
             await Task.Delay(500);
 
-            foreach (var tile in correctOrder)
+            foreach (string tile in correctOrder)
             {
-                if (!tileManager.PictureBoxDictionary.TryGetValue(tile, out var box) || box == null)
+                if (!tileManager.PictureBoxDictionary.TryGetValue(tile, out PictureBox? box) || box == null)
                     continue;
 
                 await Task.Delay(500);

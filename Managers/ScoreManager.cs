@@ -1,4 +1,4 @@
-using KeepYourFocus;
+using Simon_Says.Helpers;
 using System.Diagnostics;
 
 namespace Simon_Says.Managers
@@ -113,8 +113,6 @@ namespace Simon_Says.Managers
         /// <param name="highScores">The new high-score entries to merge and save.</param>
         public static void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
         {
-            Debug.WriteLine("SaveScoreToFile started");
-
             string rootPath = PathHelper.GetRootPath();
             string file = Path.Combine(rootPath, "sounds", "setters.txt");
             string existingContent = File.Exists(file) ? File.ReadAllText(file) : string.Empty;
@@ -174,12 +172,11 @@ namespace Simon_Says.Managers
                         {
                             saveScore.WriteLine($"{element.Item1},{element.Item2},{element.Item3},{element.Item4},{element.Item5},{element.Item6},{element.Item7}");
                         }
-                        Debug.WriteLine("line replaced in save file");
+                        Debug.WriteLine("[ScoreManager.SaveScoreToFile] Line replaced in save file");
                     }
                     WriteToCopies();
                 }
             }
-            Debug.WriteLine("SaveScoreToFile ended");
         }
 
         /// <summary>
@@ -197,13 +194,13 @@ namespace Simon_Says.Managers
             Directory.CreateDirectory(copyToDir);
             string copyFile = Path.Combine(copyToDir, "higscores.txt");
             File.Copy(file, copyFile, true);
-            Debug.WriteLine("Copied to file 1");
+            Debug.WriteLine("[ScoreManager.WriteToCopies] Copied to file 1");
 
             string backupDir = Path.Combine(copyToDir, "BackUp");
             Directory.CreateDirectory(backupDir);
             string copyFile2 = Path.Combine(copyToDir, "BackUp", "higscoresBackUp.txt");
             File.Copy(file, copyFile2, true);
-            Debug.WriteLine("Copied to file 2");
+            Debug.WriteLine("[ScoreManager.WriteToCopies] Copied to file 2");
 
             Debug.WriteLine("WriteToCopies ended");
         }

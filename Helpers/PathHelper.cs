@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace KeepYourFocus
+namespace Simon_Says.Helpers
 {
     /// <summary>
     /// Static utility class for resolving application file paths.

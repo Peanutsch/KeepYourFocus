@@ -1,4 +1,4 @@
-using KeepYourFocus;
+using Simon_Says.Helpers;
 using System.Diagnostics;
 
 namespace Simon_Says.Managers
@@ -74,7 +74,7 @@ namespace Simon_Says.Managers
             // Clear stale entries from previous games (e.g. replaced tiles like "CaribBlue", "Olive")
             PictureBoxDictionary.Clear();
 
-            foreach (var pb in pictureBoxes)
+            foreach (PictureBox? pb in pictureBoxes)
                 pb.Visible = false;
 
             InitializePictureBox(pictureBoxes[0], "Red", Path.Combine(rootPath, @"png\red_tile512.png"), clickHandler);
@@ -142,6 +142,7 @@ namespace Simon_Says.Managers
         {
             if (pictureBox.InvokeRequired)
             {
+                // Invoke on the UI thread to safely update the PictureBox properties
                 pictureBox.Invoke(new Action<PictureBox, bool>(ManageHighlight), pictureBox, highlight);
             }
             else
@@ -195,9 +196,9 @@ namespace Simon_Says.Managers
         /// </summary>
         public void RefreshAndRepositionPictureBoxes()
         {
-            Debug.WriteLine("[RefreshAndRepositionPictureBoxes] Repositioning PictureBoxes...");
+            Debug.WriteLine("[TileManager.RefreshAndRepositionPictureBoxes] Repositioning PictureBoxes...");
 
-            var shuffledPictureBoxes = PictureBoxDictionary.Values.OrderBy(x => rnd.Next()).ToList();
+            List<PictureBox> shuffledPictureBoxes = PictureBoxDictionary.Values.OrderBy(x => rnd.Next()).ToList();
 
             for (int itemIndex = 0; itemIndex < shuffledPictureBoxes.Count; itemIndex++)
             {
@@ -219,7 +220,7 @@ namespace Simon_Says.Managers
         {
             if (PictureBoxDictionary.Count == 0)
             {
-                Debug.WriteLine("PictureBoxDictionary is empty. Verify filepaths of tiles in InitialDictionaryOfTilesAtStart()");
+                Debug.WriteLine("[TileManager.ManageRandomizerTiles] PictureBoxDictionary is empty. Verify filepaths of tiles in InitialDictionaryOfTilesAtStart()");
                 MessageBox.Show($"PictureBoxDictionary is empty. Verify filepaths of tiles in InitialDictionaryOfTilesAtStart()", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw new InvalidOperationException("PictureBoxDictionary is empty. Verify filepaths of tiles");
             }
@@ -284,7 +285,7 @@ namespace Simon_Says.Managers
         public (List<string> correctOrder, bool replacementOccurred) ReplaceTileOnBoardAndInSequence(
             List<string> correctOrder, int counterLevels, bool isHardLevel, bool isDisplaySequence, EventHandler clickHandler)
         {
-            Debug.WriteLine("Replace tile on board and/or in sequence...");
+            Debug.WriteLine("[TileManager.ReplaceTileOnBoardAndInSequence] Replace tile on board and/or in sequence... Testing lvl 1 100% chance ");
 
             string newTile = ManageRandomizerTiles();
             Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
@@ -314,7 +315,7 @@ namespace Simon_Says.Managers
                 if (checkReplaceInOrder && newTile != deleteTile && randomIndex != copyCorrectOrder.Count - 1)
                 {
                     Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]\n");
+                    Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]. Testing lvl 1 chance 100%\n");
 
                     copyCorrectOrder[randomIndex] = newTile;
                     correctOrder = new List<string>(copyCorrectOrder);
@@ -372,7 +373,7 @@ namespace Simon_Says.Managers
         /// <param name="clickHandler">The click event handler for the new PictureBoxes.</param>
         public void ReplaceAllTiles(PictureBox[] pictureBoxes, int counterLevels, bool levelUp, bool isHardLevel, bool isDisplaySequence, EventHandler clickHandler)
         {
-            Debug.WriteLine("Replace and switch all tiles when level up...");
+            Debug.WriteLine("[TileManager.ReplaceAllTiles] Replace and switch all tiles when level up... Testing lvl 1 Chance 100%");
 
             if (counterLevels >= 1 && levelUp == true && rnd.Next(100) <= 100 ||
                 counterLevels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
