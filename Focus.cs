@@ -1,4 +1,4 @@
-using Simon_Says.Managers;
+using KeepYourFocus.Managers;
 using System.Diagnostics;
 using System.Globalization;
 

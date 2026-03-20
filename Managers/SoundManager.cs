@@ -1,7 +1,7 @@
-using Simon_Says.Helpers;
+using KeepYourFocus.Helpers;
 using System.Media;
 
-namespace Simon_Says.Managers
+namespace KeepYourFocus.Managers
 {
     /// <summary>
     /// Manages loading and playback of all game sound effects.

@@ -1,7 +1,7 @@
-using Simon_Says.Helpers;
+using KeepYourFocus.Helpers;
 using System.Diagnostics;
 
-namespace Simon_Says.Managers
+namespace KeepYourFocus.Managers
 {
     /// <summary>
     /// Manages tile (PictureBox) initialization, layout, shuffling, highlighting,
