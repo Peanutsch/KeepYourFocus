@@ -9,16 +9,20 @@ namespace KeepYourFocus.Managers
     /// </summary>
     public class TileManager
     {
+        #region === Fields and Properties ===
         /// <summary>Maps tile color names to their corresponding PictureBox controls on the board.</summary>
         public Dictionary<string, PictureBox> PictureBoxDictionary { get; set; } = new();
 
         /// <summary>The DPI-scaled size captured at startup to keep PictureBoxes consistent.</summary>
         private readonly Size pictureBoxFixedSize;
+
         /// <summary>The DPI-scaled positions captured at startup for each PictureBox slot.</summary>
         private readonly Point[] pictureBoxFixedPositions;
         private readonly Random rnd = new();
         private static Dictionary<string, string>? _cachedAllTiles;
+        #endregion
 
+        #region === Constructor ===
         /// <summary>
         /// Captures the runtime-scaled size and positions from the initial PictureBox layout.
         /// </summary>
@@ -30,7 +34,9 @@ namespace KeepYourFocus.Managers
             // Store each PictureBox's initial position for consistent repositioning
             pictureBoxFixedPositions = pictureBoxes.Select(pb => pb.Location).ToArray();
         }
+        #endregion
 
+        #region === Initializations ===
         /// <summary>
         /// Configures a single PictureBox with a tile image, tag, event handler, and consistent sizing.
         /// </summary>
@@ -63,7 +69,9 @@ namespace KeepYourFocus.Managers
                 MessageBox.Show($"Error initializing PictureBox for tile {tile}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        #endregion
 
+        #region === Dictionary Management ===
         /// <summary>
         /// Sets up the initial four-tile board layout (Red, Blue, Orange, Green)
         /// by initializing each PictureBox and registering it in the dictionary.
@@ -137,7 +145,9 @@ namespace KeepYourFocus.Managers
 
             return listOfAllTiles.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
+        #endregion
 
+        #region === Highlight Management ===
         /// <summary>
         /// Toggles the visual highlight on a PictureBox. When highlighted, a white border
         /// padding is applied; when unhighlighted, padding and size are reset to defaults.
@@ -167,6 +177,22 @@ namespace KeepYourFocus.Managers
                     pictureBox.Size = pictureBoxFixedSize;
                 }
             }
+        }
+        #endregion
+
+        #region === Position & Layout Management ===
+        /// <summary>
+        /// Returns the DPI-scaled fixed position for the given slot index.
+        /// </summary>
+        /// <param name="index">Zero-based slot index (0–3).</param>
+        /// <returns>The fixed position point, or <see cref="Point.Empty"/> if the index is out of range.</returns>
+        public Point GetFixedPosition(int index)
+        {
+            if (index >= 0 && index < pictureBoxFixedPositions.Length)
+            {
+                return pictureBoxFixedPositions[index];
+            }
+            return Point.Empty;
         }
 
         /// <summary>
@@ -216,7 +242,9 @@ namespace KeepYourFocus.Managers
                 shuffledPictureBoxes[itemIndex].Visible = true;
             }
         }
+        #endregion
 
+        #region === Tile Randomization & Selection ===
         /// <summary>
         /// Selects a random tile from the current board by shuffling the dictionary keys
         /// and preventing three identical tiles in a row.
@@ -264,163 +292,358 @@ namespace KeepYourFocus.Managers
 
             return shuffledTiles[0];
             }
+        #endregion
 
-        /// <summary>
-        /// Returns the DPI-scaled fixed position for the given slot index.
-        /// </summary>
-        /// <param name="index">Zero-based slot index (0–3).</param>
-        /// <returns>The fixed position point, or <see cref="Point.Empty"/> if the index is out of range.</returns>
-        public Point GetFixedPosition(int index)
-        {
-            if (index >= 0 && index < pictureBoxFixedPositions.Length)
-            {
-                return pictureBoxFixedPositions[index];
-            }
-            return Point.Empty;
-        }
-
+        #region === Tile Replacement ===
         /// <summary>
         /// Randomly replaces a tile in the correct sequence and/or on the board as a
-        /// difficulty challenge. The probability increases with level progression.
+        /// difficulty challenge. Orchestrates the replacement workflow by delegating to specialized methods.
         /// </summary>
         /// <param name="correctOrder">The current correct tile sequence.</param>
-        /// <param name="counterLevels">The current difficulty level.</param>
-        /// <param name="isHardLevel">Whether the hard difficulty mode is active.</param>
-        /// <param name="isDisplaySequence">Whether the sequence is currently being displayed.</param>
-        /// <param name="clickHandler">The click event handler for newly created PictureBoxes.</param>
+        /// <param name="counterLevels">The current difficulty level (1–9+).</param>
+        /// <param name="isHardLevel">Whether the hard difficulty mode (endless) is active.</param>
+        /// <param name="isDisplaySequence">Whether the sequence is currently being displayed to the player.</param>
+        /// <param name="clickHandler">The click event handler to attach to newly created PictureBoxes.</param>
         /// <returns>A tuple containing the (possibly updated) correct order and whether a replacement occurred.</returns>
         public (List<string> correctOrder, bool replacementOccurred) ReplaceTileOnBoardAndInSequence(
             List<string> correctOrder, int counterLevels, bool isHardLevel, bool isDisplaySequence, EventHandler clickHandler)
         {
-            Debug.WriteLine("[TileManager.ReplaceTileOnBoardAndInSequence] Replace tile on board and/or in sequence... Testing lvl 1 100% chance ");
+            Debug.WriteLine("[TileManager.ReplaceTileOnBoardAndInSequence] Orchestrating tile replacement...");
 
-            string newTile = ManageRandomizerTiles();
-            Dictionary<string, string> dictOfAllTiles = DictOfAllTiles();
-            List<KeyValuePair<string, string>> listOfAllTiles = dictOfAllTiles.ToList();
+            // Step 1: Prepare replacement data (new tile, all tiles, working copy)
+            var (newTile, allTiles, copyCorrectOrder) = PrepareReplacementData(correctOrder);
 
-            // Determine replacement probability based on current level
-            bool checkReplaceInOrder = (counterLevels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100) ||
-                                       (counterLevels >= 6 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counterLevels >= 8 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                       (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
+            // Step 2: Determine whether to replace in sequence and/or on board based on level
+            var (shouldReplaceInOrder, shouldReplaceOnBoard) = DetermineReplacementActions(
+                counterLevels, correctOrder.Count, isHardLevel, isDisplaySequence);
 
-            bool checkReplaceOnBoard = (counterLevels >= 1 && correctOrder.Count > 2 && rnd.Next(100) <= 100) ||
-                                       (counterLevels >= 7 && correctOrder.Count > 2 && rnd.Next(100) <= 75) ||
-                                       (counterLevels >= 9 && correctOrder.Count > 2 && rnd.Next(100) <= 85) ||
-                                       (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
+            // Early exit if no replacements are needed
+            if (!shouldReplaceInOrder && !shouldReplaceOnBoard)
+            {
+                Debug.WriteLine("[TileManager.ReplaceTileOnBoardAndInSequence] No replacement conditions met.");
+                return (correctOrder, false);
+            }
+
+            // Step 3: Select the tile to be replaced
+            int randomIndex = rnd.Next(copyCorrectOrder.Count);
+            string deleteTile = copyCorrectOrder[randomIndex];
+            Debug.WriteLine($"[TileManager.ReplaceTileOnBoardAndInSequence] Target deletion: [{deleteTile}] at index [{randomIndex}]");
 
             bool replacementOccurred = false;
 
-            if (checkReplaceInOrder || checkReplaceOnBoard)
+            // Step 4: Execute replacement in correct order (sequence) if conditions met
+            if (shouldReplaceInOrder)
+                (copyCorrectOrder, replacementOccurred) = ReplaceInCorrectOrder(
+                    copyCorrectOrder, newTile, deleteTile, randomIndex, replacementOccurred);
+
+            // Step 5: Execute replacement on board (visual) if conditions met
+            if (shouldReplaceOnBoard)
+                (copyCorrectOrder, replacementOccurred) = ReplaceOnBoard(
+                    copyCorrectOrder, deleteTile, allTiles, clickHandler, replacementOccurred);
+
+            Debug.WriteLine($"[TileManager.ReplaceTileOnBoardAndInSequence] Replacement complete. Occurred: {replacementOccurred}");
+            return (copyCorrectOrder, replacementOccurred);
+        }
+
+        /// <summary>
+        /// Prepares tile data required for replacement operations: selects a new random tile,
+        /// retrieves the full tile dictionary, and creates a working copy of the correct order.
+        /// </summary>
+        /// <param name="correctOrder">The current correct tile sequence.</param>
+        /// <returns>A tuple of (newTile, allTilesList, workingCopy).</returns>
+        private (string newTile, List<KeyValuePair<string, string>> allTiles, List<string> copyOrder) PrepareReplacementData(List<string> correctOrder)
+        {
+            // Select a new random tile from the board
+            string newTile = ManageRandomizerTiles();
+            Debug.WriteLine($"[PrepareReplacementData] Selected new tile: [{newTile}]");
+
+            // Retrieve all available tiles (cached)
+            var allTiles = DictOfAllTiles().ToList();
+
+            // Create a working copy of the correct order to avoid unintended mutations
+            var copyOrder = new List<string>(correctOrder);
+
+            return (newTile, allTiles, copyOrder);
+        }
+
+        /// <summary>
+        /// Determines whether to replace a tile in the sequence and/or on the board
+        /// based on the current level, sequence length, hard mode status, and display state.
+        /// Probability thresholds increase with difficulty progression.
+        /// </summary>
+        /// <param name="counterLevels">The current difficulty level.</param>
+        /// <param name="correctOrderCount">The number of tiles in the current sequence.</param>
+        /// <param name="isHardLevel">Whether hard mode is active.</param>
+        /// <param name="isDisplaySequence">Whether the sequence is being displayed.</param>
+        /// <returns>A tuple of (replaceInOrder, replaceOnBoard) decision flags.</returns>
+        private (bool replaceInOrder, bool replaceOnBoard) DetermineReplacementActions(
+            int counterLevels, int correctOrderCount, bool isHardLevel, bool isDisplaySequence)
+        {
+            // Determine replacement probability for the correct order (sequence) based on level
+            // Levels 1+: 100%, Level 6+: 75%, Level 8+: 85%, Hard mode: 85% if displaying
+            bool shouldReplaceInOrder =
+                (counterLevels >= 1 && correctOrderCount > 2 && rnd.Next(100) <= 100) ||
+                (counterLevels >= 6 && correctOrderCount > 2 && rnd.Next(100) <= 75) ||
+                (counterLevels >= 8 && correctOrderCount > 2 && rnd.Next(100) <= 85) ||
+                (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
+
+            // Determine replacement probability for the board (visual) based on level
+            // Levels 1+: 100%, Level 7+: 75%, Level 9+: 85%, Hard mode: 85% if displaying
+            bool shouldReplaceOnBoard =
+                (counterLevels >= 1 && correctOrderCount > 2 && rnd.Next(100) <= 100) ||
+                (counterLevels >= 7 && correctOrderCount > 2 && rnd.Next(100) <= 75) ||
+                (counterLevels >= 9 && correctOrderCount > 2 && rnd.Next(100) <= 85) ||
+                (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
+
+            Debug.WriteLine($"[DetermineReplacementActions] InOrder: {shouldReplaceInOrder}, OnBoard: {shouldReplaceOnBoard}");
+            return (shouldReplaceInOrder, shouldReplaceOnBoard);
+        }
+
+        /// <summary>
+        /// Replaces a tile within the correct order sequence at the specified index,
+        /// provided the new tile is different and the index is not the last position.
+        /// </summary>
+        /// <param name="copyCorrectOrder">The working copy of the correct order.</param>
+        /// <param name="newTile">The new tile to insert.</param>
+        /// <param name="deleteTile">The tile being replaced (for validation).</param>
+        /// <param name="randomIndex">The position to replace.</param>
+        /// <param name="occurred">Whether a replacement has already occurred.</param>
+        /// <returns>Updated (correctOrder, replacementOccurred) tuple.</returns>
+        private static (List<string> correctOrder, bool occurred) ReplaceInCorrectOrder(
+            List<string> copyCorrectOrder, string newTile, string deleteTile, int randomIndex, bool occurred)
+        {
+            // Validate replacement conditions: new tile must differ and not be at the end of sequence
+            if (newTile == deleteTile || randomIndex == copyCorrectOrder.Count - 1)
             {
-                List<string> copyCorrectOrder = new List<string>(correctOrder);
-                int randomIndex = rnd.Next(copyCorrectOrder.Count);
-                string deleteTile = copyCorrectOrder[randomIndex];
-
-                Debug.WriteLine($"deleteTile: [{deleteTile}]");
-
-                if (checkReplaceInOrder && newTile != deleteTile && randomIndex != copyCorrectOrder.Count - 1)
-                {
-                    Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                    Debug.WriteLine($"Replacing in order [{deleteTile}] at index [{randomIndex}] with new tile [{newTile}]. Testing lvl 1 chance 100%\n");
-
-                    copyCorrectOrder[randomIndex] = newTile;
-                    correctOrder = new List<string>(copyCorrectOrder);
-                    replacementOccurred = true;
-                }
-                if (checkReplaceOnBoard)
-                {
-                    if (!PictureBoxDictionary.TryGetValue(deleteTile, out PictureBox? pictureBoxToReplace) || pictureBoxToReplace == null)
-                    {
-                        Debug.WriteLine($"Warning: deleteTile '{deleteTile}' not found on board. Skipping board replacement.");
-                    }
-                    else
-                    {
-                        PictureBoxDictionary.Remove(deleteTile);
-
-                        string pickNewTile;
-                        do
-                        {
-                            pickNewTile = listOfAllTiles[rnd.Next(listOfAllTiles.Count)].Key;
-                            Debug.WriteLine($"pickNewTile: [{pickNewTile}]");
-                        } while (copyCorrectOrder.Contains(pickNewTile) || PictureBoxDictionary.ContainsKey(pickNewTile));
-
-                        Debug.WriteLine("\nCorrectOrder = " + string.Join(", ", correctOrder));
-                        Debug.WriteLine($"Replaced on board and in order [{deleteTile}] with [{pickNewTile}]");
-
-                        InitializePictureBox(pictureBoxToReplace, pickNewTile, dictOfAllTiles[pickNewTile], clickHandler);
-                        PictureBoxDictionary[pickNewTile] = pictureBoxToReplace;
-
-                        for (int indexItem = 0; indexItem < copyCorrectOrder.Count; indexItem++)
-                        {
-                            if (copyCorrectOrder[indexItem] == deleteTile)
-                            {
-                                copyCorrectOrder[indexItem] = pickNewTile;
-                            }
-                        }
-
-                        correctOrder = new List<string>(copyCorrectOrder);
-                        replacementOccurred = true;
-                    }
-                }
-                Debug.WriteLine("Updated correctOrder = " + string.Join(", ", correctOrder));
+                Debug.WriteLine($"[ReplaceInCorrectOrder] Skipped: newTile matches deleteTile or at end of sequence");
+                return (copyCorrectOrder, occurred);
             }
-            return (correctOrder, replacementOccurred);
+
+            // Replace the tile in the sequence
+            Debug.WriteLine($"[ReplaceInCorrectOrder] Replacing [{deleteTile}] at [{randomIndex}] with [{newTile}]");
+            copyCorrectOrder[randomIndex] = newTile;
+
+            return (copyCorrectOrder, true);
+        }
+
+        /// <summary>
+        /// Replaces a tile on the board (visual) by removing the old tile's PictureBox mapping,
+        /// selecting an unused tile, initializing the PictureBox with the new tile, and updating
+        /// all references in the correct order sequence.
+        /// </summary>
+        /// <param name="copyCorrectOrder">The working copy of the correct order.</param>
+        /// <param name="deleteTile">The tile color to remove from the board.</param>
+        /// <param name="allTiles">List of all available tiles.</param>
+        /// <param name="clickHandler">The click event handler for the new PictureBox.</param>
+        /// <param name="occurred">Whether a replacement has already occurred.</param>
+        /// <returns>Updated (correctOrder, replacementOccurred) tuple.</returns>
+        private (List<string> correctOrder, bool occurred) ReplaceOnBoard(
+            List<string> copyCorrectOrder, string deleteTile,
+            List<KeyValuePair<string, string>> allTiles, EventHandler clickHandler, bool occurred)
+        {
+            // Attempt to retrieve the PictureBox for the tile to be replaced
+            if (!PictureBoxDictionary.TryGetValue(deleteTile, out PictureBox? pictureBox) || pictureBox == null)
+            {
+                Debug.WriteLine($"[ReplaceOnBoard] Warning: tile '{deleteTile}' not found on board. Skipping.");
+                return (copyCorrectOrder, occurred);
+            }
+
+            // Select a new tile color that is not already in use
+            string newTile = SelectUnusedTile(allTiles, copyCorrectOrder);
+            Debug.WriteLine($"[ReplaceOnBoard] Selected replacement tile: [{newTile}] for [{deleteTile}]");
+
+            // Remove the old tile mapping from the dictionary
+            PictureBoxDictionary.Remove(deleteTile);
+
+            // Get the full tile dictionary for path lookup
+            var tileDict = DictOfAllTiles();
+
+            // Configure the PictureBox with the new tile
+            InitializePictureBox(pictureBox, newTile, tileDict[newTile], clickHandler);
+
+            // Register the new tile in the dictionary
+            PictureBoxDictionary[newTile] = pictureBox;
+
+            // Update all references in the correct order sequence from old tile to new tile
+            for (int i = 0; i < copyCorrectOrder.Count; i++)
+            {
+                if (copyCorrectOrder[i] == deleteTile)
+                {
+                    Debug.WriteLine($"[ReplaceOnBoard] Updated sequence at [{i}]: [{deleteTile}] → [{newTile}]");
+                    copyCorrectOrder[i] = newTile;
+                }
+            }
+
+            Debug.WriteLine($"[ReplaceOnBoard] Replacement complete: [{deleteTile}] → [{newTile}]");
+            return (copyCorrectOrder, true);
+        }
+
+        /// <summary>
+        /// Selects a tile color that has not been used yet on the board or in the correct order.
+        /// Performs repeated random selection until an unused tile is found.
+        /// </summary>
+        /// <param name="allTiles">List of all available tiles (key-value pairs).</param>
+        /// <param name="excludeTiles">Tiles currently in use (e.g., correct order sequence).</param>
+        /// <returns>The name of an unused tile color.</returns>
+        private string SelectUnusedTile(List<KeyValuePair<string, string>> allTiles, List<string> excludeTiles)
+        {
+            string selected;
+
+            // Repeatedly select random tiles until one is found that is not in use
+            do
+            {
+                selected = allTiles[rnd.Next(allTiles.Count)].Key;
+                Debug.WriteLine($"[SelectUnusedTile] Candidate: [{selected}]");
+            } while (excludeTiles.Contains(selected) || PictureBoxDictionary.ContainsKey(selected));
+
+            Debug.WriteLine($"[SelectUnusedTile] Final selection: [{selected}]");
+            return selected;
         }
 
         /// <summary>
         /// Replaces all four board tiles with a new random set from the full tile pool.
         /// Triggered on level-up or in hard mode, with probability based on level.
+        /// Orchestrates the full board replacement workflow by delegating to specialized methods.
         /// </summary>
         /// <param name="pictureBoxes">The four PictureBox controls to reinitialize.</param>
-        /// <param name="counterLevels">The current difficulty level.</param>
+        /// <param name="counterLevels">The current difficulty level (1–9+).</param>
         /// <param name="levelUp">Whether a level-up just occurred.</param>
-        /// <param name="isHardLevel">Whether the hard difficulty mode is active.</param>
+        /// <param name="isHardLevel">Whether the hard difficulty mode (endless) is active.</param>
         /// <param name="isDisplaySequence">Whether the sequence is currently being displayed.</param>
         /// <param name="clickHandler">The click event handler for the new PictureBoxes.</param>
         public void ReplaceAllTiles(PictureBox[] pictureBoxes, int counterLevels, bool levelUp, bool isHardLevel, bool isDisplaySequence, EventHandler clickHandler)
         {
             Debug.WriteLine("[TileManager.ReplaceAllTiles] Replace and switch all tiles when level up... Testing lvl 1 Chance 100%");
 
-            if (counterLevels >= 1 && levelUp == true && rnd.Next(100) <= 100 ||
-                counterLevels >= 5 && levelUp == true && rnd.Next(100) <= 75 ||
-                counterLevels >= 7 && levelUp == true && rnd.Next(100) <= 85 ||
-                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
+            // Determine whether a full board replacement should occur based on level progression
+            if (!ShouldReplaceAllTiles(counterLevels, levelUp, isHardLevel, isDisplaySequence))
             {
+                Debug.WriteLine("[TileManager.ReplaceAllTiles] Replacement conditions not met.");
+                return;
+            }
+
+            // Execute the full board replacement with new tiles
+            ExecuteReplacementAllTiles(pictureBoxes, clickHandler);
+
+            Debug.WriteLine("[TileManager.ReplaceAllTiles] Full board replacement complete.");
+        }
+
+        /// <summary>
+        /// Determines whether all tiles on the board should be replaced based on level progression,
+        /// level-up status, hard mode activation, and display state.
+        /// Probability thresholds increase with difficulty progression.
+        /// </summary>
+        /// <param name="counterLevels">The current difficulty level.</param>
+        /// <param name="levelUp">Whether a level-up just occurred.</param>
+        /// <param name="isHardLevel">Whether the hard difficulty mode (endless) is active.</param>
+        /// <param name="isDisplaySequence">Whether the sequence is currently being displayed.</param>
+        /// <returns>True if all board tiles should be replaced; otherwise false.</returns>
+        private bool ShouldReplaceAllTiles(int counterLevels, bool levelUp, bool isHardLevel, bool isDisplaySequence)
+        {
+            // Determine replacement probability based on level and conditions:
+            // Level 1+ with level-up: 100% chance
+            // Level 5+ with level-up: 75% chance
+            // Level 7+ with level-up: 85% chance
+            // Hard mode with display: 85% chance
+            bool shouldReplace =
+                (counterLevels >= 1 && levelUp && rnd.Next(100) <= 100) ||
+                (counterLevels >= 5 && levelUp && rnd.Next(100) <= 75) ||
+                (counterLevels >= 7 && levelUp && rnd.Next(100) <= 85) ||
+                (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
+
+            Debug.WriteLine($"[TileManager.ShouldReplaceAllTiles] Level: {counterLevels}, LevelUp: {levelUp}, HardMode: {isHardLevel}, Decision: {shouldReplace}");
+            return shouldReplace;
+        }
+
+        /// <summary>
+        /// Replaces all four tiles on the board with a new random set from the full tile pool.
+        /// Clears the picture box dictionary, shuffles all available tiles, validates the shuffled set,
+        /// and reinitializes all four board slots with fresh tiles.
+        /// </summary>
+        /// <param name="pictureBoxes">The four PictureBox controls to reinitialize.</param>
+        /// <param name="clickHandler">The click event handler to attach to the new PictureBoxes.</param>
+        private void ExecuteReplacementAllTiles(PictureBox[] pictureBoxes, EventHandler clickHandler)
+        {
+            Debug.WriteLine("[TileManager.ExecuteReplacementAllTiles] Replacing all board tiles with new random set...");
+
+            try
+            {
+                // Get a shuffled set of all available tiles using Fisher-Yates algorithm
                 Dictionary<string, string> shuffledTiles = ShuffleDictOfAllTiles();
+                Debug.WriteLine($"[TileManager.ExecuteReplacementAllTiles] Shuffled tile set generated with {shuffledTiles.Count} tiles");
 
-                if (shuffledTiles.Count >= 4)
+                // Validate that we have at least 4 tiles available for the 4 board slots
+                if (shuffledTiles.Count < 4)
                 {
-                    KeyValuePair<string, string> kvp1 = shuffledTiles.ElementAt(0);
-                    KeyValuePair<string, string> kvp2 = shuffledTiles.ElementAt(1);
-                    KeyValuePair<string, string> kvp3 = shuffledTiles.ElementAt(2);
-                    KeyValuePair<string, string> kvp4 = shuffledTiles.ElementAt(3);
+                    Debug.WriteLine("[TileManager.ExecuteReplacementAllTiles] Error: Not enough tiles in shuffled set.");
+                    MessageBox.Show(
+                        "Error: Not enough tiles in shuffled set to initialize picture boxes.",
+                        "Tile Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-                    try
-                    {
-                        PictureBoxDictionary.Clear();
-                        InitializePictureBox(pictureBoxes[0], kvp1.Key, kvp1.Value, clickHandler);
-                        InitializePictureBox(pictureBoxes[1], kvp2.Key, kvp2.Value, clickHandler);
-                        InitializePictureBox(pictureBoxes[2], kvp3.Key, kvp3.Value, clickHandler);
-                        InitializePictureBox(pictureBoxes[3], kvp4.Key, kvp4.Value, clickHandler);
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        Debug.WriteLine($"An item with the same key has already been added: {ex.Message}");
-                        MessageBox.Show($"An item with the same key has already been added: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                        MessageBox.Show($"{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("Not enough tiles in shuffledTiles to initialize picture boxes.");
-                    MessageBox.Show($"Not enough tiles in shuffledTiles to initialize picture boxes.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                // Clear old tile mappings from the dictionary
+                PictureBoxDictionary.Clear();
+                Debug.WriteLine("[TileManager.ExecuteReplacementAllTiles] Cleared old tile mappings from dictionary.");
+
+                // Initialize the four board slots with fresh tiles
+                InitializeNewTileSet(pictureBoxes, shuffledTiles, clickHandler);
+
+                Debug.WriteLine("[TileManager.ExecuteReplacementAllTiles] All board tiles replaced successfully.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TileManager.ExecuteReplacementAllTiles] Unexpected error: {ex.GetType().Name}: {ex.Message}");
+                MessageBox.Show(
+                    $"Unexpected error during board replacement: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        /// <summary>
+        /// Initializes the four board PictureBox slots with a new set of tiles from the shuffled tile dictionary.
+        /// Iterates through the first four shuffled tiles and configures each PictureBox accordingly.
+        /// </summary>
+        /// <param name="pictureBoxes">The four PictureBox controls to initialize (expects array of length 4).</param>
+        /// <param name="shuffledTiles">Dictionary of shuffled tiles (key: color name, value: image file path).</param>
+        /// <param name="clickHandler">The click event handler to attach to each PictureBox.</param>
+        private void InitializeNewTileSet(PictureBox[] pictureBoxes, Dictionary<string, string> shuffledTiles, EventHandler clickHandler)
+        {
+            try
+            {
+                // Convert dictionary to list for indexed access
+                var tilesList = shuffledTiles.ToList();
+                Debug.WriteLine($"[TileManager.InitializeNewTileSet] Starting initialization of {Math.Min(4, tilesList.Count)} board slots");
+
+                // Initialize each of the four board positions with a new tile from the shuffled set
+                for (int i = 0; i < 4 && i < tilesList.Count; i++)
+                {
+                    var kvp = tilesList[i];
+
+                    // Configure the PictureBox with the tile color and image
+                    Debug.WriteLine($"[TileManager.InitializeNewTileSet] Initializing slot {i} with tile [{kvp.Key}]");
+                    InitializePictureBox(pictureBoxes[i], kvp.Key, kvp.Value, clickHandler);
+                }
+
+                Debug.WriteLine("[TileManager.InitializeNewTileSet] All four board slots initialized successfully.");
+            }
+            catch (ArgumentException ex)
+            {
+                Debug.WriteLine($"[TileManager.InitializeNewTileSet] Argument exception during initialization: {ex.Message}");
+                MessageBox.Show(
+                    $"Error initializing tile set: {ex.Message}",
+                    "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TileManager.InitializeNewTileSet] Unexpected error: {ex.GetType().Name}: {ex.Message}");
+                MessageBox.Show(
+                    $"Unexpected error during initialization: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
+        }
+        #endregion
     }
 }

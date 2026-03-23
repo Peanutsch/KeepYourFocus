@@ -1,3 +1,6 @@
+23-03-2026
+* Refractored code to use more efficient data structures and algorithms
+* Improved UI responsiveness and reduced lag during gameplay
 ==========
 v0.0.01
 * Reduced some delay time between highlight tiles, beeps and clicks when it's player's turn

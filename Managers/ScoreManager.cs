@@ -7,8 +7,9 @@ namespace KeepYourFocus.Managers
     /// Handles score persistence: reading, sorting, qualifying, saving, and backing up
     /// high-score data stored in a CSV file (temp).
     /// </summary>
-    public class ScoreManager
+    public static class ScoreManager
     {
+        #region === Dictionaries ===
         /// <summary>
         /// Maps difficulty names to their priority values.
         /// Used for sorting and comparing scores across difficulty levels.
@@ -19,7 +20,9 @@ namespace KeepYourFocus.Managers
             { "Default", 2 },
             { "Easy", 3 }
         };
+        #endregion
 
+        #region === Read Scores ===
         /// <summary>
         /// Reads all score entries from the CSV score file (sounds/setters.txt).
         /// Each line contains: playerName, score, levelReached, levelName, date, elapsedTime, difficultyLevel.
@@ -60,13 +63,15 @@ namespace KeepYourFocus.Managers
             }
             return scoresList;
         }
+        #endregion
 
+        #region === Sort Scores ===
         /// <summary>
         /// Reads all scores from file and returns the top 8, sorted by highest score,
         /// then fastest time, then hardest difficulty.
         /// </summary>
         /// <returns>A sorted list of the top 8 high scores.</returns>
-        public List<(string, int, int, string, string, string, int)> SortBestScores()
+        public static List<(string, int, int, string, string, string, int)> SortBestScores()
         {
             List<(string, int, int, string, string, string, int)> bestScores = new List<(string, int, int, string, string, string, int)>();
 
@@ -87,7 +92,9 @@ namespace KeepYourFocus.Managers
             }
             return bestScores;
         }
+        #endregion
 
+        #region === Qualify Score ===
         /// <summary>
         /// Determines whether a new score qualifies for the top 8 leaderboard
         /// by comparing rounds, elapsed time, and difficulty level.
@@ -104,7 +111,9 @@ namespace KeepYourFocus.Managers
                    (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)) ||
                    (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) == TimeSpan.Parse(elapsedGameTime) && score.Item7 > difficultyLevel));
         }
+        #endregion
 
+        #region === Save Score ===
         /// <summary>
         /// Persists the updated high-score list to the CSV file.
         /// Manages a maximum of 15 stored entries, replacing the lowest score when full.
@@ -199,5 +208,6 @@ namespace KeepYourFocus.Managers
 
             Debug.WriteLine("WriteToCopies ended");
         }
+        #endregion
     }
 }

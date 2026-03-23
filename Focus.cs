@@ -14,7 +14,6 @@ namespace KeepYourFocus
         #region === Manager instances ===
         private readonly SoundManager soundManager;
         private readonly TileManager tileManager;
-        private readonly ScoreManager scoreManager;
         #endregion
 
         #region === Game state: ordered sequences for computer and player ===
@@ -24,6 +23,12 @@ namespace KeepYourFocus
 
         public readonly Random rnd = new Random();
         public readonly Stopwatch gameStopwatch = new Stopwatch();
+
+        /// <summary>Async completion source for awaiting the player's name input after game over.</summary>
+        public TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
+
+        /// <summary>Convenience property returning all four game PictureBoxes as an array.</summary>
+        private PictureBox[] PictureBoxes => new[] { pictureBox1, pictureBox2, pictureBox3, pictureBox4 };
         #endregion 
 
         #region === GameVariables_Properties === 
@@ -48,12 +53,6 @@ namespace KeepYourFocus
         public int setSequences = 6;        // Number of sequences per round (set by difficulty)
         #endregion
 
-        /// <summary>Async completion source for awaiting the player's name input after game over.</summary>
-        public TaskCompletionSource<string> playerNameTcs = new TaskCompletionSource<string>();
-
-        /// <summary>Convenience property returning all four game PictureBoxes as an array.</summary>
-        private PictureBox[] PictureBoxes => new[] { pictureBox1, pictureBox2, pictureBox3, pictureBox4 };
-
         #region === Constructor === 
         /// <summary>
         /// Initializes the form, creates manager instances, sets up the UI layout,
@@ -66,7 +65,6 @@ namespace KeepYourFocus
             // Initialize managers
             tileManager = new TileManager(PictureBoxes);
             soundManager = new SoundManager();
-            scoreManager = new ScoreManager();
 
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
@@ -643,8 +641,8 @@ namespace KeepYourFocus
             isDisplaySequence = true;
             computer = true;
 
-            Debug.WriteLine($"\nDisplay Sequence: {counterSequences}");
-            Debug.WriteLine("correctOrder = " + string.Join(", ", correctOrder));
+            Debug.WriteLine($"\n    Display Sequence #{counterSequences}:");
+            Debug.WriteLine("    CorrectOrder = " + string.Join(", ", correctOrder) + "\n");
 
             await Task.Delay(500);
 
@@ -697,7 +695,7 @@ namespace KeepYourFocus
 
                 playerOrder.Add(tile);
 
-                Debug.WriteLine($"Player: [{tile}]");
+                Debug.WriteLine($"\n  > Player sequence: [{tile}]\n");
 
                 // Verify difficulty
                 await ManageActions();
@@ -822,7 +820,7 @@ namespace KeepYourFocus
         /// </summary>
         public async Task ManageActions()
         {
-            Debug.WriteLine("[RUNNING ManageActions()]");
+            Debug.WriteLine("[RUNNING Focus.ManageActions()]");
 
             setSequences = GetSelectedSequences();
 
@@ -835,14 +833,14 @@ namespace KeepYourFocus
             // Shuffle during player's turn
             if (isPlayerTurn && !actionTaken)
             {
-                Debug.WriteLine("ManageActions> isPlayerTurn = true");
+                Debug.WriteLine("[Focus.ManageActions] isPlayerTurn");
                 await ShufflePictureBoxes();
                 actionTaken = true;
             }
             // Shuffle during sequence display
             if (isDisplaySequence && !actionTaken)
             {
-                Debug.WriteLine("ManageActions> isDisplaySequence = true");
+                Debug.WriteLine("[Focus.ManageActions] isDisplaySequence");
                 await ShufflePictureBoxes();
                 actionTaken = true;
             }
@@ -1119,7 +1117,7 @@ namespace KeepYourFocus
         /// </summary>
         public void TextBoxHighscores()
         {
-            List<(string, int, int, string, string, string, int)> topHighscores = scoreManager.SortBestScores();
+            List<(string, int, int, string, string, string, int)> topHighscores = ScoreManager.SortBestScores();
 
             textBoxHighscore.Clear();
             textBoxHighscore.Visible = true;
@@ -1157,7 +1155,7 @@ namespace KeepYourFocus
         /// <param name="levelName">The display name of the highest level reached.</param>
         public async Task VerifyPlayerRank(int totalRounds, int levelReached, string levelName)
         {
-            var highScores = scoreManager.SortBestScores()
+            var highScores = ScoreManager.SortBestScores()
                 .Select(score => (score.Item1, score.Item2, score.Item3, score.Item4, score.Item5, score.Item6, score.Item7))
                 .ToList();
 
