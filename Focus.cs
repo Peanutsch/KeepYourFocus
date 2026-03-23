@@ -1,6 +1,8 @@
+using KeepYourFocus.Helpers;
 using KeepYourFocus.Managers;
 using System.Diagnostics;
 using System.Globalization;
+using static KeepYourFocus.Helpers.TaskExtensions;
 
 namespace KeepYourFocus
 {
@@ -14,6 +16,7 @@ namespace KeepYourFocus
         #region === Manager instances ===
         private readonly SoundManager soundManager;
         private readonly TileManager tileManager;
+        private readonly ActionManager actionManager;
         #endregion
 
         #region === Game state: ordered sequences for computer and player ===
@@ -65,6 +68,7 @@ namespace KeepYourFocus
             // Initialize managers
             tileManager = new TileManager(PictureBoxes);
             soundManager = new SoundManager();
+            actionManager = new ActionManager(tileManager, ShufflePictureBoxes);
 
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
@@ -320,7 +324,7 @@ namespace KeepYourFocus
         /// </summary>
         public async void InitializeButtonRetry_Click(object sender, EventArgs e)
         {
-            await Task.Delay(500);
+            await DelayAsync("Retry button delay", GameTiming.RetryButtonDelay);
 
             buttonRetry.Enabled = true;
             buttonRetry.Visible = true;
@@ -531,11 +535,11 @@ namespace KeepYourFocus
             {
                 Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle after display sequence");
 
-                await Task.Delay(500);
+                await DelayAsync("Pre-shuffle delay", GameTiming.PreShuffleDelay);
                 soundManager.PlayTransition();
                 tileManager.ShufflePositions();
                 tileManager.RefreshAndRepositionPictureBoxes();
-                await Task.Delay(500);
+                await DelayAsync("Post-shuffle delay", GameTiming.PostShuffleDelay);
             }
             // Case 2: Shuffle during player's turn (instant, no sound)
             if (counterLevels >= 1 && rnd.Next(100) <= 100 && isPlayerTurn ||
@@ -589,12 +593,12 @@ namespace KeepYourFocus
                 int pickLabelText = rnd.Next(labelText.Count);
                 string randomizedText = labelText[pickLabelText];
 
-                await Task.Delay(250);
+                await DelayAsync("Distraction message pre-delay", GameTiming.DistractionMessagePreDelay);
 
                 randomizedLabelClickHere.AutoSize = true;
                 randomizedLabelClickHere.Text = randomizedText;
                 randomizedLabelClickHere.Visible = true;
-                await Task.Delay(750);
+                await DelayAsync("Distraction message duration", GameTiming.DistractionMessageDuration);
                 randomizedLabelClickHere.Visible = false;
             }
         }
@@ -644,26 +648,28 @@ namespace KeepYourFocus
             Debug.WriteLine($"\n    Display Sequence #{counterSequences}:");
             Debug.WriteLine("    CorrectOrder = " + string.Join(", ", correctOrder) + "\n");
 
-            await Task.Delay(500);
+            // Delay before starting the sequence display to give the player a moment to prepare
+            await DelayAsync("Sequence start delay", GameTiming.SequenceStartDelay);
 
             foreach (string tile in correctOrder)
             {
                 if (!tileManager.PictureBoxDictionary.TryGetValue(tile, out PictureBox? box) || box == null)
                     continue;
 
-                await Task.Delay(500);
+                // Delay before revealing each tile to create a clear separation between them
+                await DelayAsync("Tile reveal delay", GameTiming.TileRevealDelay);
 
                 soundManager.PlayTileSound(tile);
 
                 tileManager.ManageHighlight(box, true);
-                await Task.Delay(150);
+                await DelayAsync("Tile highlight duration", GameTiming.TileHighlightDuration);
                 tileManager.ManageHighlight(box, false);
-                await Task.Delay(50);
+                await DelayAsync("Tile between delay", GameTiming.TileBetweenDelay);
             }
             // Verify difficulty
             await ManageActions();
 
-            await Task.Delay(500);
+            await DelayAsync("Sequence end delay", GameTiming.SequenceEndDelay);
 
             computer = false;
             isDisplaySequence = false;
@@ -675,6 +681,7 @@ namespace KeepYourFocus
         /// Handles the player's tile click. Validates each click against the correct
         /// sequence in order. Triggers game over on mismatch, or advances the round
         /// when the full sequence is matched.
+        /// Ensures highlights remain visible during feedback timing.
         /// </summary>
         public async void PlayersTurn(object? sender, EventArgs e)
         {
@@ -697,7 +704,10 @@ namespace KeepYourFocus
 
                 Debug.WriteLine($"\n  > Player sequence: [{tile}]\n");
 
-                // Verify difficulty
+                // Keep highlight visible during action verification
+                await DelayAsync("Player click highlight visibility", GameTiming.PlayerClickHighlightDuration);
+
+                // Verify difficulty actions (shuffles, replacements, etc.)
                 await ManageActions();
 
                 // Verify each item with correctOrder
@@ -706,35 +716,32 @@ namespace KeepYourFocus
                     // If any item doesn't match, trigger game over
                     if (playerOrder[itemIndex] != correctOrder[itemIndex])
                     {
-                        await Task.Delay(100);
+                        // Keep highlight visible for feedback before game over
+                        await DelayAsync("Player click feedback delay", GameTiming.PlayerClickFeedbackDelay);
                         tileManager.ManageHighlight(clickedBox, false);
-                        await Task.Delay(250);
+
                         TextBoxHighscores();
                         GameOver();
 
                         isPlayerTurn = false;
-
                         return;
                     }
                 }
+
+                // Unhighlight after feedback timing
+                tileManager.ManageHighlight(clickedBox, false);
+
                 if (playerOrder.Count == correctOrder.Count)
                 {
                     // Player completed the sequence correctly, prepare for next round
-                    await Task.Delay(100);
-                    tileManager.ManageHighlight(clickedBox, false);
-                    await Task.Delay(50);
-
+                    await DelayAsync("Tile between delay", GameTiming.TileBetweenDelay);
                     ManageCountersAndLevels();
-
                     isPlayerTurn = false;
                 }
                 else
                 {
-                    // Player is correct so far but hasn't completed the sequence, just unhighlight the tile
-                    await Task.Delay(100);
-                    tileManager.ManageHighlight(clickedBox, false);
-                    await Task.Delay(50);
-
+                    // Player is correct so far but hasn't completed the sequence
+                    await DelayAsync("Tile between delay", GameTiming.TileBetweenDelay);
                     isPlayerTurn = false;
                 }
             }
@@ -755,8 +762,8 @@ namespace KeepYourFocus
             // Block player's clicks
             computer = true;
 
-            // Delay 250 ms between beepSound and correctSound
-            await Task.Delay(250);
+            // Delay before playing correct sound
+            await DelayAsync("Pre-correct sound delay", GameTiming.PlayerClickFeedbackDelay);
             soundManager.PlayCorrect();
 
             await UpdateCounters();
@@ -765,7 +772,7 @@ namespace KeepYourFocus
             UpdateLevelName();
             UpdateTurn();
 
-            await Task.Delay(2750);
+            await DelayAsync("Round transition delay", GameTiming.RoundTransitionDelay);
 
             playerOrder.Clear();
             nextRound = false;
@@ -814,49 +821,18 @@ namespace KeepYourFocus
         }
 
         /// <summary>
-        /// Dispatches difficulty-based actions (shuffling, tile replacement) depending on
-        /// the current game phase. Ensures each phase only triggers one action per turn
-        /// via the <see cref="actionTaken"/> flag.
+        /// Dispatches difficulty-based actions (shuffling, tile replacement) based on current game phase.
+        /// Delegates to ActionManager for clean separation of concerns.
         /// </summary>
         public async Task ManageActions()
         {
-            Debug.WriteLine("[RUNNING Focus.ManageActions()]");
-
             setSequences = GetSelectedSequences();
 
-            // Shuffle during computer's turn
-            if (isComputerTurn && !actionTaken)
+            if (await actionManager.ExecutePhaseActionsAsync(
+                isComputerTurn, isPlayerTurn, isDisplaySequence, isSetCounters,
+                actionTaken, counterLevels, levelUp, isHardLevel,
+                setSequences, PictureBoxes, correctOrder, PlayersTurn))
             {
-                await ShufflePictureBoxes();
-                actionTaken = true;
-            }
-            // Shuffle during player's turn
-            if (isPlayerTurn && !actionTaken)
-            {
-                Debug.WriteLine("[Focus.ManageActions] isPlayerTurn");
-                await ShufflePictureBoxes();
-                actionTaken = true;
-            }
-            // Shuffle during sequence display
-            if (isDisplaySequence && !actionTaken)
-            {
-                Debug.WriteLine("[Focus.ManageActions] isDisplaySequence");
-                await ShufflePictureBoxes();
-                actionTaken = true;
-            }
-            // Replace all tiles on level-up
-            if (isSetCounters && !actionTaken)
-            {
-                tileManager.ReplaceAllTiles(PictureBoxes, counterLevels, levelUp, isHardLevel, isDisplaySequence, PlayersTurn);
-                actionTaken = true;
-            }
-            // Hard mode: apply all difficulty challenges simultaneously
-            if (setSequences == int.MaxValue && !actionTaken)
-            {
-                isHardLevel = true;
-                await ShufflePictureBoxes();
-                tileManager.ReplaceTileOnBoardAndInSequence(correctOrder, counterLevels, isHardLevel, isDisplaySequence, PlayersTurn);
-                tileManager.ReplaceAllTiles(PictureBoxes, counterLevels, levelUp, isHardLevel, isDisplaySequence, PlayersTurn);
                 actionTaken = true;
             }
         }
@@ -888,11 +864,11 @@ namespace KeepYourFocus
                         richTextBoxTurn.BackColor = Color.LightGreen;
                         richTextBoxTurn.Text = $"\nCORRECT";
 
-                        await Task.Delay(1500);
+                        await DelayAsync("Correct message duration", GameTiming.CorrectSequenceDuration);
 
                         richTextBoxTurn.Text = $"\nLevel  Up";
 
-                        await Task.Delay(1000);
+                        await DelayAsync("Level up message duration", GameTiming.LevelUpMessageDuration);
                         break;
                     }
                     else
@@ -900,10 +876,10 @@ namespace KeepYourFocus
                         richTextBoxTurn.BackColor = Color.LightGreen;
                         richTextBoxTurn.Text = $"\nCORRECT";
 
-                        await Task.Delay(1500);
+                        await DelayAsync("Correct message duration", GameTiming.CorrectSequenceDuration);
                         richTextBoxTurn.Text = $"\nNext Sequence";
 
-                        await Task.Delay(1000);
+                        await DelayAsync("Next sequence message duration", GameTiming.NextSequenceMessageDuration);
                         break;
                     }
                 case (true, false, _):

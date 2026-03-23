@@ -338,7 +338,7 @@ namespace KeepYourFocus.Managers
 
             // Step 5: Execute replacement on board (visual) if conditions met
             if (shouldReplaceOnBoard)
-                (copyCorrectOrder, replacementOccurred) = ReplaceOnBoard(
+                (copyCorrectOrder, replacementOccurred) = ReplaceOneTile(
                     copyCorrectOrder, deleteTile, allTiles, clickHandler, replacementOccurred);
 
             Debug.WriteLine($"[TileManager.ReplaceTileOnBoardAndInSequence] Replacement complete. Occurred: {replacementOccurred}");
@@ -420,7 +420,7 @@ namespace KeepYourFocus.Managers
             }
 
             // Replace the tile in the sequence
-            Debug.WriteLine($"[ReplaceInCorrectOrder] Replacing [{deleteTile}] at [{randomIndex}] with [{newTile}]");
+            Debug.WriteLine($"[ReplaceInCorrectOrder] Replacing [{deleteTile}] at index [{randomIndex}] with [{newTile}]");
             copyCorrectOrder[randomIndex] = newTile;
 
             return (copyCorrectOrder, true);
@@ -437,20 +437,20 @@ namespace KeepYourFocus.Managers
         /// <param name="clickHandler">The click event handler for the new PictureBox.</param>
         /// <param name="occurred">Whether a replacement has already occurred.</param>
         /// <returns>Updated (correctOrder, replacementOccurred) tuple.</returns>
-        private (List<string> correctOrder, bool occurred) ReplaceOnBoard(
+        private (List<string> correctOrder, bool occurred) ReplaceOneTile(
             List<string> copyCorrectOrder, string deleteTile,
             List<KeyValuePair<string, string>> allTiles, EventHandler clickHandler, bool occurred)
         {
             // Attempt to retrieve the PictureBox for the tile to be replaced
             if (!PictureBoxDictionary.TryGetValue(deleteTile, out PictureBox? pictureBox) || pictureBox == null)
             {
-                Debug.WriteLine($"[ReplaceOnBoard] Warning: tile '{deleteTile}' not found on board. Skipping.");
+                Debug.WriteLine($"[ReplaceOneTile] Warning: tile '{deleteTile}' not found on board. Skipping.");
                 return (copyCorrectOrder, occurred);
             }
 
             // Select a new tile color that is not already in use
             string newTile = SelectUnusedTile(allTiles, copyCorrectOrder);
-            Debug.WriteLine($"[ReplaceOnBoard] Selected replacement tile: [{newTile}] for [{deleteTile}]");
+            Debug.WriteLine($"[ReplaceOneTile] Selected replacement tile: [{newTile}] for [{deleteTile}]");
 
             // Remove the old tile mapping from the dictionary
             PictureBoxDictionary.Remove(deleteTile);
@@ -469,12 +469,12 @@ namespace KeepYourFocus.Managers
             {
                 if (copyCorrectOrder[i] == deleteTile)
                 {
-                    Debug.WriteLine($"[ReplaceOnBoard] Updated sequence at [{i}]: [{deleteTile}] → [{newTile}]");
+                    Debug.WriteLine($"[ReplaceOneTile] Updated sequence at [{i}]: [{deleteTile}] → [{newTile}]");
                     copyCorrectOrder[i] = newTile;
                 }
             }
 
-            Debug.WriteLine($"[ReplaceOnBoard] Replacement complete: [{deleteTile}] → [{newTile}]");
+            Debug.WriteLine($"[ReplaceOneTile] Replacement complete: [{deleteTile}] → [{newTile}]");
             return (copyCorrectOrder, true);
         }
 
