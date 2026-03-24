@@ -14,7 +14,7 @@ namespace KeepYourFocus.Managers
         /// Maps difficulty names to their priority values.
         /// Used for sorting and comparing scores across difficulty levels.
         /// </summary>
-        public static readonly Dictionary<string, int> DifficultyPriorities = new()
+        public static readonly Dictionary<string, int> DifficultyPriorities = new Dictionary<string, int>
         {
             { "Hard", 1 },
             { "Default", 2 },
