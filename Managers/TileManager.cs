@@ -166,12 +166,14 @@ namespace KeepYourFocus.Managers
             {
                 if (highlight)
                 {
+                    // Apply highlight by setting a white border padding and background color
                     pictureBox.BorderStyle = BorderStyle.None;
                     pictureBox.Padding = new Padding(5);
                     pictureBox.BackColor = Color.White;
                 }
                 else
                 {
+                    // Remove highlight by resetting padding, background color, and size to defaults
                     pictureBox.Padding = new Padding(0);
                     pictureBox.BackColor = Color.Transparent;
                     pictureBox.Size = pictureBoxFixedSize;
@@ -382,7 +384,7 @@ namespace KeepYourFocus.Managers
             // Determine replacement probability for the correct order (sequence) based on level
             // Levels 1+: 100%, Level 6+: 75%, Level 8+: 85%, Hard mode: 85% if displaying
             bool shouldReplaceInOrder =
-                (counterLevels >= 1 && correctOrderCount > 2 && rnd.Next(100) <= 100) ||
+                (counterLevels >= 5 && correctOrderCount > 2 && rnd.Next(100) <= 55) ||
                 (counterLevels >= 6 && correctOrderCount > 2 && rnd.Next(100) <= 75) ||
                 (counterLevels >= 8 && correctOrderCount > 2 && rnd.Next(100) <= 85) ||
                 (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
@@ -390,7 +392,7 @@ namespace KeepYourFocus.Managers
             // Determine replacement probability for the board (visual) based on level
             // Levels 1+: 100%, Level 7+: 75%, Level 9+: 85%, Hard mode: 85% if displaying
             bool shouldReplaceOnBoard =
-                (counterLevels >= 1 && correctOrderCount > 2 && rnd.Next(100) <= 100) ||
+                (counterLevels >= 6 && correctOrderCount > 2 && rnd.Next(100) <= 55) ||
                 (counterLevels >= 7 && correctOrderCount > 2 && rnd.Next(100) <= 75) ||
                 (counterLevels >= 9 && correctOrderCount > 2 && rnd.Next(100) <= 85) ||
                 (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
@@ -546,7 +548,8 @@ namespace KeepYourFocus.Managers
             // Level 7+ with level-up: 85% chance
             // Hard mode with display: 85% chance
             bool shouldReplace =
-                (counterLevels >= 1 && levelUp && rnd.Next(100) <= 100) ||
+                (counterLevels >= 2 && levelUp && rnd.Next(100) <= 35) ||
+                (counterLevels >= 3 && levelUp && rnd.Next(100) <= 55) ||
                 (counterLevels >= 5 && levelUp && rnd.Next(100) <= 75) ||
                 (counterLevels >= 7 && levelUp && rnd.Next(100) <= 85) ||
                 (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);

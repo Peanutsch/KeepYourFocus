@@ -528,7 +528,7 @@ namespace KeepYourFocus
         public async Task ShufflePictureBoxes()
         {
             // Case 1: Shuffle during sequence display (with transition sound and delay)
-            if (counterLevels == 1 && rnd.Next(100) <= 100 && isDisplaySequence ||
+            if (counterLevels == 2 && rnd.Next(100) <= 55 && isDisplaySequence ||
                 counterLevels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
                 counterLevels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence ||
                 isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
@@ -542,7 +542,7 @@ namespace KeepYourFocus
                 await DelayAsync("Post-shuffle delay", GameTiming.PostShuffleDelay);
             }
             // Case 2: Shuffle during player's turn (instant, no sound)
-            if (counterLevels >= 1 && rnd.Next(100) <= 100 && isPlayerTurn ||
+            if (counterLevels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
                 counterLevels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
                 counterLevels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn ||
                 isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence && isDisplaySequence)

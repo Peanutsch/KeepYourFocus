@@ -32,12 +32,12 @@ namespace KeepYourFocus.Helpers
 
             try
             {
-                Debug.WriteLine($"> {delayLabel} ({milliseconds} ms)");
+                //Debug.WriteLine($"> {delayLabel} ({milliseconds} ms)");
                 await Task.Delay(milliseconds, cancellationToken);
             }
             catch (OperationCanceledException)
             {
-                Debug.WriteLine($"[TaskExtensions.DelayAsync] '{delayLabel}' was cancelled");
+                //Debug.WriteLine($"[TaskExtensions.DelayAsync] '{delayLabel}' was cancelled");
                 throw;
             }
         }
