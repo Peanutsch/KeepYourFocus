@@ -351,7 +351,7 @@ namespace KeepYourFocus
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Black;
             ClientSize = new Size(631, 668);
-            Controls.Add(checkedListBoxDifficulty);
+            //Controls.Add(checkedListBoxDifficulty);
             Controls.Add(buttonEnter);
             Controls.Add(textBoxInputName);
             Controls.Add(buttonRetry);
