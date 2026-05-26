@@ -327,7 +327,7 @@ namespace KeepYourFocus
             buttonRetry.Visible = false;
             buttonRetry.Click += InitializeButtonRetry_Click;
             // 
-            // checkedListBoxDifficulty
+            // checkedListBoxDifficulty (disabled)
             // 
             checkedListBoxDifficulty.BackColor = Color.Black;
             checkedListBoxDifficulty.BorderStyle = BorderStyle.None;

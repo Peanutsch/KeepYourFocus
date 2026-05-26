@@ -1,17 +1,24 @@
+using KeepYourFocus.MonoGame;
+
 namespace KeepYourFocus
 {
     internal static class Program
     {
         /// <summary>
-        ///  The main entry point for the application.
+        /// The main entry point - runs MonoGame version
+        /// To switch back to Windows Forms: comment out MonoGame code and uncomment Windows Forms code below
         /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            Application.Run(new Focus());
+            // === MONOGAME VERSION (Currently Active) ===
+            using (var game = new MonoGameGame())
+                game.Run();
+
+            // === WINDOWS FORMS VERSION ===
+            // Uncomment below and comment out MonoGame code above to use Windows Forms version
+            //ApplicationConfiguration.Initialize();
+            //Application.Run(new Focus());
         }
     }
 }
