@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
 using System.Diagnostics;
+using System.Windows.Forms;
 using XnaColor = Microsoft.Xna.Framework.Color;
 using XnaKeys = Microsoft.Xna.Framework.Input.Keys;
 using XnaButtonState = Microsoft.Xna.Framework.Input.ButtonState;
@@ -46,6 +47,9 @@ namespace KeepYourFocus.MonoGame
         /// <summary>Flag to track if a new tile has been added to the sequence for this computer turn</summary>
         private bool computerTurnNewTileAdded = false;
 
+        /// <summary>Flag to track if the "get ready" message box has been shown for this computer turn</summary>
+        private bool computerTurnMessageBoxShown = false;
+
         /// <summary>Elapsed time during computer turn, measured in seconds</summary>
         private double computerTurnTimer = 0;
 
@@ -57,6 +61,15 @@ namespace KeepYourFocus.MonoGame
 
         /// <summary>Timer for displaying each individual tile during computer's turn</summary>
         private double computerTileDuration = 0.5;
+
+        /// <summary>The color of the tile clicked by the player. Used for visual feedback.</summary>
+        private string? playerClickedColor;
+
+        /// <summary>Timer for displaying the player's tile click highlight</summary>
+        private double playerClickTimer = 0;
+
+        /// <summary>Duration to show the player's click highlight</summary>
+        private double playerClickDuration = 0.3;
 
         /// <summary>Display size of each tile in pixels (150x150)</summary>
         private const int TILE_SIZE = 150;
@@ -258,6 +271,17 @@ namespace KeepYourFocus.MonoGame
                     Debug.WriteLine($"  ► Playing tile {computerSequenceIndex + 1}/{correctSequence.Count}: {computerChosenColor}");
                 }
 
+                // Show the "get ready" message box on first frame
+                if (!computerTurnMessageBoxShown)
+                {
+                    computerTurnMessageBoxShown = true;
+                    System.Windows.Forms.MessageBox.Show(
+                        $"Level {level}\n\nWatch the sequence carefully!\n\nSequence length: {correctSequence.Count}",
+                        "Computer Turn",
+                        System.Windows.Forms.MessageBoxButtons.OK,
+                        System.Windows.Forms.MessageBoxIcon.Information);
+                }
+
                 // Increment timer for current tile display
                 computerTurnTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -281,6 +305,7 @@ namespace KeepYourFocus.MonoGame
                         computerSequenceIndex = 0;
                         computerChosenColor = null;
                         computerTurnNewTileAdded = false;
+                        computerTurnMessageBoxShown = false;
                         Debug.WriteLine("↓ Switched to Player Turn");
                     }
                 }
@@ -290,6 +315,16 @@ namespace KeepYourFocus.MonoGame
             #region Player Turn Logic
             else
             {
+                // Update player click highlight timer
+                if (playerClickedColor != null)
+                {
+                    playerClickTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                    if (playerClickTimer >= playerClickDuration)
+                    {
+                        playerClickedColor = null; // Clear the highlight
+                    }
+                }
+
                 // Handle tile clicks during player's turn
                 if (mouseState.LeftButton == XnaButtonState.Pressed)
                 {
@@ -321,10 +356,15 @@ namespace KeepYourFocus.MonoGame
 
             #region Draw Game Tiles
             // Draw each tile, highlighting the computer's chosen tile during computer turn
-            DrawTile(redTile, redTilePos, "Red", computerChosenColor == "Red" && isComputerTurn);
-            DrawTile(blueTile, blueTilePos, "Blue", computerChosenColor == "Blue" && isComputerTurn);
-            DrawTile(orangeTile, orangeTilePos, "Orange", computerChosenColor == "Orange" && isComputerTurn);
-            DrawTile(greenTile, greenTilePos, "Green", computerChosenColor == "Green" && isComputerTurn);
+            // Also highlight the player's clicked tile for visual feedback
+            DrawTile(redTile, redTilePos, "Red", 
+                (computerChosenColor == "Red" && isComputerTurn) || playerClickedColor == "Red");
+            DrawTile(blueTile, blueTilePos, "Blue", 
+                (computerChosenColor == "Blue" && isComputerTurn) || playerClickedColor == "Blue");
+            DrawTile(orangeTile, orangeTilePos, "Orange", 
+                (computerChosenColor == "Orange" && isComputerTurn) || playerClickedColor == "Orange");
+            DrawTile(greenTile, greenTilePos, "Green", 
+                (computerChosenColor == "Green" && isComputerTurn) || playerClickedColor == "Green");
             #endregion
 
             #region Draw UI
@@ -467,6 +507,10 @@ namespace KeepYourFocus.MonoGame
             {
                 Debug.WriteLine($"Tile clicked: {clickedTile}");
 
+                // Show visual feedback by highlighting the clicked tile
+                playerClickedColor = clickedTile;
+                playerClickTimer = 0;
+
                 // Add the clicked tile to the player's sequence
                 playerSequence.Add(clickedTile);
 
@@ -561,6 +605,11 @@ namespace KeepYourFocus.MonoGame
             computerChosenColor = null;
             computerTurnTimer = 0;
             computerTurnNewTileAdded = false;
+            computerTurnMessageBoxShown = false;
+
+            // Reset player click feedback
+            playerClickedColor = null;
+            playerClickTimer = 0;
 
             // Note: correctSequence starts empty; computer will populate it on first turn
         }
