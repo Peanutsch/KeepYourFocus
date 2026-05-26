@@ -85,6 +85,9 @@ namespace KeepYourFocus.MonoGame
         /// <summary>Texture for green tile (can be loaded PNG or generated placeholder)</summary>
         private Texture2D? greenTile;
 
+        /// <summary>White texture used for drawing highlight borders around tiles</summary>
+        private Texture2D? whiteBorder;
+
         /// <summary>SpriteFont for rendering text UI. Null if font asset fails to load (fallback mode)</summary>
         private SpriteFont? font;
 
@@ -184,6 +187,12 @@ namespace KeepYourFocus.MonoGame
 
                 Debug.WriteLine("✓ Placeholder textures created");
             }
+            #endregion
+
+            #region Highlight Border Texture
+            // Create a white 1x1 pixel texture for drawing highlight borders
+            whiteBorder = new Texture2D(GraphicsDevice, 1, 1);
+            whiteBorder.SetData(new[] { XnaColor.White });
             #endregion
         }
 
@@ -408,19 +417,19 @@ namespace KeepYourFocus.MonoGame
         /// <param name="thickness">The width/height of the border lines in pixels</param>
         private void DrawBorder(Vector2 pos, int size, XnaColor color, int thickness)
         {
-            if (redTile == null) return;
+            if (whiteBorder == null) return;
 
             // Draw top border
-            spriteBatch.Draw(redTile, new XnaRectangle((int)pos.X, (int)pos.Y, size, thickness), color);
+            spriteBatch.Draw(whiteBorder, new XnaRectangle((int)pos.X, (int)pos.Y, size, thickness), color);
 
             // Draw bottom border
-            spriteBatch.Draw(redTile, new XnaRectangle((int)pos.X, (int)pos.Y + size - thickness, size, thickness), color);
+            spriteBatch.Draw(whiteBorder, new XnaRectangle((int)pos.X, (int)pos.Y + size - thickness, size, thickness), color);
 
             // Draw left border
-            spriteBatch.Draw(redTile, new XnaRectangle((int)pos.X, (int)pos.Y, thickness, size), color);
+            spriteBatch.Draw(whiteBorder, new XnaRectangle((int)pos.X, (int)pos.Y, thickness, size), color);
 
             // Draw right border
-            spriteBatch.Draw(redTile, new XnaRectangle((int)pos.X + size - thickness, (int)pos.Y, thickness, size), color);
+            spriteBatch.Draw(whiteBorder, new XnaRectangle((int)pos.X + size - thickness, (int)pos.Y, thickness, size), color);
         }
 
         #endregion
