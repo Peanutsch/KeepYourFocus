@@ -17,7 +17,6 @@ namespace KeepYourFocus
         private readonly SoundManager soundManager;
         private readonly TileManager tileManager;
         private readonly ActionManager actionManager;
-        private readonly DifficultyManager difficultyManager;
         #endregion
 
         #region === Game state: ordered sequences for computer and player ===
@@ -70,8 +69,6 @@ namespace KeepYourFocus
             tileManager = new TileManager(PictureBoxes);
             soundManager = new SoundManager();
             actionManager = new ActionManager(tileManager, ShufflePictureBoxes);
-            difficultyManager = new DifficultyManager(tileManager);
-            difficultyManager.RequestRepositionTiles += RefreshAndRepositionPictureBoxes;
 
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
@@ -498,22 +495,6 @@ namespace KeepYourFocus
             }
         }
 
-        /// <summary>
-        /// Reposition all picture boxes after difficulty shuffle.
-        /// Called by DifficultyManager when board should be reorganized.
-        /// </summary>
-        private void RefreshAndRepositionPictureBoxes()
-        {
-            difficultyManager.RepositionPictureBoxes(
-                new Dictionary<string, PictureBox>(StringComparer.OrdinalIgnoreCase)
-                {
-                    { "Red", pictureBox1 },
-                    { "Blue", pictureBox2 },
-                    { "Orange", pictureBox3 },
-                    { "Green", pictureBox4 }
-                });
-        }
-
         /// Opens the specified URL in the system's default browser or email client.
         /// </summary>
         /// <param name="url">The URL or mailto link to open.</param>
@@ -540,21 +521,18 @@ namespace KeepYourFocus
         #region === Difficulties === 
         /// <summary>
         /// Shuffles the on-screen positions of tile PictureBoxes as a difficulty challenge.
-        /// Delegates to DifficultyManager for level-based probability calculations.
+        /// Applies different shuffle rules depending on whether it is the computer's display
+        /// phase or the player's turn, with level-based probability.
         /// </summary>
         public async Task ShufflePictureBoxes()
         {
-            // Check if shuffle should occur based on level and turn state
-            if (!difficultyManager.ShouldShuffle(counterLevels, isDisplaySequence, isPlayerTurn, isComputerTurn))
+            // Case 1: Shuffle during sequence display (with transition sound and delay)
+            if (counterLevels == 2 && rnd.Next(100) <= 55 && isDisplaySequence ||
+                counterLevels >= 3 && rnd.Next(100) <= 75 && isDisplaySequence ||
+                counterLevels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence ||
+                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
             {
-                actionTaken = true;
-                return;
-            }
-
-            // Shuffle during sequence display (with transition sound and delay)
-            if (isDisplaySequence)
-            {
-                Debug.WriteLine($"[Focus.ShufflePictureBoxes] Shuffle after display sequence (Level {counterLevels})");
+                Debug.WriteLine($"[Focus.ShufflePictureBoxes] Shuffle PictureBoxes Case 1: Shuffle after display sequence");
 
                 await DelayAsync("[Focus.ShufflePictureBoxes] Pre-shuffle delay", GameTiming.PreShuffleDelay);
                 soundManager.PlayTransition();
@@ -562,15 +540,17 @@ namespace KeepYourFocus
                 tileManager.RefreshAndRepositionPictureBoxes();
                 await DelayAsync("[Focus.ShufflePictureBoxes] Post-shuffle delay", GameTiming.PostShuffleDelay);
             }
-            // Shuffle during player's turn (instant, no sound)
-            else if (isPlayerTurn)
+            // Case 2: Shuffle during player's turn (instant, no sound)
+            if (counterLevels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
+                counterLevels >= 4 && rnd.Next(100) <= 75 && isPlayerTurn ||
+                counterLevels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn ||
+                isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence && isDisplaySequence)
             {
-                Debug.WriteLine($"[Focus.ShufflePictureBoxes] Shuffle after player click (Level {counterLevels})");
+                Debug.WriteLine($"[Focus.ShufflePictureBoxes] Shuffle PictureBoxes Case 2: Shuffle after player click");
 
                 tileManager.ShufflePositions();
                 tileManager.RefreshAndRepositionPictureBoxes();
             }
-
             actionTaken = true;
         }
 
@@ -626,32 +606,9 @@ namespace KeepYourFocus
         /// Decides whether tiles should be replaced based on game level and current state.
         /// Delegates to DifficultyManager for level-based probability.
         /// </summary>
-        public async Task ManageDifficultyActionsAsync()
+        public static async Task ManageDifficultyActionsAsync()
         {
-            // Check if tiles should be replaced
-            var (shouldReplace, oldTile, newTile) = difficultyManager.DecideReplaceTile(
-                correctOrder, 
-                tileManager.PictureBoxDictionary, 
-                counterLevels);
-
-            if (shouldReplace && !string.IsNullOrEmpty(oldTile) && !string.IsNullOrEmpty(newTile))
-            {
-                Debug.WriteLine($"[ManageDifficultyActions] Replacing '{oldTile}' with '{newTile}' (Level {counterLevels})");
-
-                // Apply replacement in the correct order
-                difficultyManager.ApplyTileReplacement(correctOrder, oldTile, newTile);
-
-                // Visually update the tile on the board
-                if (tileManager.PictureBoxDictionary.TryGetValue(oldTile, out var oldPictureBox))
-                {
-                    var allTiles = TileManager.DictOfAllTiles();
-                    if (allTiles.TryGetValue(newTile, out var imagePath))
-                    {
-                        tileManager.InitializePictureBox(oldPictureBox, newTile, imagePath, PlayersTurn);
-                    }
-                }
-            }
-
+            // Placeholder: DifficultyManager integration reserved for future implementation
             await Task.CompletedTask;
         }
         #endregion
@@ -880,19 +837,12 @@ namespace KeepYourFocus
         {
             setSequences = GetSelectedSequences();
 
-            // Execute standard actions (shuffle, replace tiles, etc.)
             if (await actionManager.ExecutePhaseActionsAsync(
                 isComputerTurn, isPlayerTurn, isDisplaySequence, isSetCounters,
                 actionTaken, counterLevels, levelUp, isHardLevel,
                 setSequences, PictureBoxes, correctOrder, PlayersTurn))
             {
                 actionTaken = true;
-            }
-
-            // Execute difficulty-based actions via DifficultyManager
-            if (!actionTaken)
-            {
-                await ManageDifficultyActionsAsync();
             }
         }
         #endregion
