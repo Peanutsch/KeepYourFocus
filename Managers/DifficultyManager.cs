@@ -135,7 +135,8 @@ namespace KeepYourFocus.Managers
                 4 => 40,
                 5 => 55,
                 6 => 70,
-                >= 7 => 85
+                >= 7 => 85,
+                _ => 0  // Default for any other value (unreachable at runtime)
             };
 
             return rnd.Next(100) < chance;
