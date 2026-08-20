@@ -1102,7 +1102,7 @@ namespace KeepYourFocus
         /// </summary>
         public void TextBoxHighscores()
         {
-            List<(string, int, int, string, string, string, int)> topHighscores = ScoreManager.SortBestScores();
+            List<(string, int, int, string, string, string, string)> topHighscores = ScoreManager.SortBestScores();
 
             textBoxHighscore.Clear();
             textBoxHighscore.Visible = true;
@@ -1152,56 +1152,60 @@ namespace KeepYourFocus
 
             if (this.checkedListBoxDifficulty.CheckedItems.Count > 0)
             {
+                // Use levelName instead of difficultyLevel for storage
+                if (ScoreManager.QualifiesForTopScores(highScores, totalRounds, elapsedGameTime, levelName))
+                {
+                    // Temporarily add a placeholder entry to determine the player's rank
+                    string placeholderText = string.Empty;
+                    highScores.Add((placeholderText, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, levelName));
+
+                    highScores = highScores
+                        .OrderByDescending(score => score.Item2)
+                        .ThenBy(score => TimeSpan.Parse(score.Item6))
+                        .ThenBy(score => score.Item7)
+                        .Take(8)
+                        .ToList();
+
+                    // Calculate the player's rank position in the sorted leaderboard
+                    int playerRank = highScores.FindIndex(score => score.Item2 == totalRounds && score.Item6 == elapsedGameTime && score.Item7 == levelName) + 1;
+
+                    IsHighscoreText(totalRounds, playerRank);
+
+                    // Replace placeholder with actual player name and persist
+                    string playerName = await PlayerName();
+                    highScores.RemoveAll(score => score.Item1 == placeholderText);
+                    // Use levelName from the game state instead of manual difficulty lookup
+                    highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, levelName));
+
+                    ScoreManager.SaveScoreToFile(highScores);
+                    //Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {currentDate}, {elapsedGameTime}, {difficultyLevel}");
+                    Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {currentDate}, {elapsedGameTime}");
+
+                    textBoxInputName.Visible = false;
+                    textBoxInputName.Enabled = false;
+                    buttonEnter.Visible = false;
+                    buttonEnter.Enabled = false;
+                    buttonRetry.Enabled = true;
+                    buttonRetry.Visible = true;
+                }
+                else
+                {
+                    textBoxHighscore.Clear();
+                    TextBoxHighscores();
+
+                    IsNotHighscoreText(totalRounds);
+
+                    buttonRetry.Enabled = true;
+                    buttonRetry.Visible = true;
+                }
+                TextBoxHighscores();
+            }
+            /*
                 // Extract difficulty name (before the colon)
                 string? difficulty = this.checkedListBoxDifficulty.CheckedItems[0]?.ToString()?.Split(':')[0].Trim();
                 if (ScoreManager.DifficultyPriorities.TryGetValue(difficulty!, out int difficultyLevel))
                 {
-                    // Use levelName instead of difficultyLevel for storage
-                    if (ScoreManager.QualifiesForTopScores(highScores, totalRounds, elapsedGameTime, difficultyLevel))
-                    {
-                        // Temporarily add a placeholder entry to determine the player's rank
-                        string placeholderText = string.Empty;
-                        highScores.Add((placeholderText, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, difficultyLevel));
-
-                        highScores = highScores
-                            .OrderByDescending(score => score.Item2)
-                            .ThenBy(score => TimeSpan.Parse(score.Item6))
-                            .ThenBy(score => score.Item7)
-                            .Take(8)
-                            .ToList();
-
-                        // Calculate the player's rank position in the sorted leaderboard
-                        int playerRank = highScores.FindIndex(score => score.Item2 == totalRounds && score.Item6 == elapsedGameTime && score.Item7 == difficultyLevel) + 1;
-
-                        IsHighscoreText(totalRounds, playerRank);
-
-                        // Replace placeholder with actual player name and persist
-                        string playerName = await PlayerName();
-                        highScores.RemoveAll(score => score.Item1 == placeholderText);
-                        // Use levelName from the game state instead of manual difficulty lookup
-                        highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, difficultyLevel));
-
-                        ScoreManager.SaveScoreToFile(highScores);
-                        Debug.WriteLine($"Game data saved: {playerName}, {totalRounds}, {levelReached}, {levelName.Trim()}, {currentDate}, {elapsedGameTime}, {difficultyLevel}");
-
-                        textBoxInputName.Visible = false;
-                        textBoxInputName.Enabled = false;
-                        buttonEnter.Visible = false;
-                        buttonEnter.Enabled = false;
-                        buttonRetry.Enabled = true;
-                        buttonRetry.Visible = true;
-                    }
-                    else
-                    {
-                        textBoxHighscore.Clear();
-                        TextBoxHighscores();
-
-                        IsNotHighscoreText(totalRounds);
-
-                        buttonRetry.Enabled = true;
-                        buttonRetry.Visible = true;
-                    }
-                    TextBoxHighscores();
+                    
                 }
                 else
                 {
@@ -1212,6 +1216,7 @@ namespace KeepYourFocus
             {
                 //MessageBox.Show("No difficulty level selected.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            */
         }
 
         /// <summary>

@@ -28,10 +28,10 @@ namespace KeepYourFocus.Managers
         /// Each line contains: playerName, score, levelReached, levelName, date, elapsedTime, difficultyLevel.
         /// </summary>
         /// <returns>A list of score tuples parsed from the file.</returns>
-        public static List<(string, int, int, string, string, string, int)> ReadScoresFromFile()
+        public static List<(string, int, int, string, string, string, string)> ReadScoresFromFile()
         {
             string file = Path.Combine(PathHelper.GetRootPath(), "sounds", "setters.txt");
-            List<(string, int, int, string, string, string, int)> scoresList = new List<(string, int, int, string, string, string, int)>();
+            List<(string, int, int, string, string, string, string)> scoresList = new List<(string, int, int, string, string, string, string)>();
 
             try
             {
@@ -44,12 +44,13 @@ namespace KeepYourFocus.Managers
                         // Validate that the line has all 7 expected fields
                         if (parts.Length >= 7)
                         {
-                            if (int.TryParse(parts[1], out int playerScore) && int.TryParse(parts[2], out int levelReached) && int.TryParse(parts[6], out int difficultyLevel))
+                            if (int.TryParse(parts[1], out int playerScore) && int.TryParse(parts[2], out int levelReached))
                             {
                                 string playerName = parts[0].Trim();
                                 string levelName = parts[3].Trim();
                                 string isDate = parts[4].Trim();
                                 string elapsedGameTime = parts[5].Trim();
+                                string difficultyLevel = parts[6].Trim();
                                 scoresList.Add((playerName, playerScore, levelReached, levelName, isDate, elapsedGameTime, difficultyLevel));
                             }
                         }
@@ -71,13 +72,13 @@ namespace KeepYourFocus.Managers
         /// then fastest time, then hardest difficulty.
         /// </summary>
         /// <returns>A sorted list of the top 8 high scores.</returns>
-        public static List<(string, int, int, string, string, string, int)> SortBestScores()
+        public static List<(string, int, int, string, string, string, string)> SortBestScores()
         {
-            List<(string, int, int, string, string, string, int)> bestScores = new List<(string, int, int, string, string, string, int)>();
+            List<(string, int, int, string, string, string, string)> bestScores = new List<(string, int, int, string, string, string, string)>();
 
             try
             {
-                List<(string, int, int, string, string, string, int)> scoresList = ReadScoresFromFile();
+                List<(string, int, int, string, string, string, string)> scoresList = ReadScoresFromFile();
 
                 bestScores = scoresList.OrderByDescending(x => x.Item2)
                                        .ThenBy(x => TimeSpan.Parse(x.Item6))
@@ -102,14 +103,14 @@ namespace KeepYourFocus.Managers
         /// <param name="highScores">The current leaderboard entries.</param>
         /// <param name="totalRounds">The player's completed rounds.</param>
         /// <param name="elapsedGameTime">The player's elapsed game time (mm:ss format).</param>
-        /// <param name="difficultyLevel">The player's difficulty priority value.</param>
+        /// <param name="levelName">The player's level name.</param>
         /// <returns>True if the score qualifies for the top 8.</returns>
-        public static bool QualifiesForTopScores(List<(string, int, int, string, string, string, int)> highScores, int totalRounds, string elapsedGameTime, int difficultyLevel)
+        public static bool QualifiesForTopScores(List<(string, int, int, string, string, string, string)> highScores, int totalRounds, string elapsedGameTime, string levelName)
         {
             return highScores.Count < 8 ||
                    highScores.Any(score => score.Item2 < totalRounds ||
                    (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) > TimeSpan.Parse(elapsedGameTime)) ||
-                   (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) == TimeSpan.Parse(elapsedGameTime) && score.Item7 > difficultyLevel));
+                   (score.Item2 == totalRounds && TimeSpan.Parse(score.Item6) == TimeSpan.Parse(elapsedGameTime) && score.Item7 == levelName));
         }
         #endregion
 
@@ -120,13 +121,13 @@ namespace KeepYourFocus.Managers
         /// Triggers a backup copy after each save.
         /// </summary>
         /// <param name="highScores">The new high-score entries to merge and save.</param>
-        public static void SaveScoreToFile(List<(string, int, int, string, string, string, int)> highScores)
+        public static void SaveScoreToFile(List<(string, int, int, string, string, string, string)> highScores)
         {
             string rootPath = PathHelper.GetRootPath();
             string file = Path.Combine(rootPath, "sounds", "setters.txt");
 
             // Reuse existing parsing logic instead of duplicating it
-            List<(string, int, int, string, string, string, int)> currentScores = ReadScoresFromFile();
+            List<(string, int, int, string, string, string, string)> currentScores = ReadScoresFromFile();
 
             // Merge and keep the top 15 scores if under capacity
             if (currentScores.Count < 15)
