@@ -17,6 +17,7 @@ namespace KeepYourFocus
         private readonly SoundManager soundManager;
         private readonly TileManager tileManager;
         private readonly ActionManager actionManager;
+        private readonly DifficultyManager difficultyManager;
         #endregion
 
         #region === Game state: ordered sequences for computer and player ===
@@ -69,6 +70,8 @@ namespace KeepYourFocus
             tileManager = new TileManager(PictureBoxes);
             soundManager = new SoundManager();
             actionManager = new ActionManager(tileManager, ShufflePictureBoxes);
+            difficultyManager = new DifficultyManager(tileManager);
+            difficultyManager.RequestRepositionTiles += RefreshAndRepositionPictureBoxes;
 
             // Initialize Stopwatch for gametime
             gameStopwatch = new Stopwatch();
@@ -496,6 +499,21 @@ namespace KeepYourFocus
         }
 
         /// <summary>
+        /// Reposition all picture boxes after difficulty shuffle.
+        /// Called by DifficultyManager when board should be reorganized.
+        /// </summary>
+        private void RefreshAndRepositionPictureBoxes()
+        {
+            difficultyManager.RepositionPictureBoxes(
+                new Dictionary<string, PictureBox>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "Red", pictureBox1 },
+                    { "Blue", pictureBox2 },
+                    { "Orange", pictureBox3 },
+                    { "Green", pictureBox4 }
+                });
+        }
+
         /// Opens the specified URL in the system's default browser or email client.
         /// </summary>
         /// <param name="url">The URL or mailto link to open.</param>
@@ -533,13 +551,13 @@ namespace KeepYourFocus
                 counterLevels >= 5 && rnd.Next(100) <= 85 && isDisplaySequence ||
                 isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence)
             {
-                Debug.WriteLine($"Shuffle PictureBoxes Case 1: Shuffle after display sequence");
+                Debug.WriteLine($"[Focus.ShufflePictureBoxes] Shuffle PictureBoxes Case 1: Shuffle after display sequence");
 
-                await DelayAsync("Pre-shuffle delay", GameTiming.PreShuffleDelay);
+                await DelayAsync("[Focus.ShufflePictureBoxes] Pre-shuffle delay", GameTiming.PreShuffleDelay);
                 soundManager.PlayTransition();
                 tileManager.ShufflePositions();
                 tileManager.RefreshAndRepositionPictureBoxes();
-                await DelayAsync("Post-shuffle delay", GameTiming.PostShuffleDelay);
+                await DelayAsync("[Focus.ShufflePictureBoxes] Post-shuffle delay", GameTiming.PostShuffleDelay);
             }
             // Case 2: Shuffle during player's turn (instant, no sound)
             if (counterLevels >= 3 && rnd.Next(100) <= 55 && isPlayerTurn ||
@@ -547,7 +565,7 @@ namespace KeepYourFocus
                 counterLevels >= 6 && rnd.Next(100) <= 85 && isPlayerTurn ||
                 isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence && isDisplaySequence)
             {
-                Debug.WriteLine($"Shuffle PictureBoxes Case 2: Shuffle after player click");
+                Debug.WriteLine($"[Focus.ShufflePictureBoxes] Shuffle PictureBoxes Case 2: Shuffle after player click");
 
                 tileManager.ShufflePositions();
                 tileManager.RefreshAndRepositionPictureBoxes();
