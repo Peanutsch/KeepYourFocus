@@ -357,7 +357,7 @@ namespace KeepYourFocus.Managers
         {
             // Select a new random tile from the board
             string newTile = ManageRandomizerTiles();
-            Debug.WriteLine($"[PrepareReplacementData] Selected new tile: [{newTile}]");
+            Debug.WriteLine($"[TileManager.PrepareReplacementData] Selected new tile: [{newTile}]");
 
             // Retrieve all available tiles (cached)
             var allTiles = DictOfAllTiles().ToList();
@@ -397,7 +397,7 @@ namespace KeepYourFocus.Managers
                 (counterLevels >= 9 && correctOrderCount > 2 && rnd.Next(100) <= 85) ||
                 (isHardLevel && rnd.Next(100) <= 85 && isDisplaySequence);
 
-            Debug.WriteLine($"[DetermineReplacementActions] InOrder: {shouldReplaceInOrder}, OnBoard: {shouldReplaceOnBoard}");
+            Debug.WriteLine($"[TileManager.DetermineReplacementActions] InOrder: {shouldReplaceInOrder}, OnBoard: {shouldReplaceOnBoard}");
             return (shouldReplaceInOrder, shouldReplaceOnBoard);
         }
 
@@ -417,12 +417,12 @@ namespace KeepYourFocus.Managers
             // Validate replacement conditions: new tile must differ and not be at the end of sequence
             if (newTile == deleteTile || randomIndex == copyCorrectOrder.Count - 1)
             {
-                Debug.WriteLine($"[ReplaceInCorrectOrder] Skipped: newTile matches deleteTile or at end of sequence");
+                Debug.WriteLine($"[TileManager.ReplaceInCorrectOrder] Skipped: newTile matches deleteTile or at end of sequence");
                 return (copyCorrectOrder, occurred);
             }
 
             // Replace the tile in the sequence
-            Debug.WriteLine($"[ReplaceInCorrectOrder] Replacing [{deleteTile}] at index [{randomIndex}] with [{newTile}]");
+            Debug.WriteLine($"[TileManager.ReplaceInCorrectOrder] Replacing [{deleteTile}] at index [{randomIndex}] with [{newTile}]");
             copyCorrectOrder[randomIndex] = newTile;
 
             return (copyCorrectOrder, true);
@@ -446,13 +446,13 @@ namespace KeepYourFocus.Managers
             // Attempt to retrieve the PictureBox for the tile to be replaced
             if (!PictureBoxDictionary.TryGetValue(deleteTile, out PictureBox? pictureBox) || pictureBox == null)
             {
-                Debug.WriteLine($"[ReplaceOneTile] Warning: tile '{deleteTile}' not found on board. Skipping.");
+                Debug.WriteLine($"[TileManager.ReplaceOneTile] Warning: tile '{deleteTile}' not found on board. Skipping.");
                 return (copyCorrectOrder, occurred);
             }
 
             // Select a new tile color that is not already in use
             string newTile = SelectUnusedTile(allTiles, copyCorrectOrder);
-            Debug.WriteLine($"[ReplaceOneTile] Selected replacement tile: [{newTile}] for [{deleteTile}]");
+            Debug.WriteLine($"[TileManager.ReplaceOneTile] Selected replacement tile: [{newTile}] for [{deleteTile}]");
 
             // Remove the old tile mapping from the dictionary
             PictureBoxDictionary.Remove(deleteTile);
@@ -471,12 +471,12 @@ namespace KeepYourFocus.Managers
             {
                 if (copyCorrectOrder[i] == deleteTile)
                 {
-                    Debug.WriteLine($"[ReplaceOneTile] Updated sequence at [{i}]: [{deleteTile}] → [{newTile}]");
+                    Debug.WriteLine($"[TileManager.ReplaceOneTile] Updated sequence at [{i}]: [{deleteTile}] → [{newTile}]");
                     copyCorrectOrder[i] = newTile;
                 }
             }
 
-            Debug.WriteLine($"[ReplaceOneTile] Replacement complete: [{deleteTile}] → [{newTile}]");
+            Debug.WriteLine($"[TileManager.ReplaceOneTile] Replacement complete: [{deleteTile}] → [{newTile}]");
             return (copyCorrectOrder, true);
         }
 
@@ -495,10 +495,10 @@ namespace KeepYourFocus.Managers
             do
             {
                 selected = allTiles[rnd.Next(allTiles.Count)].Key;
-                Debug.WriteLine($"[SelectUnusedTile] Candidate: [{selected}]");
+                Debug.WriteLine($"[TileManager.SelectUnusedTile] Candidate: [{selected}]");
             } while (excludeTiles.Contains(selected) || PictureBoxDictionary.ContainsKey(selected));
 
-            Debug.WriteLine($"[SelectUnusedTile] Final selection: [{selected}]");
+            Debug.WriteLine($"[TileManager.SelectUnusedTile] Final selection: [{selected}]");
             return selected;
         }
 

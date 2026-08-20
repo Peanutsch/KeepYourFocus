@@ -1,24 +1,21 @@
-using KeepYourFocus.MonoGame;
+using KeepYourFocus;
+using System.Windows.Forms;
 
 namespace KeepYourFocus
 {
+    /// <summary>
+    /// Main entry point for KeepYourFocus WinForms application.
+    /// </summary>
     internal static class Program
     {
-        /// <summary>
-        /// The main entry point - runs MonoGame version
-        /// To switch back to Windows Forms: comment out MonoGame code and uncomment Windows Forms code below
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // === MONOGAME VERSION (Currently Active) ===
-            using (var game = new MonoGameGame())
-                game.Run();
+            // Initialize WinForms
+            ApplicationConfiguration.Initialize();
 
-            // === WINDOWS FORMS VERSION ===
-            // Uncomment below and comment out MonoGame code above to use Windows Forms version
-            //ApplicationConfiguration.Initialize();
-            //Application.Run(new Focus());
+            // Run the main form
+            Application.Run(new Focus());
         }
     }
 }
