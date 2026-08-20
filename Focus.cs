@@ -1110,19 +1110,22 @@ namespace KeepYourFocus
             textBoxHighscore.Font = new Font("Courier New", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
 
             textBoxHighscore.Text = "\r\n===HIGHSCORES===\r\n\r\n";
-            textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", "Rank", "Player", "Sequences", "Difficulty"));
+            //textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", "Rank", "Player", "Sequences", "Difficulty"));
+            textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", "Rank", "Player", "Sequences", "Level"));
 
             int lineNumber = 1;
             foreach (var score in topHighscores)
             {
                 string playerName = score.Item1;
                 int totalRounds = score.Item2;
-                int difficultyLevelValue = score.Item7;
+                //int difficultyLevelValue = score.Item7;
+                string levelName = score.Item4;
 
-                string difficultyLevel = ScoreManager.DifficultyPriorities
-                    .FirstOrDefault(x => x.Value == difficultyLevelValue).Key ?? "Unknown";
+                //string difficultyLevel = ScoreManager.DifficultyPriorities
+                //      .FirstOrDefault(x => x.Value == difficultyLevelValue).Key ?? "Unknown";
 
-                textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", lineNumber, playerName, totalRounds, difficultyLevel));
+                //textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", lineNumber, playerName, totalRounds, difficultyLevel));
+                textBoxHighscore.AppendText(string.Format("{0, -5} {1, -10} {2, -10} {3, -10}\r\n", lineNumber, playerName, totalRounds, levelName));
                 lineNumber++;
             }
         }
@@ -1149,10 +1152,11 @@ namespace KeepYourFocus
 
             if (this.checkedListBoxDifficulty.CheckedItems.Count > 0)
             {
-                // Extract difficulty name (before the colon) and look up its priority value
+                // Extract difficulty name (before the colon)
                 string? difficulty = this.checkedListBoxDifficulty.CheckedItems[0]?.ToString()?.Split(':')[0].Trim();
                 if (ScoreManager.DifficultyPriorities.TryGetValue(difficulty!, out int difficultyLevel))
                 {
+                    // Use levelName instead of difficultyLevel for storage
                     if (ScoreManager.QualifiesForTopScores(highScores, totalRounds, elapsedGameTime, difficultyLevel))
                     {
                         // Temporarily add a placeholder entry to determine the player's rank
@@ -1174,6 +1178,7 @@ namespace KeepYourFocus
                         // Replace placeholder with actual player name and persist
                         string playerName = await PlayerName();
                         highScores.RemoveAll(score => score.Item1 == placeholderText);
+                        // Use levelName from the game state instead of manual difficulty lookup
                         highScores.Add((playerName, totalRounds, levelReached, levelName.Trim(), currentDate, elapsedGameTime, difficultyLevel));
 
                         ScoreManager.SaveScoreToFile(highScores);
@@ -1200,12 +1205,12 @@ namespace KeepYourFocus
                 }
                 else
                 {
-                    MessageBox.Show("Selected difficulty level is not recognized.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //MessageBox.Show("Selected difficulty level is not recognized.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             else
             {
-                MessageBox.Show("No difficulty level selected.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //MessageBox.Show("No difficulty level selected.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
